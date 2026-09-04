@@ -109,5 +109,28 @@ check "ReduceMotion shake" 'IsReduceMotion' src/client/Controllers/CameraControl
 check "SyncSettings TextSpeed" 'TextSpeed' src/server/GameService.lua
 absent "Newspaper open sting" 'SFX_NewspaperSting' src/client/UI/Newspaper.lua
 
+# N5 level verbs
+check "WATER_TIMEOUT constant" 'WATER_TIMEOUT' src/shared/Constants.lua
+check "CONVEYOR_FLIP_PERIOD" 'CONVEYOR_FLIP_PERIOD' src/shared/Constants.lua
+check "TURTLE_ESCORT_RADIUS" 'TURTLE_ESCORT_RADIUS' src/shared/Constants.lua
+check "WIND_OPPOSE_MULT" 'WIND_OPPOSE_MULT' src/shared/Constants.lua
+check "Stages.LevelVerb" 'function Stages.LevelVerb' src/shared/Stages.lua
+check "Story MidGateLockLine" 'MidGateLockLine' src/shared/Story.lua
+check "Story VerbToast" 'VerbToast' src/shared/Story.lua
+check "Water timeout soft-fall" 'WATER_TIMEOUT' src/server/HazardService.lua
+check "Conveyor flip signed" 'ConveyorDir' src/server/HazardService.lua
+check "WindOpposeJump hazard" 'WindOpposeJump' src/server/HazardService.lua
+check "WorldBuilder LevelVerb attr" 'LevelVerb' src/server/WorldBuilder.lua
+check "WorldBuilder ConveyorFlipPeriod" 'ConveyorFlipPeriod' src/server/WorldBuilder.lua
+check "Platform scalingTier density" 'scalingTier adds real' src/server/WorldBuilder.lua
+check "Canal pad-only setPiece" 'pad-only traversal' src/server/WorldBuilder.lua
+check "Barge wind gaps" 'wind opposing jumps' src/server/WorldBuilder.lua
+check "Turtle EscortGoalX" 'EscortGoalX' src/server/StageFlowService.lua
+check "MidGate first-lock Tagline" 'midGateAct' src/server/StageFlowService.lua
+check "Verb toast LoadStage" 'VerbToast' src/server/StageFlowService.lua
+check "Turtle escort AI" 'EscortEnabled' src/server/EnemyService.lua
+check "Late denser telegraphs" 'stageIdx >= 17' src/server/EnemyService.lua
+absent "SafetyFloor regression" 'SafetyFloor' src/
+
 
 exit $fail

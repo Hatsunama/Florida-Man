@@ -115,6 +115,27 @@ Story.ACT_OPENERS = {
 	[5] = "Act 5 — The Spillfather: refuse the bargain. For the turtles.",
 }
 
+-- N5: first MidGate lock Tagline per act (popup-only)
+Story.MIDGATE_LOCK = {
+	[1] = "ROOM LOCK — clear the wave. The boardwalk doesn't negotiate.",
+	[2] = "ROOM LOCK — swamp gate sealed. Clear hostiles; pads still matter.",
+	[3] = "ROOM LOCK — nests behind the barrier. Clear it, then escort turtles.",
+	[4] = "ROOM LOCK — GulfGulp airlock. Conveyors flip. Clear the wave.",
+	[5] = "ROOM LOCK — last checkpoint before the Spillfather. No empty-wave cheese.",
+}
+
+Story.VERB_TOAST = {
+	hangoverColdOne = "VERB: Hangover slows you — walk into the Cold One (Florida Dew).",
+	timedRhythm = "VERB: Timed hazards — jump when the puddle goes HOT.",
+	padWater = "VERB: Pad-only — deep water soft-falls you if you linger.",
+	oilSlick = "VERB: Oil slicks slow hard — skim the edges or slip.",
+	turtleEscort = "VERB: Stay near turtles — they walk toward the nest. Press E to rescue.",
+	midGate = "VERB: MidGate rooms — step in, clear the wave, path opens.",
+	conveyorFlip = "VERB: Conveyors flip direction on a timer — read the arrows.",
+	windGaps = "VERB: Jump the gaps — wind cuts your jump if you linger in the gust.",
+	bossArena = "VERB: Boss telegraphs denser — clear adds; empty MidGate never locks.",
+}
+
 
 -- Act 1 event-tied Steve lines (not random rotate)
 Story.ACT1_EVENTS = {
@@ -186,6 +207,14 @@ end
 
 function Story.ActOpener(act: number): string
 	return Story.ACT_OPENERS[math.clamp(act, 1, 5)] or Story.ACT_OPENERS[1]
+end
+
+function Story.MidGateLockLine(act: number): string
+	return Story.MIDGATE_LOCK[math.clamp(act, 1, 5)] or Story.MIDGATE_LOCK[1]
+end
+
+function Story.VerbToast(verb: string): string?
+	return Story.VERB_TOAST[verb]
 end
 
 return Story

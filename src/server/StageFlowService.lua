@@ -40,9 +40,14 @@ local function spawnStageThreats(player: Player)
 	if stage.rescueTurtles > 0 then
 		s.turtlesNeeded = stage.rescueTurtles
 		s.turtlesRescued = 0
+		local goalX = stage.length - 14
 		for i = 1, stage.rescueTurtles do
 			local x = stage.length * (0.2 + 0.12 * i)
-			EnemyService.SpawnTurtle(x)
+			local m = EnemyService.SpawnTurtle(x)
+			if m then
+				m:SetAttribute("EscortGoalX", goalX)
+				m:SetAttribute("EscortEnabled", true)
+			end
 		end
 	end
 end
@@ -112,6 +117,7 @@ function StageFlowService.LoadStage(player: Player, stageId: string)
 			char:SetAttribute("LastSolidY", nil)
 			char:SetAttribute("OilSlowUntil", nil)
 			char:SetAttribute("OilSlow", nil)
+			char:SetAttribute("WaterSince", nil)
 		end
 	end
 	if stage.index == 1 then
@@ -156,6 +162,16 @@ function StageFlowService.LoadStage(player: Player, stageId: string)
 		task.delay(1.2, function()
 			RunContext.Toast(player, beat)
 		end)
+	end
+	-- N5: stage mechanical verb (popup toast; dialogue stays Tagline/Toast only)
+	do
+		local verb = Stages.LevelVerb(stage)
+		local vt = Story.VerbToast(verb)
+		if vt then
+			task.delay(0.7, function()
+				RunContext.Toast(player, vt)
+			end)
+		end
 	end
 	if stage.showMutantTagline then
 		task.delay(2.5, function()
@@ -300,8 +316,6 @@ function StageFlowService.FinishStage(player: Player)
 				local wdef = Weapons.Get(wid)
 				RunContext.Toast(player, "Weapon unlocked: " .. (if wdef then wdef.name else wid))
 			end
-		end
-	end
 		end
 	end
 
@@ -459,6 +473,15 @@ function StageFlowService.TickWaves(player: Player)
 					barrier.Transparency = 0.4
 				end
 				RunContext.Toast(player, "ROOM LOCKED — clear the wave!")
+				-- N5: one story Tagline on first MidGate lock per act
+				do
+					local act = Balance.ActNumber(stage.index)
+					local key = "midGateAct" .. tostring(act)
+					if not s.steveEvents[key] then
+						s.steveEvents[key] = true
+						Remotes.Get("ShowTagline"):FireClient(player, Story.MidGateLockLine(act), "Captain Steve")
+					end
+				end
 				Remotes.Get("CombatEvent"):FireClient(player, {
 					kind = "arenaLock",
 					pos = mid.Position,

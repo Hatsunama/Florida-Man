@@ -256,19 +256,19 @@ local function makeHazard(world: Folder, kind: string, x: number, laneZ: number,
 		h.Material = Enum.Material.Mud
 		h.Size = Vector3.new(9, 0.25, 5)
 		if kind == "slushPuddle" then
-
-			h:SetAttribute("HazardPeriod", 3.2)
-			h:SetAttribute("HazardDuty", 0.55)
+			h:SetAttribute("HazardPeriod", 2.4)
+			h:SetAttribute("HazardDuty", 0.45)
 			h:SetAttribute("HazardDamage", 3)
+			h:SetAttribute("JumpRhythm", true)
 			label(h, "SLUSH — JUMP WHEN HOT", Color3.fromRGB(180, 255, 255), 2)
 		end
 	elseif kind == "fryerOil" then
 		h.Color = Color3.fromRGB(180, 120, 30)
 		h.Material = Enum.Material.Glass
 		h.Transparency = 0.4
-
-		h:SetAttribute("HazardPeriod", 2.6)
-		h:SetAttribute("HazardDuty", 0.48)
+		-- N5 Act1: clearer timed rhythm
+		h:SetAttribute("HazardPeriod", 2.2)
+		h:SetAttribute("HazardDuty", 0.42)
 		h:SetAttribute("HazardDamage", 5)
 		h:SetAttribute("JumpRhythm", true)
 		label(h, "FRYER OIL — JUMP WHEN HOT", Color3.fromRGB(255, 220, 80), 2)
@@ -279,8 +279,9 @@ local function makeHazard(world: Folder, kind: string, x: number, laneZ: number,
 		h.CFrame = CFrame.new(x, 0.4, laneZ)
 		h.Transparency = 0.15
 		h:SetAttribute("ConveyorPush", 22)
+		h:SetAttribute("ConveyorFlipPeriod", Constants.CONVEYOR_FLIP_PERIOD)
 		h:SetAttribute("HazardDamage", 4)
-		label(h, "CONVEYOR", Color3.fromRGB(255, 180, 80), 2)
+		label(h, "CONVEYOR FLIPS", Color3.fromRGB(255, 180, 80), 2)
 	elseif kind == "pipeSpray" then
 		h.Color = Color3.fromRGB(80, 200, 120)
 		h.Material = Enum.Material.Neon
@@ -328,7 +329,8 @@ local function makeHazard(world: Folder, kind: string, x: number, laneZ: number,
 		h.Transparency = 0.45
 		h:SetAttribute("WaterSlow", true)
 		h:SetAttribute("SlowAmount", 7)
-		label(h, "DEEP WATER — USE PADS", Color3.fromRGB(120, 220, 255), 2)
+		h:SetAttribute("WaterTimeout", Constants.WATER_TIMEOUT)
+		label(h, "DEEP WATER — PADS OR SOFT-FALL", Color3.fromRGB(120, 220, 255), 2)
 	elseif kind == "windPush" then
 		h.Color = Color3.fromRGB(180, 220, 255)
 		h.Material = Enum.Material.ForceField
@@ -336,26 +338,46 @@ local function makeHazard(world: Folder, kind: string, x: number, laneZ: number,
 		h.CFrame = CFrame.new(x, 3, laneZ)
 		h.Transparency = 0.7
 		h:SetAttribute("WindDir", -1)
+		h:SetAttribute("WindSpeed", Constants.WIND_PUSH_SPEED)
+		h:SetAttribute("WindOpposeJump", true)
+		label(h, "WIND — CUTS JUMP", Color3.fromRGB(200, 240, 255), 2)
 	end
 	return h
 end
 
 function WorldBuilder._Platforms(world: Folder, stage: any, laneZ: number, length: number)
 	local n = stage.platformLedges or 0
+	local tier = stage.scalingTier or 0
+	-- N5: scalingTier adds real ledge density (not cosmetics only)
+	n = n + math.max(0, tier - 1)
 	if n <= 0 then
 		return
 	end
+	local verb = Stages.LevelVerb(stage)
 	for i = 1, n do
-		local x = length * (0.3 + 0.25 * i / (n + 1))
-		local h = 4 + (i % 2) * 2
+		local x = length * (0.22 + 0.55 * i / (n + 1))
+		local h = 3.5 + (i % 3) * 1.8 + math.min(tier, 3) * 0.35
 		part({
 			Name = "Ledge",
 			Parent = world,
-			Size = Vector3.new(10, 1, 6),
+			Size = Vector3.new(9 + (if tier >= 3 then 2 else 0), 1, 6),
 			CFrame = CFrame.new(x, h, laneZ),
 			Color = stage.accentColor:Lerp(stage.groundColor, 0.5),
 			Material = if stage.biome == "facility" or stage.biome == "offshore" then Enum.Material.Metal else Enum.Material.Wood,
 		})
+		if verb == "padWater" or verb == "windGaps" or i % 2 == 0 then
+			local pad = part({
+				Name = "JumpPad",
+				Parent = world,
+				Size = Vector3.new(4.5, 0.6, 4.5),
+				CFrame = CFrame.new(x, h + 0.7, laneZ),
+				Color = Color3.fromRGB(80, 220, 180),
+				Material = Enum.Material.Neon,
+			})
+			pad:SetAttribute("JumpPad", true)
+			pad:SetAttribute("PadBoost", if verb == "windGaps" then 62 else 54)
+			label(pad, "PAD", Color3.fromRGB(200, 255, 220), 2)
+		end
 	end
 end
 
@@ -438,15 +460,22 @@ function WorldBuilder._SetPiece(world: Folder, stage: any, laneZ: number, length
 		pl.Range = 36
 		pl.Parent = spot
 	elseif sp == "canalPads" then
-
-		for i = 1, 5 do
-			local x = 25 + i * 42
-			makeHazard(world, "canalWater", x, laneZ, stage.accentColor)
-			local pad = part({ Name = "JumpPad", Parent = world, Size = Vector3.new(5, 0.7, 5),
-				CFrame = CFrame.new(x + 10, 0.45, laneZ), Color = Color3.fromRGB(80, 220, 180), Material = Enum.Material.Neon })
+		-- N5 Act2: pad-only traversal — water + pads as the verb
+		for i = 1, 6 do
+			local x = 20 + i * 36
+			local water = makeHazard(world, "canalWater", x, laneZ, stage.accentColor)
+			water.Size = Vector3.new(16, 0.45, 10)
+			local pad = part({ Name = "JumpPad", Parent = world, Size = Vector3.new(5.5, 0.7, 5),
+				CFrame = CFrame.new(x + 9, 0.5, laneZ), Color = Color3.fromRGB(80, 220, 180), Material = Enum.Material.Neon })
 			pad:SetAttribute("JumpPad", true)
 			pad:SetAttribute("PadBoost", 58)
 			label(pad, "PAD " .. tostring(i), Color3.fromRGB(200, 255, 220), 2)
+			if i % 2 == 0 then
+				local midPad = part({ Name = "JumpPad", Parent = world, Size = Vector3.new(4, 0.6, 4),
+					CFrame = CFrame.new(x - 6, 2.8, laneZ), Color = Color3.fromRGB(100, 240, 200), Material = Enum.Material.Neon })
+				midPad:SetAttribute("JumpPad", true)
+				midPad:SetAttribute("PadBoost", 50)
+			end
 		end
 	elseif sp == "cypressCanopy" then
 		for i = 1, 6 do
@@ -544,7 +573,7 @@ function WorldBuilder._SetPiece(world: Folder, stage: any, laneZ: number, length
 		part({ Name = "Crane", Parent = world, Size = Vector3.new(2, 18, 2),
 			CFrame = CFrame.new(mid + 20, 10, laneZ - 6), Color = Color3.fromRGB(255, 160, 40), Material = Enum.Material.Metal, CanCollide = false })
 	elseif sp == "bargeGaps" then
-
+		-- N5 Act5: gaps + wind opposing jumps
 		for i = 1, 5 do
 			local x = 20 + i * 48
 			part({ Name = "Deck", Parent = world, Size = Vector3.new(26, 1.2, 10),
@@ -552,6 +581,9 @@ function WorldBuilder._SetPiece(world: Folder, stage: any, laneZ: number, length
 			local gap = part({ Name = "GapWater", Parent = world, Size = Vector3.new(14, 0.3, 12),
 				CFrame = CFrame.new(x + 20, -0.4, laneZ), Color = Color3.fromRGB(30, 80, 110), Material = Enum.Material.Glass, CanCollide = false, Transparency = 0.4 })
 			gap:SetAttribute("GapMarker", true)
+			local wind = makeHazard(world, "windPush", x + 18, laneZ, stage.accentColor)
+			wind:SetAttribute("WindDir", if i % 2 == 0 then -1 else 1)
+			wind:SetAttribute("WindOpposeJump", true)
 			local cp = part({ Name = "CheckpointPad", Parent = world, Size = Vector3.new(4, 0.4, 4),
 				CFrame = CFrame.new(x + 8, 1.5, laneZ), Color = Color3.fromRGB(80, 220, 160), Material = Enum.Material.Neon, CanCollide = false })
 			cp:SetAttribute("Checkpoint", true)
@@ -630,6 +662,13 @@ function WorldBuilder._SetPiece(world: Folder, stage: any, laneZ: number, length
 		if not skip[hk] then
 			local x = length * (0.2 + 0.15 * i)
 			makeHazard(world, hk, x, laneZ, stage.accentColor)
+		end
+	end
+	-- N5 Act4: conveyor flip verb even when setPiece is not labConveyor
+	local verb = Stages.LevelVerb(stage)
+	if verb == "conveyorFlip" and sp ~= "labConveyor" then
+		for i = 1, 2 + math.min(stage.scalingTier or 0, 2) do
+			makeHazard(world, "conveyor", length * (0.25 + 0.2 * i), laneZ, stage.accentColor)
 		end
 	end
 end
@@ -887,8 +926,17 @@ function WorldBuilder._BuildGround(world: Folder, stage: any, laneZ: number, len
 	local biome = stage.biome or "beach"
 	local idx = stage.index or 0
 
+	local tier = stage.scalingTier or 0
 	local segs = if idx <= 3 then 3 elseif idx <= 8 then 5 elseif idx <= 14 then 6 else 7
+	segs += math.clamp(tier - 1, 0, 2)
 	local gapChance = if idx <= 4 then 0 elseif idx <= 10 then 0.35 else 0.55
+	gapChance = math.clamp(gapChance + tier * 0.04, 0, 0.7)
+	if stage.setPiece == "canalPads" then
+		gapChance = math.max(gapChance, 0.55)
+	end
+	if stage.setPiece == "bargeGaps" then
+		gapChance = math.max(gapChance, 0.6)
+	end
 	local cursor = -10
 	local segLen = (length + 30) / segs
 	local rng = Random.new((#stage.id) * 31 + idx * 97)
@@ -1235,6 +1283,8 @@ function WorldBuilder.BuildStage(stageId: string, deaths: number?): Folder
 	world:SetAttribute("Biome", stage.biome or "beach")
 	world:SetAttribute("SetPiece", stage.setPiece or "")
 	world:SetAttribute("StoryBeat", stage.storyBeat or "")
+	world:SetAttribute("LevelVerb", Stages.LevelVerb(stage))
+	world:SetAttribute("ScalingTier", stage.scalingTier or 0)
 	return world
 end
 

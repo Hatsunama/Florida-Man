@@ -56,6 +56,13 @@ local Constants = {
 	OIL_SLOW_MULT_RESIST = 0.88, -- GREASY set milder slick slow
 	HOA_CONE_DAMAGE = 3,
 	CART_DASH_IFRAME = 0.55, -- Golf Cart Bandit skill armor frames
+	-- N5 level verbs
+	WATER_TIMEOUT = 2.4, -- Act2 pad-only: soft-fall if in deep water this long
+	CONVEYOR_FLIP_PERIOD = 3.8, -- Act4 conveyor push sign flip
+	TURTLE_ESCORT_RADIUS = 14,
+	TURTLE_ESCORT_SPEED = 9,
+	WIND_OPPOSE_MULT = 0.52, -- Act5 cut upward vel while in wind
+	WIND_PUSH_SPEED = 22,
 }
 
 return Constants

@@ -404,8 +404,40 @@ function EnemyService.StartAI()
 			end
 
 			if model:GetAttribute("IsAlly") then
-
-				EnemyFactory.Animate(model, dt, false, false)
+				-- N5 Act3: turtle escort — walk toward goal when player nearby
+				if model:GetAttribute("EnemyId") == "RescueTurtle" and not model:GetAttribute("Rescued") and model:GetAttribute("EscortEnabled") then
+					local goalX = model:GetAttribute("EscortGoalX")
+					if typeof(goalX) == "number" then
+						local nearestPlr: Player? = nil
+						local nearDist = 1e9
+						for _, plr in Players:GetPlayers() do
+							local char = plr.Character
+							local hrp = char and char:FindFirstChild("HumanoidRootPart") :: BasePart?
+							if hrp then
+								local d = (hrp.Position - root.Position).Magnitude
+								if d < nearDist then
+									nearDist = d
+									nearestPlr = plr
+								end
+							end
+						end
+						if nearestPlr and nearDist <= Constants.TURTLE_ESCORT_RADIUS then
+							local dx = goalX - root.Position.X
+							if math.abs(dx) > 2.5 then
+								local step = math.clamp(dx, -Constants.TURTLE_ESCORT_SPEED * dt, Constants.TURTLE_ESCORT_SPEED * dt)
+								root.CFrame = CFrame.new(root.Position.X + step, root.Position.Y, Constants.LANE_Z)
+							elseif nearDist <= 10 then
+								-- Arrived near nest with player nearby — auto-rescue (Prompt still works)
+								if EnemyService.TryRescue(nearestPlr, model) then
+									continue
+								end
+							end
+						end
+					end
+				end
+				if model.Parent then
+					EnemyFactory.Animate(model, dt, false, false)
+				end
 				continue
 			end
 			if telegraphing[model] then
@@ -552,6 +584,11 @@ function EnemyService._TelegraphAttack(model: Model, target: Player, behavior: s
 		tele = tele * 1.2
 	elseif stageIdx == 3 then
 		tele = tele * 1.08
+	elseif stageIdx >= 17 then
+		-- N5 late acts: denser (shorter) readable telegraphs — never softlock empty MidGate
+		tele = math.max(0.30, tele * 0.82)
+	elseif stageIdx >= 13 then
+		tele = math.max(0.32, tele * 0.90)
 	end
 
 	if phase >= 2 then

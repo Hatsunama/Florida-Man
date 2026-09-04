@@ -1,6 +1,7 @@
 --!strict
 --[[ Stage progression — coherent campaign arc. 20 combat stages + hub.
 	Extended fields: hazards, setPiece, lighting, storyBeat, scalingTier, goalLabel, steveAct.
+	N5: LevelVerb(stage) is the mechanical identity (not décor).
 ]]
 
 local Stages = {}
@@ -470,5 +471,76 @@ end
 function Stages.CountPlayable(): number
 	return #Stages.Order
 end
+
+-- N5: per-act gameplay verb (mechanical, not palette)
+Stages.ACT_VERB = {
+	[1] = "timedRhythm",
+	[2] = "padWater",
+	[3] = "turtleEscort",
+	[4] = "conveyorFlip",
+	[5] = "windGaps",
+}
+
+Stages.VERB_LABEL = {
+	hangoverColdOne = "Hangover + Cold One walkover",
+	timedRhythm = "Timed hazard rhythm — jump when HOT",
+	padWater = "Pad-only traversal — leave deep water or soft-fall",
+	oilSlick = "Oil slicks — skim or slip",
+	turtleEscort = "Turtle escort — stay near to guide nests",
+	midGate = "MidGate room lock — clear the wave",
+	conveyorFlip = "Conveyors flip direction on a timer",
+	windGaps = "Barge gaps + wind opposing jumps",
+	bossArena = "Boss arena telegraphs — no empty-wave softlock",
+}
+
+function Stages.LevelVerb(stage: StageDef): string
+	if stage.isHub then
+		return "hub"
+	end
+	if stage.hangover or stage.coldOnePickup then
+		return "hangoverColdOne"
+	end
+	if stage.boss then
+		return "bossArena"
+	end
+	if stage.rescueTurtles > 0 then
+		return "turtleEscort"
+	end
+	local sp = stage.setPiece or ""
+	if sp == "canalPads" then
+		return "padWater"
+	end
+	if sp == "labConveyor" or sp == "pipeMaze" then
+		return "conveyorFlip"
+	end
+	if sp == "bargeGaps" or sp == "helipadWind" then
+		return "windGaps"
+	end
+	local act = stage.steveAct or 1
+	-- Act2 swamp stages without canalPads still share pad/oil identity
+	if act == 2 then
+		for _, hk in stage.hazards do
+			if hk == "oilSlick" then
+				return "oilSlick"
+			end
+		end
+		return "padWater"
+	end
+	if act == 4 then
+		return "conveyorFlip"
+	end
+	if act == 5 then
+		return "windGaps"
+	end
+	if act == 1 and (stage.index or 0) >= 3 then
+		return "midGate"
+	end
+	return Stages.ACT_VERB[act] or "timedRhythm"
+end
+
+function Stages.VerbLabel(verb: string): string
+	return Stages.VERB_LABEL[verb] or verb
+end
+
 
 return Stages
