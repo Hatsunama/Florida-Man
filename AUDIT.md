@@ -2,8 +2,8 @@
 
 **Full-system audit (ruthless):** [`docs/AUDIT_FULL.md`](docs/AUDIT_FULL.md)  
 **100× improvement plan (phased):** [`docs/PLAN_100X.md`](docs/PLAN_100X.md)  
-**Phase 2 art audit:** [](docs/AUDIT_PHASE2.md)  
-**Art pipeline:** [](docs/ART_PIPELINE.md)  
+**Phase 2 art audit:** [docs/AUDIT_PHASE2.md](docs/AUDIT_PHASE2.md)  
+**Art pipeline:** [docs/ART_PIPELINE.md](docs/ART_PIPELINE.md)  
 
 Audited HEAD for the full pass: `8e260c8` (2026-09-04 ET).  
 The sections below are **historical P0 / rebuild notes** kept for regression context. New work should treat `docs/AUDIT_FULL.md` as the source of truth for grades and open defects.
