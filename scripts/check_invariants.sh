@@ -37,9 +37,25 @@ absent "RequestJump absent" 'RequestJump' src/
 absent "Tagline no AudioDirector" 'AudioDirector' src/client/UI/Tagline.lua
 absent "No SFX_SteveBeep play()" 'Play\("SFX_SteveBeep"' src/
 check "EquipWeapon remote" 'EquipWeapon' src/shared/Remotes.lua
-check "PickDraftItem itemSlots" 'itemSlots' src/server/GameService.lua
+check "PickDraftItem itemSlots" 'itemSlots' src/server/DraftService.lua
+check "DraftService module" 'DraftService' src/server/DraftService.lua
+check "HubService module" 'HubService' src/server/HubService.lua
+check "StageFlowService module" 'StageFlowService' src/server/StageFlowService.lua
+check "CombatFacade module" 'CombatFacade' src/server/CombatFacade.lua
+check "CombatFacade CombatService" 'CombatService' src/server/CombatFacade.lua
+check "N0.1 hard itemSlots grant" 'GrantEnemyDrop' src/server/CombatFacade.lua
+check "N0.2 skip-draft full" 'draft skipped' src/server/DraftService.lua
+check "N0.4 mobile TryAttack" 'TryAttack' src/client/UI/MobileControls.lua
 check "SpawnLocation SPAWN_X" 'Vector3\.new\(18, 0\.5, 0\)' src/server/init.server.lua
 check "Types WeaponKind" 'WeaponKind' src/shared/Types.lua
 check "Types MetaProfile" 'MetaProfile' src/shared/Types.lua
 check "Types RunState" 'export type RunState' src/shared/Types.lua
+# N1 line budget
+GS_LINES=$(wc -l < "$ROOT/src/server/GameService.lua")
+if [ "$GS_LINES" -le 400 ]; then
+  echo "OK  GameService <=400 ($GS_LINES)"
+else
+  echo "FAIL GameService <=400 ($GS_LINES)"
+  fail=1
+fi
 exit $fail

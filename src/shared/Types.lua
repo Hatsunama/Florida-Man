@@ -71,6 +71,9 @@ export type RunState = {
 	unlockedWeapons: { [string]: boolean },
 	moveSpeed: number,
 	checkpointX: number,
+	tutorial: any,
+	steveEvents: { [string]: boolean },
+	pendingSteveEvent: string?,
 	midRoomState: string,
 	lastActShown: number,
 }

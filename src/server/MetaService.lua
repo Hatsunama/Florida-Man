@@ -6,19 +6,11 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Settings = require(Shared:WaitForChild("Settings"))
+local Types = require(Shared:WaitForChild("Types"))
 
 local MetaService = {}
 
-export type MetaProfile = {
-	deaths: number,
-	sunburn: number,
-	unlockedPersonas: { string },
-	bestStageIndex: number,
-	settings: {
-		ShakeEnabled: boolean,
-		ColorblindTelegraphs: boolean,
-	},
-}
+export type MetaProfile = Types.MetaProfile
 
 local STORE_NAME = "FloridaMan_Meta_v1"
 local memory: { [number]: MetaProfile } = {}

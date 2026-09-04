@@ -166,6 +166,10 @@ local function tryAttack()
 	end
 end
 
+function InputController.TryAttack()
+	tryAttack()
+end
+
 function InputController.BindMovement(movement: any)
 	InputController._movement = movement
 end

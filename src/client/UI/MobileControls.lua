@@ -49,11 +49,10 @@ function MobileControls.Init(inputController: any?)
 	end
 
 	local attack = mk("ATK", UDim2.new(1, -24, 1, -24), Color3.fromRGB(220, 80, 60), function()
-		if inputController and inputController._enabled ~= false then
-			local pg = Players.LocalPlayer:FindFirstChild("PlayerGui")
-			if pg and (pg:FindFirstChild("FM_Draft") or pg:FindFirstChild("FM_Newspaper") or pg:FindFirstChild("FM_Steve") or pg:FindFirstChild("FM_Credits")) then
-				return
-			end
+		-- N0.4: same localSwing path as mouse/J (VFX + recovery buffer)
+		if inputController and inputController.TryAttack then
+			inputController.TryAttack()
+		elseif inputController and inputController._enabled ~= false then
 			fire("RequestAttack")
 		end
 	end)
