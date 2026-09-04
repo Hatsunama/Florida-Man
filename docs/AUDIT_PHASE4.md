@@ -1,7 +1,7 @@
 # AUDIT — Phase 4 World & Story Production
 
 **Date:** 2026-09-04 (America/New_York)  
-**Commit:** `2af587e`  
+**Commit:** `62a80c4`  
 **Base HEAD before work:** `1b23dcf`  
 **Scope:** Set-piece gameplay verbs per act, MidGate room system, Spillfather slick rings, story staging (newspaper panels + Steve vignettes + turtle Focus), SafetyFloor removal / global soft-fall, biome ambient particles. Soft Act3 branch skipped (rescue-first gate kept). No Studio.
 
