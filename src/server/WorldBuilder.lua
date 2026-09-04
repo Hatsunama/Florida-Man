@@ -37,6 +37,18 @@ local function part(props: { [string]: any }): Part
 	return p
 end
 
+
+local function addSpecialMesh(p: BasePart, meshType: Enum.MeshType, scale: Vector3?): SpecialMesh
+	local sm = Instance.new("SpecialMesh")
+	sm.Name = "ArtMesh"
+	sm.MeshType = meshType
+	if scale then
+		sm.Scale = scale
+	end
+	sm.Parent = p
+	return sm
+end
+
 local function label(parent: Instance, text: string, color: Color3?, offsetY: number?)
 	local bb = Instance.new("BillboardGui")
 	bb.Size = UDim2.fromOffset(240, 44)
@@ -569,38 +581,50 @@ function WorldBuilder._Decor(world: Folder, stage: any, laneZ: number, length: n
 end
 
 function WorldBuilder._BuildHub(world: Folder, stage: any, laneZ: number, deaths: number?)
-	-- Bonfire base
-	part({
+	-- Phase 2: bonfire hero kit — cylinder logs + layered ColorSequence flame
+	local base = part({
 		Name = "Bonfire",
 		Parent = world,
-		Size = Vector3.new(5, 1, 5),
-		CFrame = CFrame.new(20, 0.5, laneZ),
-		Color = Color3.fromRGB(60, 40, 20),
+		Size = Vector3.new(5.2, 1.1, 5.2),
+		CFrame = CFrame.new(20, 0.55, laneZ),
+		Color = Color3.fromRGB(55, 35, 18),
 		Material = Enum.Material.Wood,
 	})
-	-- Logs
-	for i = 1, 4 do
-		local a = (i / 4) * math.pi * 2
-		part({
+	addSpecialMesh(base, Enum.MeshType.Cylinder, Vector3.new(1, 0.35, 1))
+	for i = 1, 5 do
+		local a = (i / 5) * math.pi * 2
+		local log = part({
 			Name = "Log",
 			Parent = world,
-			Size = Vector3.new(3.5, 0.7, 0.7),
-			CFrame = CFrame.new(20 + math.cos(a) * 1.5, 0.9, laneZ + math.sin(a) * 1.5) * CFrame.Angles(0, a, math.rad(15)),
-			Color = Color3.fromRGB(80, 55, 30),
+			Size = Vector3.new(3.6, 0.75, 0.75),
+			CFrame = CFrame.new(20 + math.cos(a) * 1.45, 1.0, laneZ + math.sin(a) * 1.45) * CFrame.Angles(0, a, math.rad(18)),
+			Color = Color3.fromRGB(90, 58, 28),
 			Material = Enum.Material.Wood,
 			CanCollide = false,
 		})
+		addSpecialMesh(log, Enum.MeshType.Cylinder, Vector3.new(1, 1, 1))
 	end
+	local _ember = part({
+		Name = "EmberBed",
+		Parent = world,
+		Size = Vector3.new(2.4, 0.5, 2.4),
+		CFrame = CFrame.new(20, 1.35, laneZ),
+		Color = Color3.fromRGB(255, 90, 20),
+		Material = Enum.Material.Neon,
+		CanCollide = false,
+		Shape = Enum.PartType.Cylinder,
+	})
 	local flame = part({
 		Name = "Flame",
 		Parent = world,
-		Size = Vector3.new(2.8, 4.2, 2.8),
-		CFrame = CFrame.new(20, 3.2, laneZ),
+		Size = Vector3.new(2.8, 4.4, 2.8),
+		CFrame = CFrame.new(20, 3.3, laneZ),
 		Color = Color3.fromRGB(255, 120, 30),
 		Material = Enum.Material.Neon,
 		CanCollide = false,
 		Shape = Enum.PartType.Ball,
 	})
+	addSpecialMesh(flame, Enum.MeshType.Sphere, Vector3.new(0.85, 1.25, 0.85))
 	flame:SetAttribute("Interact", "StartRun")
 	label(flame, "🔥 Press E · Start Run", Color3.fromRGB(255, 200, 80))
 	proximityPrompt(flame, {
@@ -612,27 +636,41 @@ function WorldBuilder._BuildHub(world: Folder, stage: any, laneZ: number, deaths
 	local att = Instance.new("Attachment")
 	att.Parent = flame
 	local pe = Instance.new("ParticleEmitter")
-	pe.Color = ColorSequence.new(Color3.fromRGB(255, 180, 40), Color3.fromRGB(255, 60, 20))
-	pe.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1.4), NumberSequenceKeypoint.new(1, 0) })
-	pe.Lifetime = NumberRange.new(0.5, 0.9)
-	pe.Rate = 28
-	pe.Speed = NumberRange.new(3, 8)
-	pe.LightEmission = 0.8
+	pe.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 230, 120)),
+		ColorSequenceKeypoint.new(0.45, Color3.fromRGB(255, 120, 30)),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(80, 30, 20)),
+	})
+	pe.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1.6), NumberSequenceKeypoint.new(1, 0) })
+	pe.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.15), NumberSequenceKeypoint.new(1, 1) })
+	pe.Lifetime = NumberRange.new(0.5, 1.0)
+	pe.Rate = 36
+	pe.Speed = NumberRange.new(3, 9)
+	pe.LightEmission = 0.85
 	pe.Parent = att
+	local spark = Instance.new("ParticleEmitter")
+	spark.Name = "Sparks"
+	spark.Color = ColorSequence.new(Color3.fromRGB(255, 220, 80), Color3.fromRGB(255, 80, 20))
+	spark.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.25), NumberSequenceKeypoint.new(1, 0) })
+	spark.Lifetime = NumberRange.new(0.35, 0.7)
+	spark.Rate = 10
+	spark.Speed = NumberRange.new(4, 11)
+	spark.SpreadAngle = Vector2.new(40, 40)
+	spark.LightEmission = 1
+	spark.Parent = att
 	local pl = Instance.new("PointLight")
-	pl.Brightness = 2.5
-	pl.Range = 28
+	pl.Brightness = 2.8
+	pl.Range = 32
 	pl.Color = Color3.fromRGB(255, 140, 40)
 	pl.Parent = flame
-	-- flicker
 	task.spawn(function()
 		while flame.Parent do
 			local t = TweenService:Create(flame, TweenInfo.new(0.35, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
-				Size = Vector3.new(2.4 + math.random() * 0.9, 3.4 + math.random() * 1.3, 2.4 + math.random() * 0.9),
+				Size = Vector3.new(2.4 + math.random() * 0.9, 3.6 + math.random() * 1.4, 2.4 + math.random() * 0.9),
 			})
 			t:Play()
 			if pl.Parent then
-				pl.Brightness = 2.0 + math.random() * 1.2
+				pl.Brightness = 2.2 + math.random() * 1.3
 			end
 			t.Completed:Wait()
 		end
@@ -655,29 +693,91 @@ function WorldBuilder._BuildHub(world: Folder, stage: any, laneZ: number, deaths
 		CFrame = CFrame.new(8, 2.6, laneZ - 3), Color = Color3.fromRGB(140, 100, 60), Material = Enum.Material.Wood, CanCollide = false })
 	label(stand, "THE DAILY SWAMP", Color3.fromRGB(255, 240, 200), 3)
 
-	-- Captain Steve — pelican-shaped
+	-- Phase 2: Captain Steve pelican kit — SpecialMesh spheres/wedges, neon beak, feather fluff
 	local steveModel = Instance.new("Model")
 	steveModel.Name = "CaptainSteveModel"
+	steveModel:SetAttribute("ArtKit", "InEngine_v2")
 	steveModel.Parent = world
 	local body = part({
 		Name = "CaptainSteve",
 		Parent = steveModel,
-		Size = Vector3.new(2.8, 3.2, 2.4),
-		CFrame = CFrame.new(32, 2.0, laneZ - 2),
-		Color = Color3.fromRGB(245, 245, 235),
+		Size = Vector3.new(2.9, 3.4, 2.5),
+		CFrame = CFrame.new(32, 2.1, laneZ - 2),
+		Color = Color3.fromRGB(248, 248, 240),
 		Material = Enum.Material.SmoothPlastic,
 	})
+	addSpecialMesh(body, Enum.MeshType.Sphere, Vector3.new(0.95, 1.15, 0.9))
 	body:SetAttribute("Interact", "CaptainSteve")
-	part({ Name = "Beak", Parent = steveModel, Size = Vector3.new(3.2, 0.7, 0.9),
-		CFrame = CFrame.new(34.4, 2.6, laneZ - 2), Color = Color3.fromRGB(255, 160, 40), CanCollide = false })
-	part({ Name = "Pouch", Parent = steveModel, Size = Vector3.new(1.8, 1.4, 1.2),
-		CFrame = CFrame.new(33.5, 1.4, laneZ - 2), Color = Color3.fromRGB(255, 180, 80), CanCollide = false })
-	part({ Name = "WingL", Parent = steveModel, Size = Vector3.new(0.4, 2.5, 3.5),
-		CFrame = CFrame.new(32, 2.2, laneZ - 4), Color = Color3.fromRGB(230, 230, 220), CanCollide = false })
-	part({ Name = "WingR", Parent = steveModel, Size = Vector3.new(0.4, 2.5, 3.5),
-		CFrame = CFrame.new(32, 2.2, laneZ + 0.2), Color = Color3.fromRGB(230, 230, 220), CanCollide = false })
-	part({ Name = "Eye", Parent = steveModel, Size = Vector3.new(0.45, 0.45, 0.45), Shape = Enum.PartType.Ball,
-		CFrame = CFrame.new(33.2, 3.2, laneZ - 2.6), Color = Color3.fromRGB(20, 20, 20), CanCollide = false })
+	local _head = part({
+		Name = "Head",
+		Parent = steveModel,
+		Size = Vector3.new(1.8, 1.8, 1.8),
+		Shape = Enum.PartType.Ball,
+		CFrame = CFrame.new(32.6, 4.0, laneZ - 2),
+		Color = Color3.fromRGB(250, 250, 245),
+		Material = Enum.Material.SmoothPlastic,
+		CanCollide = false,
+	})
+	local beak = part({
+		Name = "Beak",
+		Parent = steveModel,
+		Size = Vector3.new(3.4, 0.75, 0.95),
+		CFrame = CFrame.new(34.5, 2.7, laneZ - 2),
+		Color = Color3.fromRGB(255, 150, 35),
+		Material = Enum.Material.Neon,
+		CanCollide = false,
+	})
+	addSpecialMesh(beak, Enum.MeshType.Wedge, Vector3.new(1.2, 0.7, 0.9))
+	local pouch = part({
+		Name = "Pouch",
+		Parent = steveModel,
+		Size = Vector3.new(1.9, 1.5, 1.3),
+		CFrame = CFrame.new(33.6, 1.45, laneZ - 2),
+		Color = Color3.fromRGB(255, 185, 90),
+		Material = Enum.Material.SmoothPlastic,
+		CanCollide = false,
+	})
+	addSpecialMesh(pouch, Enum.MeshType.Sphere, Vector3.new(1, 0.85, 1))
+	local wingL = part({
+		Name = "WingL",
+		Parent = steveModel,
+		Size = Vector3.new(0.45, 2.6, 3.6),
+		CFrame = CFrame.new(32, 2.3, laneZ - 4.1),
+		Color = Color3.fromRGB(235, 235, 228),
+		Material = Enum.Material.SmoothPlastic,
+		CanCollide = false,
+	})
+	addSpecialMesh(wingL, Enum.MeshType.Wedge, Vector3.new(0.6, 1.1, 1.2))
+	local wingR = part({
+		Name = "WingR",
+		Parent = steveModel,
+		Size = Vector3.new(0.45, 2.6, 3.6),
+		CFrame = CFrame.new(32, 2.3, laneZ + 0.3),
+		Color = Color3.fromRGB(235, 235, 228),
+		Material = Enum.Material.SmoothPlastic,
+		CanCollide = false,
+	})
+	addSpecialMesh(wingR, Enum.MeshType.Wedge, Vector3.new(0.6, 1.1, 1.2))
+	part({
+		Name = "Eye",
+		Parent = steveModel,
+		Size = Vector3.new(0.5, 0.5, 0.5),
+		Shape = Enum.PartType.Ball,
+		CFrame = CFrame.new(33.3, 4.15, laneZ - 2.65),
+		Color = Color3.fromRGB(20, 20, 20),
+		Material = Enum.Material.Glass,
+		CanCollide = false,
+	})
+	local fluff = Instance.new("Attachment")
+	fluff.Parent = body
+	local peSteve = Instance.new("ParticleEmitter")
+	peSteve.Name = "FeatherFluff"
+	peSteve.Color = ColorSequence.new(Color3.fromRGB(255, 255, 245), Color3.fromRGB(255, 200, 120))
+	peSteve.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.2), NumberSequenceKeypoint.new(1, 0) })
+	peSteve.Lifetime = NumberRange.new(0.6, 1.1)
+	peSteve.Rate = 3
+	peSteve.Speed = NumberRange.new(0.2, 0.8)
+	peSteve.Parent = fluff
 	label(body, "Captain Steve\nPress E · Talk", Color3.fromRGB(255, 240, 180))
 	proximityPrompt(body, {
 		ActionText = "Talk",

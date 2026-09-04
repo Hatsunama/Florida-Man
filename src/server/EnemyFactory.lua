@@ -49,6 +49,21 @@ local function attachToRoot(root: BasePart, child: BasePart)
 	weld(root, child)
 end
 
+local function addSpecialMesh(p: BasePart, meshType: Enum.MeshType, scale: Vector3?): SpecialMesh
+	local sm = Instance.new("SpecialMesh")
+	sm.Name = "ArtMesh"
+	sm.MeshType = meshType
+	if scale then
+		sm.Scale = scale
+	end
+	sm.Parent = p
+	return sm
+end
+
+local function tagArtKit(model: Model)
+	model:SetAttribute("ArtKit", "InEngine_v2")
+end
+
 local function motor6d(name: string, part0: BasePart, part1: BasePart, c0: CFrame, c1: CFrame?): Motor6D
 	part1.Anchored = false
 	part1.CanCollide = false
@@ -101,8 +116,10 @@ local function buildCrab(model: Model, root: Part, def: any)
 		Size = Vector3.new(s.X * 0.75, s.Y * 0.35, s.Z * 0.65),
 		Shape = Enum.PartType.Ball,
 		Color = def.color:Lerp(Color3.fromRGB(255, 90, 40), 0.35),
+		Material = Enum.Material.Sand,
 		CFrame = root.CFrame * CFrame.new(0, s.Y * 0.42, 0.05),
 	})
+	addSpecialMesh(dome, Enum.MeshType.Sphere, Vector3.new(1.05, 0.85, 1.0))
 	attachToRoot(root, dome)
 	local ridge = part({
 		Name = "ShellRidge",
@@ -278,13 +295,29 @@ local function buildCrab(model: Model, root: Part, def: any)
 			local spike = part({
 				Name = "CrownSpike",
 				Parent = model,
-				Size = Vector3.new(0.28, 0.9, 0.28),
+				Size = Vector3.new(0.42, 1.1, 0.42),
 				Color = Color3.fromRGB(255, 230, 120),
 				Material = Enum.Material.Neon,
-				CFrame = crown.CFrame * CFrame.new(sx * s.X * 0.35, 0.55, 0),
+				CFrame = crown.CFrame * CFrame.new(sx * s.X * 0.35, 0.65, 0),
 			})
+			addSpecialMesh(spike, Enum.MeshType.Wedge, Vector3.new(1, 1.4, 1))
 			attachToRoot(root, spike)
 		end
+		local sandAtt = Instance.new("Attachment")
+		sandAtt.Name = "KingSand"
+		sandAtt.Parent = crown
+		local sandPe = Instance.new("ParticleEmitter")
+		sandPe.Color = ColorSequence.new({
+			ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 210, 80)),
+			ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 140, 40)),
+			ColorSequenceKeypoint.new(1, Color3.fromRGB(220, 180, 120)),
+		})
+		sandPe.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.3), NumberSequenceKeypoint.new(1, 0) })
+		sandPe.Lifetime = NumberRange.new(0.4, 0.7)
+		sandPe.Rate = 4
+		sandPe.Speed = NumberRange.new(0.5, 1.5)
+		sandPe.LightEmission = 0.4
+		sandPe.Parent = sandAtt
 		local pl = Instance.new("PointLight")
 		pl.Brightness = 1.4
 		pl.Range = 14
@@ -313,17 +346,42 @@ local function buildGator(model: Model, root: Part, def: any)
 	local s = def.size
 	root.Size = Vector3.new(s.X * 0.7, s.Y * 0.55, s.Z * 0.7)
 	root.Color = def.color
-	if def.id == "OilGator" then
+	if def.id == "OilGator" or def.id == "DriveThruGator" then
 		root.Material = Enum.Material.Mud
+	else
+		root.Material = Enum.Material.SmoothPlastic
 	end
 	local snout = part({
 		Name = "Snout",
 		Parent = model,
 		Size = Vector3.new(s.X * 0.45, s.Y * 0.35, s.Z * 0.5),
 		Color = def.color:Lerp(Color3.fromRGB(60, 100, 50), 0.2),
+		Material = Enum.Material.Mud,
 		CFrame = root.CFrame * CFrame.new(s.X * 0.45, 0, 0),
 	})
+	addSpecialMesh(snout, Enum.MeshType.Brick, Vector3.new(1.1, 0.9, 1))
 	attachToRoot(root, snout)
+	for _, side in { -1, 1 } do
+		local eye = part({
+			Name = "GatorEye",
+			Parent = model,
+			Size = Vector3.new(0.45, 0.45, 0.35),
+			Shape = Enum.PartType.Ball,
+			Color = Color3.fromRGB(255, 230, 80),
+			Material = Enum.Material.Glass,
+			CFrame = root.CFrame * CFrame.new(s.X * 0.35, s.Y * 0.25, side * s.Z * 0.28),
+		})
+		attachToRoot(root, eye)
+	end
+	local teeth = part({
+		Name = "Teeth",
+		Parent = model,
+		Size = Vector3.new(s.X * 0.35, 0.25, s.Z * 0.35),
+		Color = Color3.fromRGB(240, 240, 230),
+		Material = Enum.Material.Neon,
+		CFrame = snout.CFrame * CFrame.new(s.X * 0.15, -s.Y * 0.12, 0),
+	})
+	attachToRoot(root, teeth)
 	local tail = part({
 		Name = "Tail",
 		Parent = model,
@@ -352,9 +410,9 @@ local function buildGator(model: Model, root: Part, def: any)
 		local collar = part({
 			Name = "RadioCollar",
 			Parent = model,
-			Size = Vector3.new(1.2, 0.4, 1.2),
+			Size = Vector3.new(1.35, 0.45, 1.35),
 			Color = Color3.fromRGB(255, 200, 40),
-			Material = Enum.Material.Neon,
+			Material = Enum.Material.Metal,
 			CFrame = root.CFrame * CFrame.new(-s.X * 0.1, s.Y * 0.35, 0),
 		})
 		attachToRoot(root, collar)
@@ -743,7 +801,7 @@ local function buildBoss(model: Model, root: Part, def: any)
 			Parent = model,
 			Size = Vector3.new(3, 4, 2),
 			Color = Color3.fromRGB(25, 25, 35),
-			Material = Enum.Material.SmoothPlastic,
+			Material = Enum.Material.Metal,
 			CFrame = root.CFrame * CFrame.new(0, def.size.Y * 0.15, 0),
 		})
 		attachToRoot(root, suit)
@@ -755,7 +813,18 @@ local function buildBoss(model: Model, root: Part, def: any)
 			Material = Enum.Material.Neon,
 			CFrame = suit.CFrame * CFrame.new(0, 0, -1.1),
 		})
+		addSpecialMesh(tie, Enum.MeshType.Wedge, Vector3.new(1, 1.2, 0.6))
 		attachToRoot(root, tie)
+		local visor = part({
+			Name = "HazmatVisor",
+			Parent = model,
+			Size = Vector3.new(2.2, 1.0, 0.4),
+			Color = Color3.fromRGB(80, 255, 180),
+			Material = Enum.Material.Glass,
+			Transparency = 0.25,
+			CFrame = root.CFrame * CFrame.new(0, def.size.Y * 0.38, -def.size.Z * 0.2),
+		})
+		attachToRoot(root, visor)
 		for _, side in { -1, 1 } do
 			local claw = part({
 				Name = "MechClaw",
@@ -765,17 +834,23 @@ local function buildBoss(model: Model, root: Part, def: any)
 				Material = Enum.Material.Metal,
 				CFrame = root.CFrame * CFrame.new(side * def.size.X * 0.4, 0, -2),
 			})
+			addSpecialMesh(claw, Enum.MeshType.Brick, Vector3.new(1, 0.85, 1.15))
 			attachToRoot(root, claw)
 		end
 		local drip = Instance.new("Attachment")
 		drip.Name = "OilDrip"
 		drip.Parent = chassis
 		local pe = Instance.new("ParticleEmitter")
-		pe.Color = ColorSequence.new(Color3.fromRGB(30, 40, 20))
-		pe.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.4), NumberSequenceKeypoint.new(1, 0) })
+		pe.Color = ColorSequence.new({
+			ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 50, 25)),
+			ColorSequenceKeypoint.new(0.5, Color3.fromRGB(20, 30, 15)),
+			ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 15, 8)),
+		})
+		pe.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.5), NumberSequenceKeypoint.new(1, 0) })
 		pe.Lifetime = NumberRange.new(0.6, 1.0)
-		pe.Rate = 10
+		pe.Rate = 12
 		pe.Speed = NumberRange.new(1, 3)
+		pe.LightEmission = 0.05
 		pe.Parent = drip
 	end
 	task.spawn(function()
@@ -975,6 +1050,7 @@ local SHAPERS: { [string]: (Model, Part, any) -> () } = {
 
 function EnemyFactory.Build(def: any, position: Vector3): Model
 	local model = Instance.new("Model")
+	tagArtKit(model)
 	model.Name = def.id
 
 	local root = Instance.new("Part")

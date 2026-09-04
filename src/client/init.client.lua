@@ -26,9 +26,13 @@ local Credits = require(UI:WaitForChild("Credits"))
 local Tagline = require(UI:WaitForChild("Tagline"))
 local CaptainSteveUI = require(UI:WaitForChild("CaptainSteveUI"))
 local MobileControls = require(UI:WaitForChild("MobileControls"))
+local LoadingGui = require(UI:WaitForChild("LoadingGui"))
 local TutorialController = require(Controllers:WaitForChild("TutorialController"))
+local AnimController = require(Controllers:WaitForChild("AnimController"))
 
+LoadingGui.Init()
 HUD.Init()
+AnimController.Start()
 MovementController.Start()
 CameraController.Start()
 InputController.BindMovement(MovementController)
@@ -42,6 +46,12 @@ Remotes.Get("StateUpdate").OnClientEvent:Connect(function(state)
 	HUD.Update(state)
 	CaptainSteveUI.SetState(state)
 	if state then
+		if typeof(state.personas) == "table" and typeof(state.activePersona) == "number" then
+			local pid = state.personas[state.activePersona]
+			if typeof(pid) == "string" then
+				AnimController.SetPersona(pid)
+			end
+		end
 		if state.moveSpeed then
 			MovementController.SetBaseSpeed(state.moveSpeed)
 		end
@@ -148,6 +158,7 @@ Remotes.Get("CombatEvent").OnClientEvent:Connect(function(ev)
 		-- No shake on empty swing — juice only on hitConnect
 	elseif ev.kind == "skill" then
 		local facing = ev.facing or MovementController.GetFacing()
+		AnimController.PlaySkill()
 		VFX.SkillPattern(hrp, tostring(ev.skillKind or "aoe"), facing)
 		HUD.Toast(tostring(ev.skill or "Skill") .. "!")
 		CameraController.Shake(0.55, 0.22)
@@ -158,6 +169,9 @@ Remotes.Get("CombatEvent").OnClientEvent:Connect(function(ev)
 		local col = Color3.fromRGB(255, 160, 40)
 		if typeof(ev.color) == "table" and ev.color[1] then
 			col = Color3.new(ev.color[1], ev.color[2], ev.color[3])
+		end
+		if typeof(ev.personaId) == "string" then
+			AnimController.SetPersona(ev.personaId)
 		end
 		VFX.SwapBurst(hrp, col)
 		CameraController.Shake(0.35, 0.16)

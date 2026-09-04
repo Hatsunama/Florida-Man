@@ -217,6 +217,53 @@ local function teleportPlayer(player: Player, cf: CFrame)
 	end
 end
 
+
+local function applyPersonaLook(player: Player)
+	local s = states[player]
+	local char = player.Character
+	if not s or not char then
+		return
+	end
+	local persona = Personas.Get(s.personas[s.activePersona])
+	if not persona then
+		return
+	end
+	char:SetAttribute("PersonaId", persona.id)
+	local weapon = Weapons.Get(s.weaponId) or Weapons.GetStarter()
+	if weapon then
+		char:SetAttribute("WeaponVfx", weapon.vfx)
+		char:SetAttribute("WeaponId", weapon.id)
+	end
+	-- BodyColors tint (R6/R15)
+	local bc = char:FindFirstChildOfClass("BodyColors")
+	if not bc then
+		bc = Instance.new("BodyColors")
+		bc.Parent = char
+	end
+	local skin = persona.color:Lerp(Color3.fromRGB(255, 220, 180), 0.35)
+	local accent = persona.accent
+	bc.HeadColor3 = skin
+	bc.TorsoColor3 = persona.color:Lerp(Color3.fromRGB(40, 40, 50), 0.25)
+	bc.LeftArmColor3 = skin
+	bc.RightArmColor3 = skin
+	bc.LeftLegColor3 = accent:Lerp(skin, 0.5)
+	bc.RightLegColor3 = accent:Lerp(skin, 0.5)
+	-- Highlight outline for readable persona identity
+	local hl = char:FindFirstChild("FM_PersonaHighlight")
+	if not hl then
+		hl = Instance.new("Highlight")
+		hl.Name = "FM_PersonaHighlight"
+		hl.DepthMode = Enum.HighlightDepthMode.Occluded
+		hl.Parent = char
+	end
+	if hl:IsA("Highlight") then
+		hl.FillColor = persona.color
+		hl.OutlineColor = persona.accent
+		hl.FillTransparency = 0.82
+		hl.OutlineTransparency = 0.15
+	end
+end
+
 local function applyCharacterSpeed(player: Player)
 	local s = states[player]
 	local char = player.Character
@@ -239,6 +286,7 @@ local function applyCharacterSpeed(player: Player)
 		char:SetAttribute("MoveSpeed", base)
 		char:SetAttribute("Hangover", os.clock() < s.hangoverUntil)
 	end
+	applyPersonaLook(player)
 end
 
 function GameService.LoadHub(player: Player)
@@ -1145,6 +1193,7 @@ function GameService.SetupRemotes()
 		st.weaponId = weaponId
 		local wdef = Weapons.Get(weaponId)
 		toast(player, "Equipped: " .. (if wdef then wdef.name else weaponId))
+		applyPersonaLook(player)
 		pushState(player)
 	end)
 	Remotes.Get("RequestSwap").OnServerEvent:Connect(function(player)

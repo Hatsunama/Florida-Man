@@ -16,6 +16,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Constants = require(Shared:WaitForChild("Constants"))
 local Remotes = require(Shared:WaitForChild("Remotes"))
+local AnimController = require(script.Parent:WaitForChild("AnimController"))
 
 local MovementController = {}
 
@@ -182,6 +183,7 @@ local function doJump(hrp: BasePart, hum: Humanoid)
 	hrp.AssemblyLinearVelocity = Vector3.new(v.X, JUMP_VELOCITY, 0)
 	hum:ChangeState(Enum.HumanoidStateType.Jumping)
 	jumping = true
+	AnimController.PlayJump()
 	coyote = 0
 	jumpBuffer = 0
 end
@@ -233,6 +235,7 @@ function MovementController.RequestDodge()
 		facing = if dir >= 0 then 1 else -1
 	end
 	dodgeUntil = os.clock() + Constants.DODGE_COOLDOWN
+	AnimController.PlayDodge()
 	char:SetAttribute("IFrameVFX", true)
 	spawnDodgeTrail(hrp)
 	if alignOri then

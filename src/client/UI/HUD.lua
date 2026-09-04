@@ -143,25 +143,42 @@ function HUD.Init()
 		corner(f, 10)
 		stroke(f, Color3.fromRGB(255, 200, 80), 2)
 		-- Phase 1: colored icon slot (silhouette readability, not text-only)
+		-- Phase 2: circular persona-colored icon + built-in texture fallback (no fake marketplace IDs)
 		local icon = Instance.new("Frame")
 		icon.Name = "Icon"
 		icon.Size = UDim2.new(0, 44, 0, 44)
 		icon.Position = UDim2.new(0, 8, 0.5, -22)
 		icon.BackgroundColor3 = Color3.fromRGB(80, 80, 90)
 		icon.Parent = f
-		corner(icon, 8)
+		local iconCorner = Instance.new("UICorner")
+		iconCorner.CornerRadius = UDim.new(1, 0)
+		iconCorner.Parent = icon
 		local iconStroke = Instance.new("UIStroke")
 		iconStroke.Color = Color3.fromRGB(255, 255, 255)
-		iconStroke.Thickness = 1.5
-		iconStroke.Transparency = 0.4
+		iconStroke.Thickness = 2
+		iconStroke.Transparency = 0.25
 		iconStroke.Parent = icon
+		local img = Instance.new("ImageLabel")
+		img.Name = "FallbackImage"
+		img.Size = UDim2.fromScale(1, 1)
+		img.BackgroundTransparency = 1
+		img.Image = "rbxasset://textures/ui/GuiImagePlaceholder.png"
+		img.ImageTransparency = 0.85
+		img.ScaleType = Enum.ScaleType.Fit
+		img.Parent = icon
+		local imgCorner = Instance.new("UICorner")
+		imgCorner.CornerRadius = UDim.new(1, 0)
+		imgCorner.Parent = img
 		local glyph = Instance.new("Frame")
 		glyph.Name = "Glyph"
-		glyph.Size = UDim2.new(0, 18, 0, 18)
-		glyph.Position = UDim2.new(0.5, -9, 0.5, -9)
+		glyph.Size = UDim2.new(0, 16, 0, 16)
+		glyph.Position = UDim2.new(0.5, -8, 0.5, -8)
 		glyph.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		glyph.ZIndex = 2
 		glyph.Parent = icon
-		corner(glyph, 4)
+		local glyphCorner = Instance.new("UICorner")
+		glyphCorner.CornerRadius = UDim.new(1, 0)
+		glyphCorner.Parent = glyph
 		local name = Instance.new("TextLabel")
 		name.Name = "Name"
 		name.Size = UDim2.new(1, -64, 0.55, 0)

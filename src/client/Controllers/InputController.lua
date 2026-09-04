@@ -6,6 +6,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Remotes = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Remotes"))
 local VFX = require(script.Parent:WaitForChild("VFX"))
+local AnimController = require(script.Parent:WaitForChild("AnimController"))
 local CaptainSteveUI = require(script.Parent.Parent:WaitForChild("UI"):WaitForChild("CaptainSteveUI"))
 local TutorialController = require(script.Parent:WaitForChild("TutorialController"))
 
@@ -62,7 +63,13 @@ local function doSwingFire()
 	local char = player.Character
 	local hrp = char and char:FindFirstChild("HumanoidRootPart") :: BasePart?
 	if hrp then
-		VFX.SwingSlash(hrp, facing, comboHint)
+		local ch = player.Character
+		local vfxKind = ch and ch:GetAttribute("WeaponVfx")
+		if typeof(vfxKind) ~= "string" then
+			vfxKind = "punch"
+		end
+		VFX.SwingSlash(hrp, facing, comboHint, vfxKind :: string)
+		AnimController.PlayAttack(comboHint)
 	end
 	fire("RequestAttack")
 	TutorialController.OnAttackInput()
