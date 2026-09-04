@@ -1,7 +1,7 @@
 # AUDIT — Phase 1 Vertical Slice Excellence
 
 **Date:** 2026-09-04 (America/New_York)  
-**Commit:** (see `git log -1` after push)  
+**Commit:** `729f1fd`  
 **Base:** Phase 0 `04d29f8` + `docs/PLAN_100X.md` Phase 1  
 **Scope:** Hub + stages index 0–3 only (Hub, DaytonaHangover, BoardwalkChaos, GasStationLegends)
 
