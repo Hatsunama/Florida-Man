@@ -1,3 +1,13 @@
+# Florida Man — Audit Index
+
+**Full-system audit (ruthless):** [`docs/AUDIT_FULL.md`](docs/AUDIT_FULL.md)  
+**100× improvement plan (phased):** [`docs/PLAN_100X.md`](docs/PLAN_100X.md)  
+
+Audited HEAD for the full pass: `8e260c8` (2026-09-04 ET).  
+The sections below are **historical P0 / rebuild notes** kept for regression context. New work should treat `docs/AUDIT_FULL.md` as the source of truth for grades and open defects.
+
+---
+
 # Florida Man — P0 Quality Audit
 
 **Date:** 2026-09-04 (America/New_York)  
