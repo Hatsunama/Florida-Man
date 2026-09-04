@@ -14,6 +14,9 @@ local lookPos = Vector3.zero
 local lookVel = Vector3.zero
 local shakeAmp = 0
 local shakeUntil = 0
+local focusUntil = 0
+local focusTarget: Vector3? = nil
+local focusBiasX = 6
 local deadzoneX = 3.5
 local followBiasX = 6
 local height = 9
@@ -33,6 +36,13 @@ end
 function CameraController.Shake(amount: number, duration: number?)
 	shakeAmp = math.max(shakeAmp, amount)
 	shakeUntil = os.clock() + (duration or 0.2)
+end
+
+--- Brief framing nudge toward a world point (MidGate / miniboss). ≤0.4s Scriptable cut feel.
+function CameraController.Focus(worldPos: Vector3, duration: number?)
+	focusTarget = worldPos
+	focusUntil = os.clock() + math.clamp(duration or 0.35, 0.15, 0.45)
+	CameraController.Shake(0.25, 0.12)
 end
 
 function CameraController.Start()
@@ -66,6 +76,17 @@ function CameraController.Start()
 
 		local focusX = hrp.Position.X
 		local focusY = hrp.Position.Y
+		if focusTarget and os.clock() < focusUntil then
+			local alpha = math.clamp((focusUntil - os.clock()) / 0.35, 0, 1)
+			-- ease toward event then back (alpha high at start of window remaining? use elapsed blend)
+			local elapsed = 1 - alpha
+			local blend = if elapsed < 0.45 then elapsed / 0.45 else alpha / 0.55
+			blend = math.clamp(blend, 0, 0.85)
+			focusX = focusX * (1 - blend) + focusTarget.X * blend
+			focusY = focusY * (1 - blend) + (focusTarget.Y + 2) * blend
+		else
+			focusTarget = nil
+		end
 		-- deadzone on X relative to look
 		local dx = focusX - (lookPos.X - 8)
 		if math.abs(dx) > deadzoneX then

@@ -1,5 +1,6 @@
 --!strict
 local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Remotes = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Remotes"))
 
@@ -37,19 +38,27 @@ function Newspaper.Show(payload: any)
 	local dim = Instance.new("Frame")
 	dim.Size = UDim2.fromScale(1, 1)
 	dim.BackgroundColor3 = Color3.new(0, 0, 0)
-	dim.BackgroundTransparency = 0.4
-	dim.Active = false
+	dim.BackgroundTransparency = 1
+	dim.Active = true -- Phase 1: lock world clicks while open
 	dim.ZIndex = 1
 	dim.Parent = gui
 
 	local paper = Instance.new("Frame")
 	paper.Size = UDim2.new(0, 680, 0, 460)
-	paper.Position = UDim2.new(0.5, -340, 0.5, -230)
+	paper.Position = UDim2.new(0.5, -340, 0.5, -200)
 	paper.BackgroundColor3 = Color3.fromRGB(235, 225, 200)
-	paper.Active = false
+	paper.BackgroundTransparency = 1
+	paper.Active = true
 	paper.ZIndex = 5
 	paper.Parent = gui
 	corner(paper, 4)
+	local scale = Instance.new("UIScale")
+	scale.Scale = 0.82
+	scale.Parent = paper
+	-- Snappy open: fade + scale punch
+	TweenService:Create(dim, TweenInfo.new(0.14, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { BackgroundTransparency = 0.4 }):Play()
+	TweenService:Create(paper, TweenInfo.new(0.16, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { BackgroundTransparency = 0, Position = UDim2.new(0.5, -340, 0.5, -230) }):Play()
+	TweenService:Create(scale, TweenInfo.new(0.18, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = 1 }):Play()
 
 	local breaking = Instance.new("TextLabel")
 	breaking.Size = UDim2.new(0, 140, 0, 28)

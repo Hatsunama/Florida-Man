@@ -1,5 +1,6 @@
 --!strict
 local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Remotes = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Remotes"))
 local Util = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Util"))
@@ -38,10 +39,11 @@ function ItemDraft.Show(picks: { any })
 	local dim = Instance.new("Frame")
 	dim.Size = UDim2.fromScale(1, 1)
 	dim.BackgroundColor3 = Color3.new(0, 0, 0)
-	dim.BackgroundTransparency = 0.4
-	dim.Active = false
+	dim.BackgroundTransparency = 1
+	dim.Active = true -- Phase 1: input lock while draft open
 	dim.ZIndex = 1
 	dim.Parent = gui
+	TweenService:Create(dim, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { BackgroundTransparency = 0.4 }):Play()
 
 	local title = Instance.new("TextLabel")
 	title.Size = UDim2.new(0, 600, 0, 40)
@@ -77,6 +79,12 @@ function ItemDraft.Show(picks: { any })
 		card.Text = ""
 		card.Parent = gui
 		corner(card, 12)
+		local cscale = Instance.new("UIScale")
+		cscale.Scale = 0.78
+		cscale.Parent = card
+		card.BackgroundTransparency = 0.4
+		TweenService:Create(cscale, TweenInfo.new(0.16 + (i - 1) * 0.04, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = 1 }):Play()
+		TweenService:Create(card, TweenInfo.new(0.14, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { BackgroundTransparency = 0 }):Play()
 		local st = Instance.new("UIStroke")
 		st.Color = Util.RarityColor(it.rarity)
 		st.Thickness = if it.rarity == "Legendary" then 5 elseif it.rarity == "Unique" then 4 else 3

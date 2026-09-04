@@ -26,6 +26,7 @@ local Credits = require(UI:WaitForChild("Credits"))
 local Tagline = require(UI:WaitForChild("Tagline"))
 local CaptainSteveUI = require(UI:WaitForChild("CaptainSteveUI"))
 local MobileControls = require(UI:WaitForChild("MobileControls"))
+local TutorialController = require(Controllers:WaitForChild("TutorialController"))
 
 HUD.Init()
 MovementController.Start()
@@ -33,6 +34,7 @@ CameraController.Start()
 InputController.BindMovement(MovementController)
 InputController.Start()
 MobileControls.Init(InputController)
+TutorialController.Start()
 Newspaper.BindInput(InputController)
 ItemDraft.BindInput(InputController)
 
@@ -69,6 +71,7 @@ end)
 
 Remotes.Get("StageLoaded").OnClientEvent:Connect(function(stageId, name)
 	HUD.Toast("Stage: " .. tostring(name))
+	TutorialController.ResetForStage(tostring(stageId))
 end)
 
 Remotes.Get("PlaySound").OnClientEvent:Connect(function(soundName: string)
@@ -117,6 +120,13 @@ Remotes.Get("CombatEvent").OnClientEvent:Connect(function(ev)
 	local hrp = char and char:FindFirstChild("HumanoidRootPart") :: BasePart?
 	if ev.kind == "shake" then
 		CameraController.Shake(ev.amount or 0.4, 0.18)
+		return
+	end
+	if ev.kind == "focus" then
+		if typeof(ev.pos) == "Vector3" then
+			CameraController.Focus(ev.pos, ev.duration or 0.36)
+		end
+		CameraController.Shake(ev.amount or 0.3, 0.14)
 		return
 	end
 	if ev.kind == "hitConnect" then
@@ -191,21 +201,4 @@ end)
 
 print("[Florida Man] Client ready — 2.5D mover online.")
 
-task.spawn(function()
-	while true do
-		task.wait(4)
-		local plr = Players.LocalPlayer
-		local char = plr.Character
-		local hrp = char and char:FindFirstChild("HumanoidRootPart")
-		local world = workspace:FindFirstChild("GameWorld")
-		if hrp and world then
-			local flame = world:FindFirstChild("Flame")
-			local steve = world:FindFirstChild("CaptainSteve")
-			if flame and (flame.Position - hrp.Position).Magnitude < 14 then
-				HUD.Toast("Press E or click the bonfire prompt to start your run")
-			elseif steve and (steve.Position - hrp.Position).Magnitude < 14 then
-				HUD.Toast("Press E or click prompt — Captain Steve (Sunburn upgrades)")
-			end
-		end
-	end
-end)
+-- Phase 1: forever hub toast spam removed — TutorialController + TutorialService are once-through.

@@ -136,36 +136,58 @@ function HUD.Init()
 	-- Persona portraits
 	local function personaSlot(x: number): Frame
 		local f = Instance.new("Frame")
-		f.Size = UDim2.new(0, 120, 0, 64)
+		f.Size = UDim2.new(0, 148, 0, 64)
 		f.Position = UDim2.new(0, x, 1, -200)
 		f.BackgroundColor3 = Color3.fromRGB(25, 28, 36)
 		f.Parent = gui
 		corner(f, 10)
 		stroke(f, Color3.fromRGB(255, 200, 80), 2)
+		-- Phase 1: colored icon slot (silhouette readability, not text-only)
+		local icon = Instance.new("Frame")
+		icon.Name = "Icon"
+		icon.Size = UDim2.new(0, 44, 0, 44)
+		icon.Position = UDim2.new(0, 8, 0.5, -22)
+		icon.BackgroundColor3 = Color3.fromRGB(80, 80, 90)
+		icon.Parent = f
+		corner(icon, 8)
+		local iconStroke = Instance.new("UIStroke")
+		iconStroke.Color = Color3.fromRGB(255, 255, 255)
+		iconStroke.Thickness = 1.5
+		iconStroke.Transparency = 0.4
+		iconStroke.Parent = icon
+		local glyph = Instance.new("Frame")
+		glyph.Name = "Glyph"
+		glyph.Size = UDim2.new(0, 18, 0, 18)
+		glyph.Position = UDim2.new(0.5, -9, 0.5, -9)
+		glyph.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		glyph.Parent = icon
+		corner(glyph, 4)
 		local name = Instance.new("TextLabel")
 		name.Name = "Name"
-		name.Size = UDim2.new(1, -8, 0.55, 0)
-		name.Position = UDim2.new(0, 4, 0.05, 0)
+		name.Size = UDim2.new(1, -64, 0.55, 0)
+		name.Position = UDim2.new(0, 58, 0.05, 0)
 		name.BackgroundTransparency = 1
 		name.Font = Enum.Font.GothamBold
 		name.TextScaled = true
+		name.TextXAlignment = Enum.TextXAlignment.Left
 		name.TextColor3 = Color3.new(1, 1, 1)
 		name.Text = "—"
 		name.Parent = f
 		local sub = Instance.new("TextLabel")
 		sub.Name = "Sub"
-		sub.Size = UDim2.new(1, -8, 0.35, 0)
-		sub.Position = UDim2.new(0, 4, 0.6, 0)
+		sub.Size = UDim2.new(1, -64, 0.35, 0)
+		sub.Position = UDim2.new(0, 58, 0.6, 0)
 		sub.BackgroundTransparency = 1
 		sub.Font = Enum.Font.Gotham
 		sub.TextScaled = true
+		sub.TextXAlignment = Enum.TextXAlignment.Left
 		sub.TextColor3 = Color3.fromRGB(200, 200, 210)
 		sub.Text = ""
 		sub.Parent = f
 		return f
 	end
 	p1 = personaSlot(20)
-	p2 = personaSlot(150)
+	p2 = personaSlot(178)
 
 	itemBar = Instance.new("Frame")
 	itemBar.Size = UDim2.new(0, 420, 0, 36)
@@ -230,16 +252,32 @@ end
 local function updatePersonaFrame(frame: Frame, personaId: string?, active: boolean, rarity: string?)
 	local name = frame:FindFirstChild("Name") :: TextLabel
 	local sub = frame:FindFirstChild("Sub") :: TextLabel
+	local icon = frame:FindFirstChild("Icon") :: Frame?
+	local glyph = icon and icon:FindFirstChild("Glyph") :: Frame?
 	if not personaId then
 		name.Text = "Empty"
 		sub.Text = "Unlock more"
 		frame.BackgroundColor3 = Color3.fromRGB(25, 28, 36)
+		if icon then
+			icon.BackgroundColor3 = Color3.fromRGB(60, 62, 70)
+		end
+		if glyph then
+			glyph.BackgroundColor3 = Color3.fromRGB(120, 120, 130)
+		end
 		return
 	end
 	local def = Personas.Get(personaId)
 	name.Text = if def then def.name else personaId
 	sub.Text = (rarity or "Common") .. (if active then " · ACTIVE" else "")
 	frame.BackgroundColor3 = if def then def.color:Lerp(Color3.fromRGB(20, 20, 25), 0.45) else Color3.fromRGB(25, 28, 36)
+	if icon and def then
+		icon.BackgroundColor3 = def.color
+		if glyph then
+			glyph.BackgroundColor3 = def.accent
+		end
+	elseif icon then
+		icon.BackgroundColor3 = Color3.fromRGB(80, 80, 90)
+	end
 	local s = frame:FindFirstChildOfClass("UIStroke")
 	if s then
 		local rcol = Color3.fromRGB(120, 120, 140)

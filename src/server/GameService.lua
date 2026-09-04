@@ -21,6 +21,7 @@ local Story = require(Shared:WaitForChild("Story"))
 local WorldBuilder = require(script.Parent:WaitForChild("WorldBuilder"))
 local EnemyService = require(script.Parent:WaitForChild("EnemyService"))
 local CombatService = require(script.Parent:WaitForChild("CombatService"))
+local TutorialService = require(script.Parent:WaitForChild("TutorialService"))
 
 local GameService = {}
 
@@ -63,6 +64,10 @@ export type RunState = {
 	weaponId: string,
 	unlockedWeapons: { [string]: boolean },
 	moveSpeed: number,
+	checkpointX: number,
+	tutorial: any,
+	steveEvents: { [string]: boolean },
+	pendingSteveEvent: string?,
 }
 
 local states: { [Player]: RunState } = {}
@@ -197,6 +202,10 @@ local function newRunState(deaths: number): RunState
 		weaponId = Constants.STARTING_WEAPON,
 		unlockedWeapons = { BareHands = true, FlipFlopSlap = true },
 		moveSpeed = 18,
+		checkpointX = 18,
+		tutorial = TutorialService.NewFlags(),
+		steveEvents = {},
+		pendingSteveEvent = nil,
 	}
 end
 
@@ -247,12 +256,18 @@ function GameService.LoadHub(player: Player)
 	WorldBuilder.BuildStage("Hub", s.deaths)
 	teleportPlayer(player, WorldBuilder.GetSpawnCFrame("Hub"))
 	applyCharacterSpeed(player)
+	s.checkpointX = Constants.SPAWN_X
 	pushState(player)
-	local line = Story.SteveLine(1, s.deaths)
+	local line = if s.pendingSteveEvent then (Story.SteveEventLine(s.pendingSteveEvent) or Story.SteveLine(1, s.deaths)) else Story.SteveLine(1, s.deaths)
+	if s.pendingSteveEvent then
+		s.steveEvents[s.pendingSteveEvent] = true
+		s.pendingSteveEvent = nil
+	end
 	toast(player, if s.deaths > 0 then Story.HubHeadline(s.deaths) else "Dawn. Bonfire. Crabs stole your Cold One.")
 	task.delay(1.5, function()
 		Remotes.Get("ShowTagline"):FireClient(player, line, "Captain Steve")
 	end)
+	TutorialService.OnHubLoaded(player, s.tutorial)
 end
 
 local function spawnStageThreats(player: Player)
@@ -296,7 +311,24 @@ function GameService.LoadStage(player: Player, stageId: string)
 	EnemyService.Clear()
 	EnemyService.SetStageContext(stage.index)
 	WorldBuilder.BuildStage(stageId, s.deaths)
+	s.checkpointX = Constants.SPAWN_X
 	teleportPlayer(player, WorldBuilder.GetSpawnCFrame(stageId))
+	if stage.index == 1 then
+		TutorialService.OnStage1Loaded(player, s.tutorial)
+	end
+	-- Act 1 collar hint on Boardwalk (stage 2)
+	if stage.index == 2 and not s.steveEvents["collarHint"] then
+		task.delay(3.5, function()
+			if not s.steveEvents["collarHint"] then
+				s.steveEvents["collarHint"] = true
+				local el = Story.SteveEventLine("collarHint")
+				if el then
+					Remotes.Get("ShowTagline"):FireClient(player, el, "Captain Steve")
+					toast(player, "Captain Steve: " .. el)
+				end
+			end
+		end)
+	end
 	if stage.hangover then
 		s.hangoverUntil = os.clock() + Constants.HANGOVER_DURATION
 		toast(player, "Status: Hangover — slower until you reclaim The Cold One. (Florida Dew. Not alcohol.)")
@@ -678,6 +710,9 @@ function GameService.DoAttack(player: Player)
 		heavy = heavy,
 	})
 	Remotes.Get("PlaySound"):FireClient(player, if hits > 0 then "SFX_Hit" else "SFX_Swing")
+	if s.stageIndex == 1 then
+		TutorialService.OnAttack(player, s.tutorial)
+	end
 end
 
 function GameService.DoSkill(player: Player)
@@ -862,16 +897,28 @@ function GameService.TickWaves(player: Player)
 			local maxH = Balance.MaxHostiles(stage.index)
 			local room = math.max(0, maxH - EnemyService.CountHostile())
 			local toSpawn = Balance.WaveSpawnCap(stage.index, math.min(wave.count, math.max(1, room)))
-			for _ = 1, toSpawn do
-				local x = hrp.Position.X + 18 + rng:NextNumber(0, 12)
+			for i = 1, toSpawn do
+				-- Phase 1: slightly wider spacing on teach stages so telegraphs read
+				local gap = if stage.index <= 3 then 10 + i * 6 else 0
+				local x = hrp.Position.X + 18 + gap + rng:NextNumber(0, if stage.index <= 3 then 8 else 12)
 				EnemyService.Spawn(wave.enemyId, x)
 			end
 		end
 	end
 	if stage.miniboss and not s.minibossSpawned and progress >= 0.72 then
 		s.minibossSpawned = true
-		EnemyService.Spawn(stage.miniboss, math.min(stage.length - 20, hrp.Position.X + 22))
+		local mx = math.min(stage.length - 20, hrp.Position.X + 22)
+		EnemyService.Spawn(stage.miniboss, mx)
 		toast(player, "Miniboss incoming!")
+		Remotes.Get("CombatEvent"):FireClient(player, {
+			kind = "focus",
+			pos = Vector3.new(mx, 4, Constants.LANE_Z),
+			duration = 0.38,
+			amount = 0.35,
+		})
+		if stage.miniboss == "CrabKingBoss" then
+			TutorialService.OnCrabKingIntro(player, s.tutorial)
+		end
 	end
 	if stage.boss and not s.bossSpawned and progress >= 0.55 then
 		s.bossSpawned = true
@@ -892,6 +939,12 @@ function GameService.TickWaves(player: Player)
 			mid.CanCollide = false
 			mid.Transparency = 0.85
 			toast(player, "Path open — keep moving →")
+			Remotes.Get("CombatEvent"):FireClient(player, {
+				kind = "focus",
+				pos = mid.Position,
+				duration = 0.36,
+				amount = 0.3,
+			})
 		end
 	end
 	-- reach gate
@@ -974,7 +1027,21 @@ local function talkCaptainSteve(player: Player)
 	elseif s.deaths > 0 then
 		act = math.clamp(Balance.ActNumber(s.stageIndex), 1, 5)
 	end
-	local line = Story.SteveLine(act, s.deaths)
+	-- Phase 1: prefer event-tied Act 1 lines when pending / recently earned
+	local line: string
+	if s.pendingSteveEvent then
+		line = Story.SteveEventLine(s.pendingSteveEvent) or Story.SteveLine(act, s.deaths)
+		s.steveEvents[s.pendingSteveEvent] = true
+		s.pendingSteveEvent = nil
+	elseif act == 1 and s.steveEvents["coldOne"] and not s.steveEvents["afterColdOneHubSaid"] then
+		line = Story.SteveEventLine("afterColdOneHub") or Story.SteveLine(act, s.deaths)
+		s.steveEvents["afterColdOneHubSaid"] = true
+	elseif act == 1 and s.steveEvents["collarHint"] and not s.steveEvents["collarHintSaid"] then
+		line = Story.SteveEventLine("collarHint") or Story.SteveLine(act, s.deaths)
+		s.steveEvents["collarHintSaid"] = true
+	else
+		line = Story.SteveLine(act, s.deaths)
+	end
 	toast(player, "Captain Steve: " .. line)
 	Remotes.Get("ShowTagline"):FireClient(player, line, "Captain Steve")
 	pushState(player)
@@ -999,6 +1066,17 @@ local function tryColdOnePickup(player: Player)
 		cold:Destroy()
 		applyCharacterSpeed(player)
 		toast(player, "Walked into The Cold One (Florida Dew)! Hangover cleared. +" .. Constants.COLD_ONE_HEAL .. " HP")
+		TutorialService.OnColdOne(player, s.tutorial)
+		if not s.steveEvents["coldOne"] then
+			s.steveEvents["coldOne"] = true
+			s.pendingSteveEvent = "afterColdOneHub"
+			local el = Story.SteveEventLine("coldOne")
+			if el then
+				task.delay(1.0, function()
+					Remotes.Get("ShowTagline"):FireClient(player, el, "Captain Steve")
+				end)
+			end
+		end
 		pushState(player)
 	end
 end
@@ -1014,6 +1092,33 @@ function GameService.SetupRemotes()
 			GameService.StartRun(player)
 		elseif action == "TalkCaptainSteve" then
 			talkCaptainSteve(player)
+		end
+	end)
+
+	Remotes.Get("TutorialBeat").OnServerEvent:Connect(function(player, beat)
+		local s = states[player]
+		if not s or typeof(beat) ~= "string" then
+			return
+		end
+		local f = s.tutorial
+		if beat == "move" then
+			TutorialService.OnMoved(player, f)
+		elseif beat == "jump" then
+			TutorialService.OnJumped(player, f)
+		elseif beat == "attack" then
+			TutorialService.OnAttack(player, f)
+		elseif beat == "dodge" then
+			-- only credit dodge teach if they already heard attack tip
+			if f.attack then
+				TutorialService.OnDodgeDuringTele(player, f)
+			end
+		elseif beat == "nearColdOne" then
+			if f.dodgeTele and not f.coldOne then
+				-- gentle nudge once via existing coldOne path toast only if not taken
+				if not s.coldOneTaken then
+					-- OnDodge already tips Cold One; no extra spam
+				end
+			end
 		end
 	end)
 
@@ -1243,18 +1348,35 @@ function GameService.SetupRemotes()
 					end
 				end
 
-				-- soft lane safety if client desyncs badly (MovementController owns fine lock)
+				-- Phase 1: checkpoint progress + soft fall respawn on slice stages 1–3
 				local char = player.Character
 				local hrp = char and char:FindFirstChild("HumanoidRootPart") :: BasePart?
-				if hrp then
+				local st2 = states[player]
+				if hrp and st2 then
 					local p = hrp.Position
 					if math.abs(p.Z - Constants.LANE_Z) > 2.5 then
 						hrp.CFrame = CFrame.new(p.X, p.Y, Constants.LANE_Z)
 					end
-					local st2 = states[player]
-					if st2 then
-						applyCharacterSpeed(player)
+					-- advance checkpoint along run (slice stakes)
+					if st2.runActive and st2.stageIndex >= 1 and st2.stageIndex <= 3 then
+						local stg = Stages.Get(st2.stageId)
+						if stg and p.X > st2.checkpointX + 8 then
+							st2.checkpointX = math.max(st2.checkpointX, math.min(p.X, stg.length - 15))
+						end
+						-- fell off (no SafetyFloor on 1–3)
+						if p.Y < -6 then
+							local lastFall = char:GetAttribute("LastSoftFallAt")
+							if typeof(lastFall) ~= "number" or os.clock() - lastFall > 1.2 then
+								char:SetAttribute("LastSoftFallAt", os.clock())
+								local cx = st2.checkpointX or Constants.SPAWN_X
+								hrp.CFrame = CFrame.new(cx, 5, Constants.LANE_Z)
+								hrp.AssemblyLinearVelocity = Vector3.zero
+								toast(player, "Whoops — soft checkpoint. Stakes, not a void death.")
+								Remotes.Get("CombatEvent"):FireClient(player, { kind = "shake", amount = 0.4 })
+							end
+						end
 					end
+					applyCharacterSpeed(player)
 				end
 			end
 		end

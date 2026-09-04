@@ -113,6 +113,16 @@ local function buildCrab(model: Model, root: Part, def: any)
 	})
 	attachToRoot(root, ridge)
 
+	local belly = part({
+		Name = "CrabBelly",
+		Parent = model,
+		Size = Vector3.new(s.X * 0.7, s.Y * 0.25, s.Z * 0.55),
+		Color = def.color:Lerp(Color3.fromRGB(255, 200, 160), 0.4),
+		Material = Enum.Material.SmoothPlastic,
+		CFrame = root.CFrame * CFrame.new(0, -s.Y * 0.12, 0.1),
+	})
+	attachToRoot(root, belly)
+
 	-- Eye stalks (static welds to root)
 	for _, side in { -1, 1 } do
 		local stalk = part({
@@ -251,6 +261,35 @@ local function buildCrab(model: Model, root: Part, def: any)
 		tipB.CanCollide = false
 		tipB.Massless = true
 		weld(claw, tipB, "PincerWeldB")
+	end
+
+	-- Phase 1 hero: Crab King crown + bigger claws silhouette
+	if def.id == "CrabKingBoss" or def.isMiniboss then
+		local crown = part({
+			Name = "TideCrown",
+			Parent = model,
+			Size = Vector3.new(s.X * 0.55, 0.55, s.Z * 0.45),
+			Color = Color3.fromRGB(255, 210, 60),
+			Material = Enum.Material.Neon,
+			CFrame = root.CFrame * CFrame.new(0, s.Y * 0.72, 0),
+		})
+		attachToRoot(root, crown)
+		for _, sx in { -0.35, 0, 0.35 } do
+			local spike = part({
+				Name = "CrownSpike",
+				Parent = model,
+				Size = Vector3.new(0.28, 0.9, 0.28),
+				Color = Color3.fromRGB(255, 230, 120),
+				Material = Enum.Material.Neon,
+				CFrame = crown.CFrame * CFrame.new(sx * s.X * 0.35, 0.55, 0),
+			})
+			attachToRoot(root, spike)
+		end
+		local pl = Instance.new("PointLight")
+		pl.Brightness = 1.4
+		pl.Range = 14
+		pl.Color = Color3.fromRGB(255, 160, 60)
+		pl.Parent = crown
 	end
 
 	local dust = Instance.new("Attachment")
@@ -414,6 +453,7 @@ local function buildSnake(model: Model, root: Part, def: any)
 end
 
 local function buildSlime(model: Model, root: Part, def: any)
+	-- Phase 1 hero: layered blob + drip + eyes for readable slushie silhouette
 	root.Shape = Enum.PartType.Ball
 	root.Size = def.size * 0.85
 	root.Color = def.color
@@ -428,6 +468,61 @@ local function buildSlime(model: Model, root: Part, def: any)
 		CFrame = root.CFrame,
 	})
 	attachToRoot(root, core)
+	local blob = part({
+		Name = "BlobHalo",
+		Parent = model,
+		Size = def.size * 1.05,
+		Shape = Enum.PartType.Ball,
+		Color = def.color:Lerp(Color3.fromRGB(255, 255, 255), 0.15),
+		Material = Enum.Material.ForceField,
+		Transparency = 0.35,
+		CFrame = root.CFrame,
+	})
+	attachToRoot(root, blob)
+	for _, side in { -1, 1 } do
+		local eye = part({
+			Name = "SlushEye",
+			Parent = model,
+			Size = Vector3.new(0.55, 0.7, 0.35),
+			Shape = Enum.PartType.Ball,
+			Color = Color3.fromRGB(20, 20, 30),
+			CFrame = root.CFrame * CFrame.new(side * def.size.X * 0.18, def.size.Y * 0.12, -def.size.Z * 0.28),
+		})
+		attachToRoot(root, eye)
+	end
+	local drip = part({
+		Name = "Drip",
+		Parent = model,
+		Size = Vector3.new(def.size.X * 0.35, def.size.Y * 0.45, def.size.Z * 0.35),
+		Shape = Enum.PartType.Ball,
+		Color = def.color,
+		Material = Enum.Material.Neon,
+		CFrame = root.CFrame * CFrame.new(0, -def.size.Y * 0.4, 0),
+	})
+	attachToRoot(root, drip)
+	if def.id == "SlushieKing" or def.isMiniboss then
+		local cup = part({
+			Name = "SlushCrown",
+			Parent = model,
+			Size = Vector3.new(def.size.X * 0.5, 0.4, def.size.Z * 0.5),
+			Color = Color3.fromRGB(80, 255, 255),
+			Material = Enum.Material.Neon,
+			CFrame = root.CFrame * CFrame.new(0, def.size.Y * 0.45, 0),
+		})
+		attachToRoot(root, cup)
+	end
+	local att = Instance.new("Attachment")
+	att.Name = "SlushSpray"
+	att.Parent = root
+	local pe = Instance.new("ParticleEmitter")
+	pe.Name = "StickyMist"
+	pe.Color = ColorSequence.new(def.color)
+	pe.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.3), NumberSequenceKeypoint.new(1, 0.8) })
+	pe.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.3), NumberSequenceKeypoint.new(1, 1) })
+	pe.Lifetime = NumberRange.new(0.4, 0.7)
+	pe.Rate = 6
+	pe.Speed = NumberRange.new(0.5, 1.5)
+	pe.Parent = att
 end
 
 local function buildHumanoidish(model: Model, root: Part, def: any)
@@ -457,6 +552,54 @@ local function buildHumanoidish(model: Model, root: Part, def: any)
 		CFrame = head.CFrame * CFrame.new(0, 0.8, 0),
 	})
 	attachToRoot(root, accent)
+	-- Phase 1 hero: Lost Tourist — visor, camera, fanny pack, flip-flops silhouette
+	if def.id == "AngryTourist" then
+		local visor = part({
+			Name = "TouristVisor",
+			Parent = model,
+			Size = Vector3.new(1.7, 0.25, 1.7),
+			Color = Color3.fromRGB(255, 80, 80),
+			Material = Enum.Material.SmoothPlastic,
+			CFrame = head.CFrame * CFrame.new(0, 0.55, 0),
+		})
+		attachToRoot(root, visor)
+		local cam = part({
+			Name = "TouristCamera",
+			Parent = model,
+			Size = Vector3.new(0.7, 0.55, 0.9),
+			Color = Color3.fromRGB(40, 40, 50),
+			Material = Enum.Material.Metal,
+			CFrame = root.CFrame * CFrame.new(1.1, 0.3, -0.4),
+		})
+		attachToRoot(root, cam)
+		local lens = part({
+			Name = "Lens",
+			Parent = model,
+			Size = Vector3.new(0.35, 0.35, 0.35),
+			Shape = Enum.PartType.Cylinder,
+			Color = Color3.fromRGB(80, 180, 255),
+			Material = Enum.Material.Neon,
+			CFrame = cam.CFrame * CFrame.new(0, 0, -0.5) * CFrame.Angles(0, math.rad(90), 0),
+		})
+		attachToRoot(root, lens)
+		local pack = part({
+			Name = "FannyPack",
+			Parent = model,
+			Size = Vector3.new(1.6, 0.55, 0.7),
+			Color = def.accent,
+			Material = Enum.Material.SmoothPlastic,
+			CFrame = root.CFrame * CFrame.new(0, -s.Y * 0.15, 0.55),
+		})
+		attachToRoot(root, pack)
+		local shirt = part({
+			Name = "IHeartFL",
+			Parent = model,
+			Size = Vector3.new(s.X * 0.75, s.Y * 0.35, 0.2),
+			Color = Color3.fromRGB(255, 255, 255),
+			CFrame = root.CFrame * CFrame.new(0, 0.1, -s.Z * 0.35),
+		})
+		attachToRoot(root, shirt)
+	end
 	-- Selfie stick for influencer
 	if def.id == "SelfieZombie" then
 		local stick = part({
@@ -719,34 +862,72 @@ local function buildGeneric(model: Model, root: Part, def: any)
 		return
 	end
 	if shape == "cart" then
+		-- Phase 1 hero: runaway hotdog cart — canopy, mustard stripe, umbrella, 4 wheels
 		root.Material = Enum.Material.Metal
-		local wheel = part({
-			Name = "Wheel",
+		root.Color = def.color
+		for _, ox in { -0.32, 0.32 } do
+			for _, oz in { -0.55, 0.55 } do
+				local wheel = part({
+					Name = "Wheel",
+					Parent = model,
+					Size = Vector3.new(1.15, 1.15, 0.4),
+					Shape = Enum.PartType.Cylinder,
+					Color = Color3.fromRGB(30, 30, 35),
+					CFrame = root.CFrame * CFrame.new(ox * def.size.X, -def.size.Y * 0.38, oz * def.size.Z * 0.35) * CFrame.Angles(0, 0, math.rad(90)),
+				})
+				attachToRoot(root, wheel)
+			end
+		end
+		local canopy = part({
+			Name = "Canopy",
 			Parent = model,
-			Size = Vector3.new(1.2, 1.2, 0.5),
-			Shape = Enum.PartType.Cylinder,
-			Color = Color3.fromRGB(30, 30, 35),
-			CFrame = root.CFrame * CFrame.new(-def.size.X * 0.3, -def.size.Y * 0.35, 0) * CFrame.Angles(0, 0, math.rad(90)),
+			Size = Vector3.new(def.size.X * 1.05, 0.25, def.size.Z * 1.15),
+			Color = Color3.fromRGB(255, 240, 220),
+			Material = Enum.Material.SmoothPlastic,
+			CFrame = root.CFrame * CFrame.new(0, def.size.Y * 0.55, 0),
 		})
-		attachToRoot(root, wheel)
-		local wheel2 = part({
-			Name = "Wheel2",
+		attachToRoot(root, canopy)
+		local stripe = part({
+			Name = "MustardStripe",
 			Parent = model,
-			Size = Vector3.new(1.2, 1.2, 0.5),
-			Shape = Enum.PartType.Cylinder,
-			Color = Color3.fromRGB(30, 30, 35),
-			CFrame = root.CFrame * CFrame.new(def.size.X * 0.3, -def.size.Y * 0.35, 0) * CFrame.Angles(0, 0, math.rad(90)),
-		})
-		attachToRoot(root, wheel2)
-		local accent = part({
-			Name = "Accent",
-			Parent = model,
-			Size = Vector3.new(def.size.X * 0.8, 0.4, def.size.Z * 0.8),
+			Size = Vector3.new(def.size.X * 0.9, 0.35, def.size.Z * 0.2),
 			Color = def.accent,
 			Material = Enum.Material.Neon,
-			CFrame = root.CFrame * CFrame.new(0, def.size.Y * 0.4, 0),
+			CFrame = root.CFrame * CFrame.new(0, 0.1, -def.size.Z * 0.35),
 		})
-		attachToRoot(root, accent)
+		attachToRoot(root, stripe)
+		local umbrella = part({
+			Name = "UmbrellaPole",
+			Parent = model,
+			Size = Vector3.new(0.2, 2.2, 0.2),
+			Color = Color3.fromRGB(80, 40, 40),
+			CFrame = root.CFrame * CFrame.new(0, def.size.Y * 0.85, 0),
+		})
+		attachToRoot(root, umbrella)
+		local shade = part({
+			Name = "Umbrella",
+			Parent = model,
+			Size = Vector3.new(2.4, 0.35, 2.4),
+			Shape = Enum.PartType.Ball,
+			Color = Color3.fromRGB(220, 40, 50),
+			Material = Enum.Material.SmoothPlastic,
+			CFrame = umbrella.CFrame * CFrame.new(0, 1.1, 0),
+		})
+		attachToRoot(root, shade)
+		local dog = part({
+			Name = "HotdogProp",
+			Parent = model,
+			Size = Vector3.new(1.8, 0.45, 0.45),
+			Color = Color3.fromRGB(180, 90, 50),
+			Material = Enum.Material.SmoothPlastic,
+			CFrame = canopy.CFrame * CFrame.new(0, 0.4, 0),
+		})
+		attachToRoot(root, dog)
+		local pl = Instance.new("PointLight")
+		pl.Brightness = 0.8
+		pl.Range = 10
+		pl.Color = def.accent
+		pl.Parent = stripe
 		return
 	end
 	if shape == "barrel" then

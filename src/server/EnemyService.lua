@@ -387,7 +387,14 @@ function EnemyService._TelegraphAttack(model: Model, target: Player, behavior: s
 	local facing = (model:GetAttribute("Facing") :: number) or 1
 	local enemyId = (model:GetAttribute("EnemyId") :: string) or ""
 	local phase = (model:GetAttribute("BossPhase") :: number?) or 1
-	-- Phase 2–3: slightly faster telegraphs, wider zones (pattern change, not sponge)
+	-- Phase 1 teach band: stretch telegraphs on stages 1–2 so dodge is readable
+	local stageIdx = EnemyService._stageIndex or 1
+	if stageIdx <= 2 then
+		tele = tele * 1.2
+	elseif stageIdx == 3 then
+		tele = tele * 1.08
+	end
+	-- Boss Phase 2–3: slightly faster telegraphs, wider zones (pattern change, not sponge)
 	if phase >= 2 then
 		tele = math.max(0.28, tele * (if phase >= 3 then 0.7 else 0.85))
 	end

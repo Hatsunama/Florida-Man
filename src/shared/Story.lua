@@ -115,6 +115,18 @@ Story.ACT_OPENERS = {
 	[5] = "Act 5 — The Spillfather: refuse the bargain. For the turtles.",
 }
 
+
+-- Act 1 event-tied Steve lines (not random rotate)
+Story.ACT1_EVENTS = {
+	coldOne = "Florida Dew acquired. Comedy's still running — listen for the beep under the cooler later.",
+	collarHint = "You hear that? Radio collars. That's not wildlife. That's a logo with teeth.",
+	afterColdOneHub = "Kid, you got the Cold One back. Bonfire's proud. The swamp won't be.",
+}
+
+function Story.SteveEventLine(eventId: string): string?
+	return Story.ACT1_EVENTS[eventId]
+end
+
 function Story.SteveLine(act: number, deaths: number?): string
 	local a = Story.ACTS[math.clamp(act, 1, 5)]
 	if not a then

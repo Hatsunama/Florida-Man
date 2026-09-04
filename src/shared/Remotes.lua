@@ -27,6 +27,7 @@ local NAMES = {
 	"Toast",
 	"DamageNumber",
 	"PlaySound",
+	"TutorialBeat",
 }
 
 function Remotes.InitServer(): Folder

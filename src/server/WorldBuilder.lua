@@ -769,16 +769,20 @@ function WorldBuilder._BuildGround(world: Folder, stage: any, laneZ: number, len
 			cursor += thisLen
 		end
 	end
-	-- Safety floor under everything so players who fall can recover (soft kill zone feel avoided)
-	part({
-		Name = "SafetyFloor",
-		Parent = world,
-		Size = Vector3.new(length + 80, 1, 40),
-		CFrame = CFrame.new(length / 2, -8, laneZ),
-		Color = Color3.fromRGB(15, 15, 20),
-		Material = Enum.Material.SmoothPlastic,
-		Transparency = 0.5,
-	})
+	-- Phase 1: stages 1–3 omit SafetyFloor (soft checkpoint respawn in GameService).
+	-- Later stages keep a recovery pad so void falls are not rage-quits.
+	local idx = stage.index or 0
+	if idx < 1 or idx > 3 then
+		part({
+			Name = "SafetyFloor",
+			Parent = world,
+			Size = Vector3.new(length + 80, 1, 40),
+			CFrame = CFrame.new(length / 2, -8, laneZ),
+			Color = Color3.fromRGB(15, 15, 20),
+			Material = Enum.Material.SmoothPlastic,
+			Transparency = 0.5,
+		})
+	end
 end
 
 function WorldBuilder._MidRoomGate(world: Folder, stage: any, laneZ: number, length: number)

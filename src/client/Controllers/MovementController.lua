@@ -247,6 +247,10 @@ function MovementController.RequestDodge()
 		end
 	end)
 	Remotes.Get("RequestDodge"):FireServer(facing)
+	pcall(function()
+		local TutorialController = require(script.Parent:WaitForChild("TutorialController"))
+		TutorialController.OnDodgeInput()
+	end)
 end
 
 function MovementController.Start()

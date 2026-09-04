@@ -7,6 +7,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Remotes = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Remotes"))
 local VFX = require(script.Parent:WaitForChild("VFX"))
 local CaptainSteveUI = require(script.Parent.Parent:WaitForChild("UI"):WaitForChild("CaptainSteveUI"))
+local TutorialController = require(script.Parent:WaitForChild("TutorialController"))
 
 local InputController = {}
 InputController._enabled = true
@@ -64,6 +65,7 @@ local function doSwingFire()
 		VFX.SwingSlash(hrp, facing, comboHint)
 	end
 	fire("RequestAttack")
+	TutorialController.OnAttackInput()
 end
 
 local function tryAttack()
@@ -111,8 +113,7 @@ function InputController.Start()
 			-- handled by MovementController
 		elseif k == Enum.KeyCode.E then
 			tryInteract()
-		elseif k == Enum.KeyCode.One or k == Enum.KeyCode.Two or k == Enum.KeyCode.Three then
-			-- cycle weapon via EquipWeapon if state known — HUD handles cycle toast
+			-- Phase 1: weapon keys 1–3 stubs removed (Phase 3 owns weapons). No silent no-ops.
 		end
 	end)
 
@@ -142,6 +143,7 @@ function InputController.Start()
 			else
 				fire("RequestDodge")
 			end
+			TutorialController.OnDodgeInput()
 		end
 	end, false, Enum.KeyCode.ButtonR1)
 
