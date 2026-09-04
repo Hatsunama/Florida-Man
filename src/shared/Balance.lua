@@ -1,5 +1,7 @@
 --!strict
 --[[ Difficulty + power curve (documented).
+	See also docs/BALANCE_SHEET.md for DPS vs stage HP tables.
+
 	Design intent — Skul readability, not HP sponges:
 
 	STAGE BANDS
@@ -28,7 +30,7 @@
 
 local Balance = {}
 
-Balance.ENEMY_HP_PER_STAGE = 0.10
+Balance.ENEMY_HP_PER_STAGE = 0.09 -- Phase 6: was 0.10; Act1 trash less sponge
 Balance.ENEMY_DMG_PER_STAGE = 0.075
 
 -- Persona rarity → attack & skill power
@@ -144,5 +146,30 @@ function Balance.RestToast(actNumber: number): string
 	}
 	return lines[actNumber] or "REST — Return to hub for Captain Steve upgrades."
 end
+
+-- Phase 6: seed-of-day luck bonus for drafts (±5% luck additive).
+-- os.date UTC day → deterministic Random; documented in PUBLISH_CHECKLIST / BALANCE_SHEET.
+function Balance.DailyLuckBonus(): number
+	local d = os.date("!*t")
+	local seed = d.year * 10000 + d.month * 100 + d.day
+	local r = Random.new(seed)
+	-- map [0,1) → [-0.05, +0.05]
+	return (r:NextNumber() * 0.10) - 0.05
+end
+
+-- Rough starter DPS (BeachBurnout BareHands, Common, no items) for sheet notes
+function Balance.EstimateStarterHitDamage(): number
+	-- persona.attackDamage 12 + (weapon.damage 10 - 10)*0.65 = 12
+	return 12
+end
+
+function Balance.EstimateScaledEnemyHp(baseHp: number, stageIndex: number, isMiniboss: boolean?): number
+	local m = Balance.EnemyHpMult(stageIndex)
+	if isMiniboss then
+		m *= Balance.MinibossHpMult(stageIndex)
+	end
+	return math.floor(baseHp * m)
+end
+
 
 return Balance

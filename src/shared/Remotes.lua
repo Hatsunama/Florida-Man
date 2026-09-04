@@ -28,6 +28,7 @@ local NAMES = {
 	"DamageNumber",
 	"PlaySound",
 	"TutorialBeat",
+	"SyncSettings",
 }
 
 function Remotes.InitServer(): Folder

@@ -1,4 +1,5 @@
 --!strict
+--[[ Phase 6: FM_EnemyPool + FM_TelegraphPool reuse; Debris telegraphs optional. ]]
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
@@ -20,6 +21,67 @@ EnemyService._onKilled = nil :: ((Player, string, Model) -> ())?
 EnemyService._onTurtleRescued = nil :: ((Player, Model) -> ())?
 EnemyService._stageIndex = 1
 
+-- Phase 6: simple reuse folders (telegraph Parts + parked enemy models)
+local POOL_MAX_ENEMIES = 12
+local POOL_MAX_TELE = 24
+local enemyPool: { Model } = {}
+local telePool: { Part } = {}
+
+local function ensurePoolFolders(): (Folder, Folder)
+	local world = Workspace:FindFirstChild("GameWorld") or Workspace
+	local ep = world:FindFirstChild("FM_EnemyPool")
+	if not ep then
+		ep = Instance.new("Folder")
+		ep.Name = "FM_EnemyPool"
+		ep.Parent = world
+	end
+	local tp = world:FindFirstChild("FM_TelegraphPool")
+	if not tp then
+		tp = Instance.new("Folder")
+		tp.Name = "FM_TelegraphPool"
+		tp.Parent = world
+	end
+	return ep :: Folder, tp :: Folder
+end
+
+local function acquireTelegraph(): Part
+	local _, tp = ensurePoolFolders()
+	local zone = table.remove(telePool)
+	if zone and zone.Parent then
+		-- strip old CB stripe
+		local old = zone:FindFirstChild("CB_Stripe")
+		if old then
+			old:Destroy()
+		end
+		zone.Parent = Workspace
+		return zone
+	end
+	zone = Instance.new("Part")
+	zone.Name = "Telegraph"
+	zone.Anchored = true
+	zone.CanCollide = false
+	zone.Parent = Workspace
+	return zone
+end
+
+local function releaseTelegraph(zone: Part, lifetime: number)
+	task.delay(lifetime, function()
+		if not zone or not zone.Parent then
+			return
+		end
+		local _, tp = ensurePoolFolders()
+		if #telePool >= POOL_MAX_TELE then
+			zone:Destroy()
+			return
+		end
+		zone.Transparency = 1
+		zone.Size = Vector3.new(1, 1, 1)
+		zone.CFrame = CFrame.new(0, -500, 0)
+		zone.Parent = tp
+		table.insert(telePool, zone)
+	end)
+end
+
 function EnemyService.SetStageContext(stageIndex: number)
 	EnemyService._stageIndex = stageIndex or 1
 end
@@ -30,9 +92,31 @@ function EnemyService.SetCallbacks(onKilled, onTurtleRescued)
 end
 
 function EnemyService.Clear()
+	local ep, _tp = ensurePoolFolders()
 	for model in EnemyService._alive do
 		if model and model.Parent then
-			model:Destroy()
+			local id = model:GetAttribute("EnemyId")
+			-- Park common trash; destroy bosses/minibosses/allies (stateful)
+			local park = typeof(id) == "string"
+				and not model:GetAttribute("IsBoss")
+				and not model:GetAttribute("IsMiniboss")
+				and not model:GetAttribute("IsAlly")
+				and #enemyPool < POOL_MAX_ENEMIES
+			if park then
+				model.Parent = ep
+				for _, d in model:GetDescendants() do
+					if d:IsA("BasePart") then
+						d.Anchored = true
+						d.AssemblyLinearVelocity = Vector3.zero
+					end
+				end
+				if model.PrimaryPart then
+					model:PivotTo(CFrame.new(0, -400, 0))
+				end
+				table.insert(enemyPool, model)
+			else
+				model:Destroy()
+			end
 		end
 	end
 	table.clear(EnemyService._alive)
@@ -45,7 +129,28 @@ function EnemyService.Spawn(enemyId: string, x: number): Model?
 		return nil
 	end
 	local pos = Vector3.new(x, def.size.Y * 0.5 + 0.5, Constants.LANE_Z)
-	local model = EnemyFactory.Build(def, pos)
+	local model: Model? = nil
+	-- Phase 6: reclaim parked trash of same id (skip allies)
+	if not def.isAlly then
+		for i, parked in enemyPool do
+			if parked.Parent and parked:GetAttribute("EnemyId") == enemyId then
+				model = parked
+				table.remove(enemyPool, i)
+				break
+			end
+		end
+	end
+	if model then
+		model:PivotTo(CFrame.new(pos))
+		local humR = model:FindFirstChildOfClass("Humanoid")
+		if humR then
+			humR.Health = humR.MaxHealth
+		end
+		model:SetAttribute("BossPhase", 1)
+		model:SetAttribute("FlinchUntil", nil)
+	else
+		model = EnemyFactory.Build(def, pos)
+	end
 	-- Apply stage scaling (allies/turtles skip)
 	if not def.isAlly then
 		local hum = model:FindFirstChildOfClass("Humanoid")
@@ -186,9 +291,22 @@ function EnemyService._Poof(model: Model, attacker: Player?)
 	local pos = if root then root.Position else Vector3.zero
 	local color = if root then root.Color else Color3.new(1, 1, 1)
 	EnemyFactory.DeathPoof(pos, color)
-	model:Destroy()
 	if attacker and EnemyService._onKilled then
 		EnemyService._onKilled(attacker, enemyId, model)
+	end
+	local park = not model:GetAttribute("IsBoss")
+		and not model:GetAttribute("IsMiniboss")
+		and not model:GetAttribute("IsAlly")
+		and #enemyPool < POOL_MAX_ENEMIES
+	if park then
+		local ep, _tp = ensurePoolFolders()
+		model.Parent = ep
+		if model.PrimaryPart then
+			model:PivotTo(CFrame.new(0, -400, 0))
+		end
+		table.insert(enemyPool, model)
+	else
+		model:Destroy()
 	end
 end
 
@@ -434,7 +552,7 @@ function EnemyService._TelegraphAttack(model: Model, target: Player, behavior: s
 
 	local zones: { Part } = {}
 	local function addZone(size: Vector3, cf: CFrame, color: Color3?, trans: number?): Part
-		local zone = Instance.new("Part")
+		local zone = acquireTelegraph()
 		zone.Name = "Telegraph"
 		zone.Anchored = true
 		zone.CanCollide = false
@@ -464,7 +582,7 @@ function EnemyService._TelegraphAttack(model: Model, target: Player, behavior: s
 			decal.Parent = zone
 		end
 		zone.Parent = Workspace
-		Debris:AddItem(zone, tele + 0.2)
+		releaseTelegraph(zone, tele + 0.2)
 		table.insert(zones, zone)
 		return zone
 	end

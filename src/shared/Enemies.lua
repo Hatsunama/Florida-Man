@@ -29,13 +29,13 @@ export type EnemyDef = {
 
 local list: { EnemyDef } = {
 	-- Crabs / beach
-	{ id = "BeachCrab", name = "Hangover Pincher", hp = 26, damage = 5, speed = 10,
+	{ id = "BeachCrab", name = "Hangover Pincher", hp = 24, damage = 5, speed = 10,
 		color = Color3.fromRGB(220, 70, 50), accent = Color3.fromRGB(255, 180, 100),
 		size = Vector3.new(3.2, 1.6, 3.2), telegraph = 0.72, attackCooldown = 1.65,
 		isBoss = false, isMiniboss = false, isAlly = false, dropsPersona = nil, dropsItem = nil,
 		flavor = "Stole your Cold One. Sideways and proud.", shape = "crab", behavior = "scuttle",
 		telegraphColor = Color3.fromRGB(255, 120, 80) },
-	{ id = "HermitCrab", name = "Stolen-Sunglasses Crab", hp = 38, damage = 7, speed = 7,
+	{ id = "HermitCrab", name = "Stolen-Sunglasses Crab", hp = 34, damage = 7, speed = 7,
 		color = Color3.fromRGB(180, 90, 60), accent = Color3.fromRGB(40, 40, 50),
 		size = Vector3.new(2.8, 2.2, 2.8), telegraph = 0.55, attackCooldown = 1.7,
 		isBoss = false, isMiniboss = false, isAlly = false, dropsPersona = nil, dropsItem = "SeashellShield",
