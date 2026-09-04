@@ -25,7 +25,6 @@ local jumping = false
 local attackLockUntil = 0
 local dodgeUntil = 0
 local hitstopUntil = 0
-local hangoverMult = 1
 local baseSpeed = 18
 local enabled = true
 
@@ -176,8 +175,8 @@ local function doJump(hrp: BasePart, hum: Humanoid)
 	jumpBuffer = 0
 end
 
-function MovementController.SetHangover(active: boolean)
-	hangoverMult = if active then Constants.HANGOVER_SLOW else 1
+-- N2: Hangover/OilSlow applied server-side into MoveSpeed (min-stack). Client must not re-multiply.
+function MovementController.SetHangover(_active: boolean)
 end
 
 function MovementController.SetBaseSpeed(speed: number)
@@ -359,7 +358,8 @@ function MovementController.Start()
 			doJump(hrp, hum)
 		end
 
-		local maxSpd = math.min(MAX_SPEED, baseSpeed) * hangoverMult * slowMult
+		-- baseSpeed already includes Hangover/OilSlow from server MoveSpeed attr
+		local maxSpd = math.min(MAX_SPEED, baseSpeed) * slowMult
 		local accel = if grounded then ACCEL else AIR_ACCEL
 		local inDodge = os.clock() < dodgeUntil - Constants.DODGE_COOLDOWN + DODGE_DUR
 

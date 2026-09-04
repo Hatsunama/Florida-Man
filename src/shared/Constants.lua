@@ -33,6 +33,12 @@ local Constants = {
 	COLD_ONE_HEAL = 35,
 	HANGOVER_SLOW = 0.88,
 	HANGOVER_DURATION = 999, -- cleared by Cold One pickup (stage 1 only)
+	OIL_SLOW_MULT = 0.70, -- hazard OilSlow; distinct from Hangover (min-stack, never multiply both)
+	RESCUE_DEBOUNCE = 1.5,
+	SOFT_FALL_TOAST_MAX = 3,
+	COMBAT_REMOTE_RATE = { attack = 8, skill = 4, dodge = 5 }, -- token bucket refill / sec
+	COMBAT_REMOTE_BURST = { attack = 3, skill = 2, dodge = 2 },
+	META_SCHEMA_VERSION = 1,
 	KNOCKBACK_BASE = 7,
 	CAMERA_DEPTH = 32, -- side-scroll depth ~30–34
 	-- Phase 3 combat depth

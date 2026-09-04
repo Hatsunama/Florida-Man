@@ -19,7 +19,9 @@ local EnemyService = {}
 EnemyService._alive = {} :: { [Model]: boolean }
 EnemyService._onKilled = nil :: ((Player, string, Model) -> ())?
 EnemyService._onTurtleRescued = nil :: ((Player, Model) -> ())?
+EnemyService._onPlayerHit = nil :: ((Player, number, string?) -> ())?
 EnemyService._stageIndex = 1
+EnemyService._rescueDebounceUntil = {} :: { [Model]: number }
 
 local POOL_MAX_ENEMIES = 12
 local POOL_MAX_TELE = 24
@@ -88,6 +90,11 @@ end
 function EnemyService.SetCallbacks(onKilled, onTurtleRescued)
 	EnemyService._onKilled = onKilled
 	EnemyService._onTurtleRescued = onTurtleRescued
+end
+
+-- N2: server-memory hit path — replaces client-trusted damage bus
+function EnemyService.SetOnPlayerHit(cb: ((Player, number, string?) -> ())?)
+	EnemyService._onPlayerHit = cb
 end
 
 function EnemyService.Clear()
@@ -315,6 +322,11 @@ function EnemyService.TryRescue(player: Player, model: Model): boolean
 	if model:GetAttribute("Rescued") then
 		return false
 	end
+	local untilT = EnemyService._rescueDebounceUntil[model]
+	if typeof(untilT) == "number" and os.clock() < untilT then
+		return false
+	end
+	EnemyService._rescueDebounceUntil[model] = os.clock() + Constants.RESCUE_DEBOUNCE
 	model:SetAttribute("Rescued", true)
 	local root = model.PrimaryPart
 	local pos = if root then root.Position else Vector3.new(0, 4, Constants.LANE_Z)
@@ -327,6 +339,7 @@ function EnemyService.TryRescue(player: Player, model: Model): boolean
 	if EnemyService._onTurtleRescued then
 		EnemyService._onTurtleRescued(player, model)
 	end
+	EnemyService._rescueDebounceUntil[model] = nil
 	model:Destroy()
 	return true
 end
@@ -700,8 +713,9 @@ function EnemyService._TelegraphAttack(model: Model, target: Player, behavior: s
 				finalDmg = math.floor(dmg * 1.15)
 			end
 			Remotes.Get("CombatEvent"):FireClient(target, { kind = "hit", damage = finalDmg, source = enemyId })
-			target:SetAttribute("PendingDamage", finalDmg)
-			target:SetAttribute("PendingDamageAt", os.clock())
+			if EnemyService._onPlayerHit then
+				EnemyService._onPlayerHit(target, finalDmg, enemyId)
+			end
 		end
 	end
 end

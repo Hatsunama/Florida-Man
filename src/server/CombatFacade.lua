@@ -21,6 +21,10 @@ local deps: any = nil
 
 function CombatFacade.Init(d: any)
 	deps = d
+	-- N2: enemy hits apply via server callback (no client-trusted damage attrs)
+	EnemyService.SetOnPlayerHit(function(player: Player, amount: number, _source: string?)
+		CombatFacade.ApplyDamageToPlayer(player, amount)
+	end)
 end
 
 -- N0.1: hard-cap enemy drop grants vs itemSlots (no math.max(..., 8) soft overflow)
@@ -161,14 +165,7 @@ function CombatFacade.DoAttack(player: Player)
 		hits += 1
 	end
 
-	for _, model in EnemyService.GetAlive() do
-		if model:GetAttribute("IsAlly") then
-			local root = model.PrimaryPart
-			if root and (root.Position - origin).Magnitude < 10 then
-				EnemyService.TryRescue(player, model)
-			end
-		end
-	end
+	-- N2: turtle rescue is ProximityPrompt/RescueTurtle only (no attack-rescue double-count)
 
 	if wkind == "ranged" then
 		CombatService.SpawnProjectile({

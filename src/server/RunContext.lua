@@ -39,7 +39,7 @@ end
 
 function RunContext.PersistMeta(player: Player, s: RunState)
 	MetaService.CaptureFromRun(player, s.deaths, s.sunburn, s.unlockedPersonas, s.stageIndex)
-	MetaService.Save(player)
+	MetaService.Save(player) -- dirty-gated + re-entrancy safe
 end
 
 function RunContext.PushState(player: Player)
@@ -263,9 +263,19 @@ function RunContext.ApplyCharacterSpeed(player: Player)
 	local persona = Personas.Get(s.personas[s.activePersona])
 	local base = if persona then persona.moveSpeed else 18
 	base += s.speedBonus
-	if os.clock() < s.hangoverUntil then
-		base *= Constants.HANGOVER_SLOW
+
+	-- N2: Hangover ≠ OilSlow — min-stack one mult, never multiply both blindly
+	local mult = 1
+	local hungover = os.clock() < s.hangoverUntil
+	if hungover then
+		mult = math.min(mult, Constants.HANGOVER_SLOW)
 	end
+	local oilUntil = if char then char:GetAttribute("OilSlowUntil") else nil
+	local oiled = typeof(oilUntil) == "number" and os.clock() < oilUntil
+	if oiled then
+		mult = math.min(mult, Constants.OIL_SLOW_MULT)
+	end
+	base *= mult
 	s.moveSpeed = base
 
 	hum.WalkSpeed = 0
@@ -273,7 +283,11 @@ function RunContext.ApplyCharacterSpeed(player: Player)
 	hum.AutoRotate = false
 	if char then
 		char:SetAttribute("MoveSpeed", base)
-		char:SetAttribute("Hangover", os.clock() < s.hangoverUntil)
+		char:SetAttribute("Hangover", hungover)
+		char:SetAttribute("OilSlow", oiled)
+		if not oiled then
+			char:SetAttribute("OilSlowUntil", nil)
+		end
 		char:SetAttribute("AggroPull", RunContext.HasItemSpecial(s, "aggro"))
 	end
 	RunContext.ApplyPersonaLook(player)

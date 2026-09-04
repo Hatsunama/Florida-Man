@@ -19,6 +19,7 @@ export type HazardKind =
 
 -- Meta persist shape (mirrors MetaService.MetaProfile)
 export type MetaProfile = {
+	schemaVersion: number,
 	deaths: number,
 	sunburn: number,
 	unlockedPersonas: { string },

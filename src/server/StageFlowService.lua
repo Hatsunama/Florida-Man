@@ -104,6 +104,16 @@ function StageFlowService.LoadStage(player: Player, stageId: string)
 	WorldBuilder.BuildStage(stageId, s.deaths)
 	s.checkpointX = Constants.SPAWN_X
 	RunContext.TeleportPlayer(player, WorldBuilder.GetSpawnCFrame(stageId))
+	do
+		local char = player.Character
+		if char then
+			char:SetAttribute("SoftFallToasts", 0)
+			char:SetAttribute("LastSolidX", nil)
+			char:SetAttribute("LastSolidY", nil)
+			char:SetAttribute("OilSlowUntil", nil)
+			char:SetAttribute("OilSlow", nil)
+		end
+	end
 	if stage.index == 1 then
 		TutorialService.OnStage1Loaded(player, s.tutorial)
 	end
@@ -422,8 +432,19 @@ function StageFlowService.TickWaves(player: Player)
 		local zone = world and world:FindFirstChild("MidRoomZone")
 		local barrier = world and world:FindFirstChild("MidRoomBarrier")
 		if mid and mid:IsA("BasePart") and zone and zone:IsA("BasePart") and hrp then
+			-- N2: MidGate + empty wave table → never lock (0-enemy softlock guard)
+			if stage.waves == nil or #stage.waves == 0 then
+				if mid:GetAttribute("Locked") then
+					mid:SetAttribute("Locked", false)
+					mid.CanCollide = false
+					mid.Transparency = 0.85
+				end
+				if s.midRoomState == "idle" or s.midRoomState == "locked" then
+					s.midRoomState = "cleared"
+				end
+			end
 			local inZone = (hrp.Position - zone.Position).Magnitude < 10
-			if s.midRoomState == "idle" and inZone and mid:GetAttribute("Locked") then
+			if s.midRoomState == "idle" and inZone and mid:GetAttribute("Locked") and stage.waves and #stage.waves > 0 then
 				s.midRoomState = "locked"
 				if barrier and barrier:IsA("BasePart") then
 					barrier.CanCollide = true

@@ -50,6 +50,25 @@ check "SpawnLocation SPAWN_X" 'Vector3\.new\(18, 0\.5, 0\)' src/server/init.serv
 check "Types WeaponKind" 'WeaponKind' src/shared/Types.lua
 check "Types MetaProfile" 'MetaProfile' src/shared/Types.lua
 check "Types RunState" 'export type RunState' src/shared/Types.lua
+# N2 trust & edges
+absent "PendingDamage gone" 'PendingDamage' src/
+check "OnPlayerHit callback" 'SetOnPlayerHit' src/server/EnemyService.lua
+check "CombatFacade registers OnPlayerHit" 'SetOnPlayerHit' src/server/CombatFacade.lua
+absent "No attack-rescue TryRescue" 'TryRescue' src/server/CombatFacade.lua
+check "Rescue debounce" 'RESCUE_DEBOUNCE' src/server/EnemyService.lua
+check "OilSlowUntil hazard" 'OilSlowUntil' src/server/HazardService.lua
+check "OIL_SLOW_MULT distinct" 'OIL_SLOW_MULT' src/shared/Constants.lua
+check "Hangover/OilSlow min-stack" 'OIL_SLOW_MULT' src/server/RunContext.lua
+check "Meta schema version" 'META_SCHEMA_VERSION' src/shared/Constants.lua
+check "Meta dirty/re-entrancy" 'saving\[player\]' src/server/MetaService.lua
+check "Meta run capturer" 'RegisterRunCapturer' src/server/MetaService.lua
+check "Cloud offline toast" 'Cloud save offline' src/server/MetaService.lua
+check "Combat remote rate limit" 'takeToken' src/server/GameService.lua
+check "Soft-fall toast cap" 'SOFT_FALL_TOAST_MAX' src/server/HazardService.lua
+check "Soft-fall solid sample" 'LastSolidX' src/server/HazardService.lua
+check "MidGate empty waves unlock" 'waves == 0' src/server/StageFlowService.lua
+absent "Client hangoverMult gone" 'hangoverMult' src/client/Controllers/MovementController.lua
+
 # N1 line budget
 GS_LINES=$(wc -l < "$ROOT/src/server/GameService.lua")
 if [ "$GS_LINES" -le 400 ]; then

@@ -29,6 +29,36 @@ export type RunState = Types.RunState
 
 local wired = false
 
+-- N2 token buckets for combat remotes
+type Bucket = { tokens: number, last: number }
+local combatBuckets: { [Player]: { attack: Bucket, skill: Bucket, dodge: Bucket } } = {}
+
+local function takeToken(player: Player, kind: string): boolean
+	local rates = Constants.COMBAT_REMOTE_RATE
+	local bursts = Constants.COMBAT_REMOTE_BURST
+	local rate = (rates :: any)[kind] or 5
+	local burst = (bursts :: any)[kind] or 2
+	local bags = combatBuckets[player]
+	if not bags then
+		bags = {
+			attack = { tokens = burst, last = os.clock() },
+			skill = { tokens = burst, last = os.clock() },
+			dodge = { tokens = burst, last = os.clock() },
+		}
+		combatBuckets[player] = bags
+	end
+	local b = (bags :: any)[kind] :: Bucket
+	local now = os.clock()
+	local elapsed = now - b.last
+	b.last = now
+	b.tokens = math.min(burst, b.tokens + elapsed * rate)
+	if b.tokens < 1 then
+		return false
+	end
+	b.tokens -= 1
+	return true
+end
+
 function GameService.GetState(player: Player): RunState?
 	return RunContext.GetState(player)
 end
@@ -42,6 +72,12 @@ function GameService.InitPlayer(player: Player)
 	Settings.EnsureDefaults(player)
 	MetaService.ApplySettingsAttrs(player, profile)
 	RunContext.SetState(player, RunContext.NewRunState(profile.deaths))
+	MetaService.RegisterRunCapturer(player, function()
+		local st = RunContext.GetState(player)
+		if st then
+			MetaService.CaptureFromRun(player, st.deaths, st.sunburn, st.unlockedPersonas, st.stageIndex)
+		end
+	end)
 	local s0 = RunContext.GetState(player) :: RunState
 	s0.sunburn = profile.sunburn
 	s0.unlockedPersonas = { BeachBurnout = true }
@@ -110,7 +146,7 @@ function GameService.SetupRemotes()
 	StageFlowService.Init(deps)
 	CombatFacade.Init(deps)
 
-	Remotes.InitServer()
+	-- Remotes.InitServer owned by init.server.lua (N1.6 / N2 single call)
 	EnemyService.SetCallbacks(StageFlowService.OnEnemyKilled, StageFlowService.OnTurtleRescued)
 	EnemyService.StartAI()
 
@@ -170,12 +206,21 @@ function GameService.SetupRemotes()
 		HubService.StartRun(player)
 	end)
 	Remotes.Get("RequestAttack").OnServerEvent:Connect(function(player)
+		if not takeToken(player, "attack") then
+			return
+		end
 		CombatFacade.DoAttack(player)
 	end)
 	Remotes.Get("RequestSkill").OnServerEvent:Connect(function(player)
+		if not takeToken(player, "skill") then
+			return
+		end
 		CombatFacade.DoSkill(player)
 	end)
 	Remotes.Get("RequestDodge").OnServerEvent:Connect(function(player, facingArg)
+		if not takeToken(player, "dodge") then
+			return
+		end
 		CombatFacade.DoDodge(player, facingArg)
 	end)
 	Remotes.Get("EquipWeapon").OnServerEvent:Connect(function(player, weaponId)
@@ -210,7 +255,8 @@ function GameService.SetupRemotes()
 		MetaService.UpdateSettings(player, key, value)
 		local st = RunContext.GetState(player)
 		if st then
-			RunContext.PersistMeta(player, st)
+			MetaService.CaptureFromRun(player, st.deaths, st.sunburn, st.unlockedPersonas, st.stageIndex)
+			MetaService.Save(player)
 		end
 	end)
 
@@ -218,14 +264,6 @@ function GameService.SetupRemotes()
 		while true do
 			task.wait(0.05)
 			for _, player in Players:GetPlayers() do
-				local pending = player:GetAttribute("PendingDamage")
-				local at = player:GetAttribute("PendingDamageAt")
-				if typeof(pending) == "number" and typeof(at) == "number" then
-					if os.clock() - at < 0.2 then
-						player:SetAttribute("PendingDamage", nil)
-						CombatFacade.ApplyDamageToPlayer(player, pending)
-					end
-				end
 				StageFlowService.TickWaves(player)
 				StageFlowService.TryColdOnePickup(player)
 
@@ -249,11 +287,9 @@ function GameService.SetupRemotes()
 end
 
 Players.PlayerRemoving:Connect(function(player)
-	local s = RunContext.GetState(player)
-	if s then
-		RunContext.PersistMeta(player, s)
-	end
+	-- N2: MetaService.Unload (registered first) runs capturer+Save; we only clear run memory
 	RunContext.ClearState(player)
+	combatBuckets[player] = nil
 end)
 
 return GameService

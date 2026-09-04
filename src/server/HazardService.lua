@@ -71,24 +71,20 @@ local function scanHazards(
 			local reach = if hk == "conveyor" then 6 elseif hk == "pipeSpray" then 4.5 else 5
 			if (child.Position - hrpH.Position).Magnitude < reach then
 				if hk == "canalWater" or child:GetAttribute("WaterSlow") then
-					local slow = (child:GetAttribute("SlowAmount") :: number?) or 7
-					stH.moveSpeed = math.min(stH.moveSpeed, slow)
-					charH:SetAttribute("MoveSpeed", stH.moveSpeed)
+					-- Water/canal slow uses OilSlowUntil channel (not Hangover)
+					local until = os.clock() + 0.9
+					local prev = charH:GetAttribute("OilSlowUntil")
+					if typeof(prev) ~= "number" or until > prev then
+						charH:SetAttribute("OilSlowUntil", until)
+					end
 					charH:SetAttribute("OilSlow", true)
-					task.delay(0.9, function()
-						if charH then
-							charH:SetAttribute("OilSlow", nil)
-						end
-					end)
 				elseif hk == "oilSlick" or hk == "sandSlow" or hk == "redTide" then
-					stH.moveSpeed = math.min(stH.moveSpeed, 12)
-					charH:SetAttribute("MoveSpeed", stH.moveSpeed)
+					local until = os.clock() + 1.2
+					local prev = charH:GetAttribute("OilSlowUntil")
+					if typeof(prev) ~= "number" or until > prev then
+						charH:SetAttribute("OilSlowUntil", until)
+					end
 					charH:SetAttribute("OilSlow", true)
-					task.delay(1.2, function()
-						if charH then
-							charH:SetAttribute("OilSlow", nil)
-						end
-					end)
 				elseif (hk == "fryerOil" or hk == "slushPuddle" or hk == "pipeSpray" or hk == "slickRing" or hk == "movingSample") and active then
 					if not CombatService.HasIFrames(player) and hrpH.Position.Y < child.Position.Y + 3.5 then
 						local last = charH:GetAttribute("LastHazardAt")
@@ -150,20 +146,35 @@ local function softFallAndLane(
 	end
 	if st.runActive and st.stageIndex >= 1 then
 		local stg = Stages.Get(st.stageId)
-		if stg and p.X > st.checkpointX + 8 then
+		-- Sample last solid ground for soft-fall snap
+		if p.Y >= 1.5 and p.Y < 40 then
+			char:SetAttribute("LastSolidX", p.X)
+			char:SetAttribute("LastSolidY", math.max(3, p.Y))
+			if stg and p.X > st.checkpointX + 4 then
+				st.checkpointX = math.max(st.checkpointX, math.min(p.X, stg.length - 15))
+			end
+		elseif stg and p.X > st.checkpointX + 8 and p.Y >= 0 then
 			st.checkpointX = math.max(st.checkpointX, math.min(p.X, stg.length - 15))
 		end
 		if p.Y < -2 then
 			local lastFall = char:GetAttribute("LastSoftFallAt")
 			if typeof(lastFall) ~= "number" or os.clock() - lastFall > 1.0 then
 				char:SetAttribute("LastSoftFallAt", os.clock())
+				local solidX = char:GetAttribute("LastSolidX")
+				local solidY = char:GetAttribute("LastSolidY")
 				local cx = st.checkpointX or Constants.SPAWN_X
-				if typeof(cx) ~= "number" or cx < Constants.SPAWN_X then
+				if typeof(solidX) == "number" then
+					cx = solidX
+				elseif typeof(cx) ~= "number" or cx < Constants.SPAWN_X then
 					cx = Constants.SPAWN_X
 				end
-				hrp.CFrame = CFrame.new(cx, 5, Constants.LANE_Z)
+				local cy = if typeof(solidY) == "number" then solidY else 5
+				hrp.CFrame = CFrame.new(cx, cy, Constants.LANE_Z)
 				hrp.AssemblyLinearVelocity = Vector3.zero
-				if toast then
+				local toasts = char:GetAttribute("SoftFallToasts")
+				local n = if typeof(toasts) == "number" then toasts else 0
+				if toast and n < Constants.SOFT_FALL_TOAST_MAX then
+					char:SetAttribute("SoftFallToasts", n + 1)
 					toast(player, "Soft checkpoint — back on the lane.")
 				end
 				Remotes.Get("CombatEvent"):FireClient(player, { kind = "shake", amount = 0.4 })
