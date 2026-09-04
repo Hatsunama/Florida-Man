@@ -21,3 +21,7 @@ node_modules/
 
 # Local Studio place locks
 *.lock
+
+# local codegen scratch
+_gen/
+

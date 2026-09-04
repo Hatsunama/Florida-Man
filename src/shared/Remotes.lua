@@ -10,6 +10,7 @@ local NAMES = {
 	"RequestDodge",
 	"RequestSwap",
 	"RequestJump",
+	"EquipWeapon",
 	"PickDraftItem",
 	"SmashPersona",
 	"UpgradePersona",
@@ -25,6 +26,7 @@ local NAMES = {
 	"StageLoaded",
 	"Toast",
 	"DamageNumber",
+	"PlaySound",
 }
 
 function Remotes.InitServer(): Folder

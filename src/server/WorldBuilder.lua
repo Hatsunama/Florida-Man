@@ -1,5 +1,5 @@
 --!strict
---[[ Builds distinctive 2.5D stage geometry with intentional placeholder art. ]]
+--[[ Builds 2.5D stages with parallax layers + biome lighting profiles. ]]
 
 local Workspace = game:GetService("Workspace")
 local Lighting = game:GetService("Lighting")
@@ -21,7 +21,7 @@ local function part(props: { [string]: any }): Part
 	p.Name = props.Name or "Part"
 	p.TopSurface = Enum.SurfaceType.Smooth
 	p.BottomSurface = Enum.SurfaceType.Smooth
-	p.CastShadow = true
+	p.CastShadow = props.CastShadow ~= false
 	if props.Transparency then
 		p.Transparency = props.Transparency
 	end
@@ -49,6 +49,61 @@ local function label(parent: Instance, text: string, color: Color3?)
 	tl.Parent = bb
 end
 
+local function clearEffects()
+	for _, name in { "FM_Atmosphere", "FM_CC", "FM_Bloom", "FM_DoF" } do
+		local e = Lighting:FindFirstChild(name)
+		if e then
+			e:Destroy()
+		end
+	end
+end
+
+function WorldBuilder.ApplyLighting(stage: any)
+	clearEffects()
+	Lighting.ClockTime = stage.clockTime
+	Lighting.FogColor = stage.fogColor
+	Lighting.FogStart = 90
+	Lighting.FogEnd = 320
+	Lighting.OutdoorAmbient = stage.groundColor:Lerp(Color3.new(0.5, 0.5, 0.5), 0.4)
+	Lighting.Ambient = stage.fogColor:Lerp(Color3.new(0.3, 0.3, 0.3), 0.5)
+	Lighting.Brightness = 2.2
+
+	local atmo = Instance.new("Atmosphere")
+	atmo.Name = "FM_Atmosphere"
+	atmo.Density = if stage.biome == "swamp" then 0.4 elseif stage.biome == "facility" then 0.28 else 0.22
+	atmo.Offset = 0.1
+	atmo.Color = stage.fogColor
+	atmo.Decay = stage.fogColor:Lerp(Color3.fromRGB(20, 20, 30), 0.5)
+	atmo.Glare = if stage.biome == "beach" then 0.2 else 0.08
+	atmo.Haze = if stage.biome == "swamp" then 2.2 else 1.2
+	atmo.Parent = Lighting
+
+	local cc = Instance.new("ColorCorrectionEffect")
+	cc.Name = "FM_CC"
+	cc.Saturation = if stage.biome == "facility" then -0.05 elseif stage.biome == "swamp" then 0.1 else 0.15
+	cc.Contrast = 0.08
+	cc.TintColor = if stage.biome == "offshore" then Color3.fromRGB(240, 245, 255)
+		elseif stage.biome == "swamp" then Color3.fromRGB(230, 255, 230)
+		elseif stage.hangover then Color3.fromRGB(255, 240, 220)
+		else Color3.fromRGB(255, 255, 255)
+	cc.Parent = Lighting
+
+	local bloom = Instance.new("BloomEffect")
+	bloom.Name = "FM_Bloom"
+	bloom.Intensity = 0.35
+	bloom.Size = 18
+	bloom.Threshold = 1.1
+	bloom.Parent = Lighting
+
+	local dof = Instance.new("DepthOfFieldEffect")
+	dof.Name = "FM_DoF"
+	dof.FarIntensity = 0.12
+	dof.NearIntensity = 0.05
+	dof.FocusDistance = 40
+	dof.InFocusRadius = 30
+	dof.Parent = Lighting
+end
+
 function WorldBuilder.Clear()
 	local world = Workspace:FindFirstChild("GameWorld")
 	if world then
@@ -61,6 +116,49 @@ function WorldBuilder.Clear()
 	return world :: Folder
 end
 
+function WorldBuilder._Parallax(world: Folder, stage: any, laneZ: number, length: number)
+	local folder = Instance.new("Folder")
+	folder.Name = "Parallax"
+	folder.Parent = world
+	-- far sky band
+	part({
+		Name = "SkyFar",
+		Parent = folder,
+		Size = Vector3.new(length + 80, 50, 1),
+		CFrame = CFrame.new(length / 2, 22, laneZ - 48),
+		Color = stage.fogColor:Lerp(Color3.fromRGB(255, 200, 140), 0.15),
+		CanCollide = false,
+		CastShadow = false,
+		Transparency = 0.15,
+	})
+	-- mid hills / city silhouette
+	for i = 1, math.floor(length / 40) + 2 do
+		local x = (i - 1) * 40 + 10
+		local h = 8 + (i % 5) * 3
+		part({
+			Name = "MidSilhouette",
+			Parent = folder,
+			Size = Vector3.new(18 + (i % 3) * 4, h, 2),
+			CFrame = CFrame.new(x, h / 2 + 1, laneZ - 28),
+			Color = stage.fogColor:Lerp(stage.groundColor, 0.35):Lerp(Color3.new(0, 0, 0), 0.25),
+			CanCollide = false,
+			CastShadow = false,
+			Transparency = 0.25,
+		})
+	end
+	-- near backdrop wall (soft)
+	part({
+		Name = "BackDrop",
+		Parent = folder,
+		Size = Vector3.new(length + 40, 36, 2),
+		CFrame = CFrame.new(length / 2, 16, laneZ - 16),
+		Color = stage.fogColor,
+		CanCollide = false,
+		Transparency = 0.35,
+		CastShadow = false,
+	})
+end
+
 function WorldBuilder.BuildStage(stageId: string): Folder
 	local stage = Stages.Get(stageId)
 	assert(stage, "unknown stage " .. tostring(stageId))
@@ -68,58 +166,36 @@ function WorldBuilder.BuildStage(stageId: string): Folder
 	local laneZ = Constants.LANE_Z
 	local length = stage.length
 
-	Lighting.ClockTime = stage.clockTime
-	Lighting.FogColor = stage.fogColor
-	Lighting.FogStart = 80
-	Lighting.FogEnd = 280
-	Lighting.OutdoorAmbient = stage.groundColor:Lerp(Color3.new(0.5, 0.5, 0.5), 0.4)
-	Lighting.Ambient = stage.fogColor:Lerp(Color3.new(0.3, 0.3, 0.3), 0.5)
+	WorldBuilder.ApplyLighting(stage)
 
-	-- Ground lane
 	part({
 		Name = "Ground",
 		Parent = world,
 		Size = Vector3.new(length + 40, 2, 28),
 		CFrame = CFrame.new(length / 2, -1, laneZ),
 		Color = stage.groundColor,
-		Material = Enum.Material.Sand,
+		Material = if stage.biome == "facility" or stage.biome == "offshore" then Enum.Material.Metal else Enum.Material.Sand,
 	})
-	-- Back wall (2.5D feel)
+
+	WorldBuilder._Parallax(world, stage, laneZ, length)
+
+	-- NO front/side Z fences — MovementController locks lane (avoids jitter)
 	part({
-		Name = "BackDrop",
+		Name = "LeftWall",
 		Parent = world,
-		Size = Vector3.new(length + 40, 40, 2),
-		CFrame = CFrame.new(length / 2, 18, laneZ - 14),
-		Color = stage.fogColor,
-		Material = Enum.Material.SmoothPlastic,
-		CanCollide = false,
-	})
-	-- Front invisible fence
-	part({
-		Name = "FrontFence",
-		Parent = world,
-		Size = Vector3.new(length + 40, 20, 1),
-		CFrame = CFrame.new(length / 2, 8, laneZ + 10),
-		Transparency = 1,
-	})
-	-- Side fences to keep Z
-	part({
-		Name = "LeftFence",
-		Parent = world,
-		Size = Vector3.new(2, 20, 30),
+		Size = Vector3.new(2, 20, 20),
 		CFrame = CFrame.new(-8, 8, laneZ),
 		Transparency = 1,
 	})
 	part({
-		Name = "RightFence",
+		Name = "RightWall",
 		Parent = world,
-		Size = Vector3.new(2, 20, 30),
+		Size = Vector3.new(2, 20, 20),
 		CFrame = CFrame.new(length + 12, 8, laneZ),
 		Transparency = 1,
 	})
 
-	-- Spawn pad
-	local spawn = part({
+	part({
 		Name = "SpawnPad",
 		Parent = world,
 		Size = Vector3.new(8, 0.5, 8),
@@ -128,7 +204,6 @@ function WorldBuilder.BuildStage(stageId: string): Folder
 		Material = Enum.Material.Neon,
 	})
 
-	-- Decor by theme
 	WorldBuilder._Decor(world, stage, laneZ, length)
 
 	if stage.isHub then
@@ -149,7 +224,6 @@ function WorldBuilder.BuildStage(stageId: string): Folder
 		label(can, "Florida Dew\n(The Cold One)", Color3.fromRGB(180, 255, 180))
 	end
 
-	-- Goal marker / exit gate
 	if not stage.isHub then
 		local gate = part({
 			Name = "StageGate",
@@ -163,8 +237,21 @@ function WorldBuilder.BuildStage(stageId: string): Folder
 		label(gate, "→ NEXT HEADLINE", stage.accentColor)
 	end
 
+	-- Audio hooks (placeholder Sounds with clear names)
+	local sounds = Instance.new("Folder")
+	sounds.Name = "StageSounds"
+	sounds.Parent = world
+	for _, name in { "SFX_Swing", "SFX_Hit", "SFX_CrabClick", "SFX_GatorHiss", "SFX_DraftSting", "SFX_BossIntro", "SFX_Footstep", "SFX_Splash", "SFX_Flame" } do
+		local s = Instance.new("Sound")
+		s.Name = name
+		s.Volume = 0.4
+		s.RollOffMaxDistance = 80
+		s.Parent = sounds
+	end
+
 	world:SetAttribute("StageId", stageId)
 	world:SetAttribute("StageLength", length)
+	world:SetAttribute("Biome", stage.biome or "beach")
 	return world
 end
 
@@ -174,8 +261,7 @@ function WorldBuilder._Decor(world: Folder, stage: any, laneZ: number, length: n
 	for i = 1, math.floor(length / 28) do
 		local x = 20 + i * 28 + rng:NextNumber(-4, 4)
 		if theme == "beach" or theme == "turtle" then
-			-- palm trunk + frond
-			local trunk = part({
+			part({
 				Name = "Palm",
 				Parent = world,
 				Size = Vector3.new(1.2, 12, 1.2),
@@ -192,6 +278,18 @@ function WorldBuilder._Decor(world: Folder, stage: any, laneZ: number, length: n
 				Color = Color3.fromRGB(40, 140, 60),
 				CanCollide = false,
 			})
+			if theme == "turtle" and i % 2 == 0 then
+				part({
+					Name = "TideLine",
+					Parent = world,
+					Size = Vector3.new(10, 0.2, 4),
+					CFrame = CFrame.new(x, 0.15, laneZ + 5),
+					Color = Color3.fromRGB(180, 60, 80),
+					Material = Enum.Material.Mud,
+					CanCollide = false,
+					Transparency = 0.3,
+				})
+			end
 		elseif theme == "gas" then
 			part({
 				Name = "Pump",
@@ -268,7 +366,6 @@ function WorldBuilder._Decor(world: Folder, stage: any, laneZ: number, length: n
 		end
 	end
 
-	-- GulfGulp signs on corporate stages
 	if theme == "turtle" or theme == "rig" or theme == "drive" then
 		local sign = part({
 			Name = "GulfGulpSign",
@@ -284,8 +381,7 @@ function WorldBuilder._Decor(world: Folder, stage: any, laneZ: number, length: n
 end
 
 function WorldBuilder._BuildHub(world: Folder, stage: any, laneZ: number)
-	-- Bonfire
-	local fireBase = part({
+	part({
 		Name = "Bonfire",
 		Parent = world,
 		Size = Vector3.new(5, 1, 5),
@@ -305,8 +401,17 @@ function WorldBuilder._BuildHub(world: Folder, stage: any, laneZ: number)
 	})
 	flame:SetAttribute("Interact", "StartRun")
 	label(flame, "🔥 TOUCH TO BEGIN", Color3.fromRGB(255, 200, 80))
+	local att = Instance.new("Attachment")
+	att.Parent = flame
+	local pe = Instance.new("ParticleEmitter")
+	pe.Color = ColorSequence.new(Color3.fromRGB(255, 180, 40), Color3.fromRGB(255, 60, 20))
+	pe.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1.2), NumberSequenceKeypoint.new(1, 0) })
+	pe.Lifetime = NumberRange.new(0.4, 0.8)
+	pe.Rate = 20
+	pe.Speed = NumberRange.new(3, 7)
+	pe.LightEmission = 0.7
+	pe.Parent = att
 
-	-- Captain Steve pelican NPC
 	local steve = part({
 		Name = "CaptainSteve",
 		Parent = world,
@@ -316,7 +421,7 @@ function WorldBuilder._BuildHub(world: Folder, stage: any, laneZ: number)
 		Material = Enum.Material.SmoothPlastic,
 	})
 	steve:SetAttribute("Interact", "CaptainSteve")
-	local beak = part({
+	part({
 		Name = "Beak",
 		Parent = world,
 		Size = Vector3.new(2.5, 0.8, 0.8),
@@ -326,7 +431,6 @@ function WorldBuilder._BuildHub(world: Folder, stage: any, laneZ: number)
 	})
 	label(steve, "Captain Steve\n(Pelican Upgrades)", Color3.fromRGB(255, 240, 180))
 
-	-- Hub headline board
 	local board = part({
 		Name = "HeadlineBoard",
 		Parent = world,
@@ -337,7 +441,6 @@ function WorldBuilder._BuildHub(world: Folder, stage: any, laneZ: number)
 	})
 	label(board, stage.headline, Color3.fromRGB(255, 220, 120))
 
-	-- Soft flame flicker
 	task.spawn(function()
 		while flame.Parent do
 			local t = TweenService:Create(flame, TweenInfo.new(0.4, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
@@ -350,10 +453,8 @@ function WorldBuilder._BuildHub(world: Folder, stage: any, laneZ: number)
 end
 
 function WorldBuilder.GetSpawnCFrame(stageId: string): CFrame
-	local stage = Stages.Get(stageId)
 	local y = 4
 	return CFrame.new(Constants.SPAWN_X, y, Constants.LANE_Z)
 end
 
 return WorldBuilder
-

@@ -3,6 +3,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Personas = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Personas"))
 local Items = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Items"))
+local Weapons = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Weapons"))
 local Stages = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Stages"))
 local Util = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Util"))
 
@@ -13,6 +14,7 @@ local hpText: TextLabel
 local stageText: TextLabel
 local toastLbl: TextLabel
 local sunburnLbl: TextLabel
+local weaponLbl: TextLabel
 local p1: Frame
 local p2: Frame
 local itemBar: Frame
@@ -95,6 +97,42 @@ function HUD.Init()
 	sunburnLbl.Text = "☀️ Sunburn: 0"
 	sunburnLbl.Parent = gui
 
+	weaponLbl = Instance.new("TextLabel")
+	weaponLbl.Size = UDim2.new(0, 280, 0, 24)
+	weaponLbl.Position = UDim2.new(0, 20, 1, -60)
+	weaponLbl.BackgroundTransparency = 1
+	weaponLbl.Font = Enum.Font.GothamBold
+	weaponLbl.TextSize = 16
+	weaponLbl.TextXAlignment = Enum.TextXAlignment.Left
+	weaponLbl.TextColor3 = Color3.fromRGB(180, 220, 255)
+	weaponLbl.Text = "Weapon: Bare Hands"
+	weaponLbl.Parent = gui
+
+	local bossBar = Instance.new("Frame")
+	bossBar.Name = "BossBar"
+	bossBar.Size = UDim2.new(0.5, 0, 0, 18)
+	bossBar.Position = UDim2.new(0.25, 0, 0, 60)
+	bossBar.BackgroundColor3 = Color3.fromRGB(40, 20, 20)
+	bossBar.Visible = false
+	bossBar.Parent = gui
+	corner(bossBar, 6)
+	local bossFill = Instance.new("Frame")
+	bossFill.Name = "Fill"
+	bossFill.Size = UDim2.fromScale(1, 1)
+	bossFill.BackgroundColor3 = Color3.fromRGB(255, 80, 60)
+	bossFill.Parent = bossBar
+	corner(bossFill, 6)
+	local bossText = Instance.new("TextLabel")
+	bossText.Name = "BossName"
+	bossText.Size = UDim2.fromScale(1, 1)
+	bossText.BackgroundTransparency = 1
+	bossText.Font = Enum.Font.GothamBold
+	bossText.TextScaled = true
+	bossText.TextColor3 = Color3.new(1, 1, 1)
+	bossText.Text = "BOSS"
+	bossText.ZIndex = 2
+	bossText.Parent = bossBar
+
 	-- Persona portraits
 	local function personaSlot(x: number): Frame
 		local f = Instance.new("Frame")
@@ -154,7 +192,7 @@ function HUD.Init()
 	controlsLbl.Font = Enum.Font.Gotham
 	controlsLbl.TextScaled = true
 	controlsLbl.TextColor3 = Color3.fromRGB(180, 190, 210)
-	controlsLbl.Text = "WASD move · Shift dodge · Click/J attack · K skill · Q swap · E interact · Xbox: A dodge X attack Y skill B swap"
+	controlsLbl.Text = "A/D lane · Space jump · Shift dash · Click/J attack · K skill · Q swap · E interact"
 	controlsLbl.Parent = gui
 	corner(controlsLbl, 8)
 
@@ -212,6 +250,10 @@ function HUD.Update(s: any)
 	hpFill.BackgroundColor3 = if pct > 0.5 then Color3.fromRGB(60, 200, 100) elseif pct > 0.25 then Color3.fromRGB(230, 180, 50) else Color3.fromRGB(220, 60, 60)
 	hpText.Text = string.format("HP %d/%d", math.floor(s.hp), math.floor(s.maxHp))
 	sunburnLbl.Text = string.format("☀️ Sunburn: %d", s.sunburn or 0)
+	if weaponLbl then
+		local w = Weapons.Get(s.weaponId or "BareHands")
+		weaponLbl.Text = "Weapon: " .. (if w then w.name else tostring(s.weaponId))
+	end
 
 	local stage = Stages.Get(s.stageId)
 	stageText.Text = if stage then ("FLORIDA MAN — " .. stage.name) else "FLORIDA MAN"

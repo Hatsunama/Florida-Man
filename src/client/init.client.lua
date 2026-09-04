@@ -2,6 +2,7 @@
 --[[ Florida Man — client entry ]]
 
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Debris = game:GetService("Debris")
 local TweenService = game:GetService("TweenService")
@@ -16,6 +17,7 @@ local UI = script:WaitForChild("UI")
 
 local InputController = require(Controllers:WaitForChild("InputController"))
 local CameraController = require(Controllers:WaitForChild("CameraController"))
+local MovementController = require(Controllers:WaitForChild("MovementController"))
 local HUD = require(UI:WaitForChild("HUD"))
 local Newspaper = require(UI:WaitForChild("Newspaper"))
 local ItemDraft = require(UI:WaitForChild("ItemDraft"))
@@ -24,14 +26,22 @@ local Tagline = require(UI:WaitForChild("Tagline"))
 local CaptainSteveUI = require(UI:WaitForChild("CaptainSteveUI"))
 
 HUD.Init()
-InputController.Start()
+MovementController.Start()
 CameraController.Start()
+InputController.BindMovement(MovementController)
+InputController.Start()
 Newspaper.BindInput(InputController)
 ItemDraft.BindInput(InputController)
 
 Remotes.Get("StateUpdate").OnClientEvent:Connect(function(state)
 	HUD.Update(state)
 	CaptainSteveUI.SetState(state)
+	if state then
+		if state.moveSpeed then
+			MovementController.SetBaseSpeed(state.moveSpeed)
+		end
+		MovementController.SetHangover(state.hangoverActive == true)
+	end
 end)
 
 Remotes.Get("Toast").OnClientEvent:Connect(function(text)
@@ -56,6 +66,18 @@ end)
 
 Remotes.Get("StageLoaded").OnClientEvent:Connect(function(stageId, name)
 	HUD.Toast("Stage: " .. tostring(name))
+end)
+
+Remotes.Get("PlaySound").OnClientEvent:Connect(function(soundName: string)
+	local world = workspace:FindFirstChild("GameWorld")
+	local folder = world and world:FindFirstChild("StageSounds")
+	local s = folder and folder:FindFirstChild(soundName)
+	if s and s:IsA("Sound") then
+		-- placeholder: play if SoundId set later; still useful hook
+		if s.SoundId ~= "" then
+			s:Play()
+		end
+	end
 end)
 
 Remotes.Get("DamageNumber").OnClientEvent:Connect(function(pos: Vector3, amount: number, _isPlayer: boolean?)
@@ -90,22 +112,28 @@ Remotes.Get("CombatEvent").OnClientEvent:Connect(function(ev)
 	local player = Players.LocalPlayer
 	local char = player.Character
 	local hrp = char and char:FindFirstChild("HumanoidRootPart") :: BasePart?
+	if ev.kind == "shake" then
+		CameraController.Shake(ev.amount or 0.4, 0.18)
+		return
+	end
 	if not hrp then
 		return
 	end
 	if ev.kind == "attack" then
+		local facing = ev.facing or MovementController.GetFacing()
+		MovementController.LockFacing(facing, 0.25)
 		local slash = Instance.new("Part")
 		slash.Anchored = true
 		slash.CanCollide = false
 		slash.Material = Enum.Material.Neon
 		slash.Color = Color3.fromRGB(255, 230, 120)
 		slash.Size = Vector3.new(6 + (ev.combo or 1), 0.4, 4)
-		local facing = ev.facing or 1
 		slash.CFrame = CFrame.new(hrp.Position + Vector3.new(facing * 5, 1, 0))
 		slash.Transparency = 0.2
 		slash.Parent = workspace
 		TweenService:Create(slash, TweenInfo.new(0.2), { Transparency = 1, Size = slash.Size + Vector3.new(2, 0, 1) }):Play()
 		Debris:AddItem(slash, 0.25)
+		CameraController.Shake(0.15 + (ev.combo or 1) * 0.05, 0.1)
 	elseif ev.kind == "skill" then
 		local burst = Instance.new("Part")
 		burst.Shape = Enum.PartType.Ball
@@ -119,14 +147,9 @@ Remotes.Get("CombatEvent").OnClientEvent:Connect(function(ev)
 		TweenService:Create(burst, TweenInfo.new(0.35), { Size = Vector3.new(20, 20, 20), Transparency = 1 }):Play()
 		Debris:AddItem(burst, 0.4)
 		HUD.Toast(tostring(ev.skill or "Skill") .. "!")
+		CameraController.Shake(0.55, 0.22)
 	elseif ev.kind == "dodge" then
-		local ghost = hrp:Clone()
-		ghost.Anchored = true
-		ghost.CanCollide = false
-		ghost.Transparency = 0.5
-		ghost.Color = Color3.fromRGB(180, 220, 255)
-		ghost.Parent = workspace
-		Debris:AddItem(ghost, 0.3)
+		-- trail already from MovementController
 	elseif ev.kind == "swap" then
 		local ring = Instance.new("Part")
 		ring.Shape = Enum.PartType.Cylinder
@@ -139,18 +162,10 @@ Remotes.Get("CombatEvent").OnClientEvent:Connect(function(ev)
 		ring.Parent = workspace
 		TweenService:Create(ring, TweenInfo.new(0.3), { Size = Vector3.new(0.5, 16, 16), Transparency = 1 }):Play()
 		Debris:AddItem(ring, 0.35)
+		CameraController.Shake(0.3, 0.15)
 	elseif ev.kind == "hit" then
-		-- enemy hit player — brief red vignette via toast
 		HUD.Toast("Ouch! -" .. tostring(ev.damage))
-	end
-end)
-
--- Open Steve UI when toast/tagline from talk — also listen proximity key already fires TalkCaptainSteve
--- Hook: when server fires tagline from TalkCaptainSteve, also open panel
-local steveOpenQueued = false
-Remotes.Get("ShowTagline").OnClientEvent:Connect(function(_text, speaker)
-	if speaker == "Captain Steve" and not steveOpenQueued then
-		-- don't always open; only from hub talk via Toast containing "Smash"
+		CameraController.Shake(0.65, 0.25)
 	end
 end)
 
@@ -160,14 +175,28 @@ Remotes.Get("Toast").OnClientEvent:Connect(function(text)
 	end
 end)
 
--- Disable default shift lock weirdness; keep jump on Space (Roblox default)
 local player = Players.LocalPlayer
 player.CameraMode = Enum.CameraMode.Classic
+player.DevEnableMouseLock = false
 
-print("[Florida Man] Client ready — welcome to the swamp.")
+-- sync move speed from character attributes
+RunService.Heartbeat:Connect(function()
+	local char = player.Character
+	if not char then
+		return
+	end
+	local spd = char:GetAttribute("MoveSpeed")
+	if typeof(spd) == "number" then
+		MovementController.SetBaseSpeed(spd)
+	end
+	local hang = char:GetAttribute("Hangover")
+	if typeof(hang) == "boolean" then
+		MovementController.SetHangover(hang)
+	end
+end)
 
+print("[Florida Man] Client ready — 2.5D mover online.")
 
--- Hub hint loop
 task.spawn(function()
 	while true do
 		task.wait(4)

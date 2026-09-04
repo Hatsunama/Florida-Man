@@ -8,6 +8,7 @@ local Remotes = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("R
 
 local InputController = {}
 InputController._enabled = true
+InputController._movement = nil :: any
 
 local function fire(name: string)
 	Remotes.Get(name):FireServer()
@@ -32,6 +33,10 @@ local function tryInteract()
 	end
 end
 
+function InputController.BindMovement(movement: any)
+	InputController._movement = movement
+end
+
 function InputController.Start()
 	UserInputService.InputBegan:Connect(function(input, gp)
 		if gp or not InputController._enabled then
@@ -40,15 +45,22 @@ function InputController.Start()
 		local k = input.KeyCode
 		local t = input.UserInputType
 		if t == Enum.UserInputType.MouseButton1 or k == Enum.KeyCode.J then
+			local mov = InputController._movement
+			if mov then
+				local facing = mov.GetFacing()
+				mov.LockFacing(facing, 0.28)
+			end
 			fire("RequestAttack")
 		elseif k == Enum.KeyCode.K then
 			fire("RequestSkill")
 		elseif k == Enum.KeyCode.Q then
 			fire("RequestSwap")
 		elseif k == Enum.KeyCode.LeftShift then
-			fire("RequestDodge")
+			-- handled by MovementController
 		elseif k == Enum.KeyCode.E then
 			tryInteract()
+		elseif k == Enum.KeyCode.One or k == Enum.KeyCode.Two or k == Enum.KeyCode.Three then
+			-- cycle weapon via EquipWeapon if state known — HUD handles cycle toast
 		end
 	end)
 
@@ -72,7 +84,12 @@ function InputController.Start()
 
 	ContextActionService:BindAction("FM_Dodge", function(_, state)
 		if state == Enum.UserInputState.Begin and InputController._enabled then
-			fire("RequestDodge")
+			local mov = InputController._movement
+			if mov then
+				mov.RequestDodge()
+			else
+				fire("RequestDodge")
+			end
 		end
 	end, false, Enum.KeyCode.ButtonR1)
 
@@ -85,6 +102,10 @@ end
 
 function InputController.SetEnabled(on: boolean)
 	InputController._enabled = on
+	local mov = InputController._movement
+	if mov then
+		mov.SetEnabled(on)
+	end
 end
 
 return InputController

@@ -11,6 +11,7 @@ local Personas = require(Shared:WaitForChild("Personas"))
 local Items = require(Shared:WaitForChild("Items"))
 local Stages = require(Shared:WaitForChild("Stages"))
 local Enemies = require(Shared:WaitForChild("Enemies"))
+local Weapons = require(Shared:WaitForChild("Weapons"))
 local Remotes = require(Shared:WaitForChild("Remotes"))
 local Util = require(Shared:WaitForChild("Util"))
 
@@ -55,6 +56,9 @@ export type RunState = {
 	dodgeReadyAt: number,
 	facing: number,
 	unlockedFireworks: boolean,
+	weaponId: string,
+	unlockedWeapons: { [string]: boolean },
+	moveSpeed: number,
 }
 
 local states: { [Player]: RunState } = {}
@@ -90,6 +94,9 @@ local function pushState(player: Player)
 		awaitingDraft = s.awaitingDraft,
 		awaitingNewspaper = s.awaitingNewspaper,
 		bossDefeated = s.bossDefeated,
+		weaponId = s.weaponId,
+		moveSpeed = s.moveSpeed,
+		hangoverActive = os.clock() < s.hangoverUntil,
 	})
 end
 
@@ -181,6 +188,9 @@ local function newRunState(deaths: number): RunState
 		dodgeReadyAt = 0,
 		facing = 1,
 		unlockedFireworks = false,
+		weaponId = Constants.STARTING_WEAPON,
+		unlockedWeapons = { BareHands = true, FlipFlopSlap = true },
+		moveSpeed = 18,
 	}
 end
 
@@ -205,8 +215,15 @@ local function applyCharacterSpeed(player: Player)
 	if os.clock() < s.hangoverUntil then
 		base *= Constants.HANGOVER_SLOW
 	end
-	hum.WalkSpeed = base
-	hum.JumpPower = 50
+	s.moveSpeed = base
+	-- Client MovementController drives motion; keep WalkSpeed 0 to avoid fight
+	hum.WalkSpeed = 0
+	hum.JumpPower = 0
+	hum.AutoRotate = false
+	if char then
+		char:SetAttribute("MoveSpeed", base)
+		char:SetAttribute("Hangover", os.clock() < s.hangoverUntil)
+	end
 end
 
 function GameService.LoadHub(player: Player)
@@ -393,6 +410,33 @@ function GameService.FinishStage(player: Player)
 	if stage.id == "GasStationLegends" then
 		unlockPersona(player, "GolfCartBandit")
 	end
+	-- Weapon unlocks along the arc
+	local weaponDrops = {
+		DaytonaHangover = "FlipFlopSlap",
+		BoardwalkChaos = "PoolNoodle",
+		GasStationLegends = "GolfClub",
+		StripMallShowdown = "HOAClipboard",
+		DriveThruDisaster = "GatorWrestleGloves",
+		CanalRun = "KayakPaddle",
+		SwampShift = "SnakeLasso",
+		CypressCathedral = "TikiTorch",
+		SludgeBayou = "SpillSkimmer",
+		TurtleBeach = "NetGun",
+		GulfGulpGate = "FireExtinguisher",
+		LabWing = "BugZapper",
+		PipeGauntlet = "OilBarrelLid",
+		BargeCrossing = "BoogieBoard",
+		OilPlatformApproach = "SludgeHose",
+		HelipadHysteria = "RomanCandle",
+		GulfGulpRig = "FinaleRocket",
+	}
+	local wid = weaponDrops[stage.id]
+	if wid and not s.unlockedWeapons[wid] then
+		s.unlockedWeapons[wid] = true
+		s.weaponId = wid
+		local wdef = Weapons.Get(wid)
+		toast(player, "Weapon unlocked: " .. (if wdef then wdef.name else wid))
+	end
 
 	local nextStage = Stages.NextAfter(stage.id)
 	s.awaitingNewspaper = true
@@ -444,12 +488,15 @@ function GameService.StartRun(player: Player)
 	local unlocked = s.unlockedPersonas
 	local rarities = s.personaRarity
 	local sunburn = s.sunburn
+	local unlockedW = s.unlockedWeapons
 	local itemSlots = if deaths > 0 then Constants.ITEM_SLOTS_AFTER_FIRST_DEATH else Constants.STARTING_ITEM_SLOTS
 	states[player] = newRunState(deaths)
 	s = states[player]
 	s.unlockedPersonas = unlocked
 	s.personaRarity = rarities
 	s.sunburn = sunburn
+	s.unlockedWeapons = unlockedW or { BareHands = true, FlipFlopSlap = true }
+	s.weaponId = Constants.STARTING_WEAPON
 	s.itemSlots = itemSlots
 	s.unlockedPersonas.BeachBurnout = true
 	s.personas = { "BeachBurnout" }
@@ -479,11 +526,13 @@ function GameService.KillPlayer(player: Player)
 	local unlocked = s.unlockedPersonas
 	local rarities = s.personaRarity
 	local sunburn = s.sunburn
+	local unlockedW = s.unlockedWeapons
 	states[player] = newRunState(deaths)
 	s = states[player]
 	s.unlockedPersonas = unlocked
 	s.personaRarity = rarities
 	s.sunburn = sunburn
+	s.unlockedWeapons = unlockedW or { BareHands = true, FlipFlopSlap = true }
 	s.itemSlots = Constants.ITEM_SLOTS_AFTER_FIRST_DEATH
 	computeStats(s)
 	s.hp = s.maxHp
@@ -544,7 +593,8 @@ function GameService.DoAttack(player: Player)
 		s.facing = if move.X >= 0 then 1 else -1
 	end
 
-	local base = persona.attackDamage * s.damageMult
+	local weapon = Weapons.Get(s.weaponId) or Weapons.GetStarter()
+	local base = (persona.attackDamage + (weapon.damage - 10) * 0.65) * s.damageMult
 	local rarity = s.personaRarity[persona.id] or "Common"
 	if rarity == "Rare" then
 		base *= 1.1
@@ -557,7 +607,8 @@ function GameService.DoAttack(player: Player)
 		base *= 1.35
 	end
 
-	local range = Constants.ATTACK_RANGE + (if s.combo == 3 then 2 else 0)
+	local range = (weapon.range or Constants.ATTACK_RANGE) + (if s.combo == 3 then 2 else 0)
+	local knock = weapon.knockback or Constants.KNOCKBACK_BASE
 	local origin = hrp.Position
 	for _, model in EnemyService.GetAlive() do
 		if model:GetAttribute("IsAlly") then
@@ -575,7 +626,7 @@ function GameService.DoAttack(player: Player)
 		local dx = root.Position.X - origin.X
 		if math.abs(dx) <= range and math.sign(dx + 0.001) == s.facing or math.abs(dx) < 4 then
 			if math.abs(root.Position.Z - Constants.LANE_Z) < 6 then
-				EnemyService.ApplyDamage(model, base, player)
+				EnemyService.ApplyDamage(model, base, player, knock * 0.35)
 			end
 		end
 	end
@@ -591,7 +642,8 @@ function GameService.DoAttack(player: Player)
 			pushState(player)
 		end
 	end
-	Remotes.Get("CombatEvent"):FireClient(player, { kind = "attack", combo = s.combo, facing = s.facing })
+	Remotes.Get("CombatEvent"):FireClient(player, { kind = "attack", combo = s.combo, facing = s.facing, weapon = s.weaponId })
+	Remotes.Get("PlaySound"):FireClient(player, "SFX_Swing")
 end
 
 function GameService.DoSkill(player: Player)
@@ -669,28 +721,22 @@ function GameService.DoSkill(player: Player)
 	Remotes.Get("CombatEvent"):FireClient(player, { kind = "skill", skill = persona.skillName })
 end
 
-function GameService.DoDodge(player: Player)
+function GameService.DoDodge(player: Player, facingArg: number?)
 	local s = states[player]
 	if not s or not s.runActive then
 		return
 	end
 	local now = os.clock()
-	local cd = Constants.DODGE_COOLDOWN * (1 - s.dodgeBonus)
+	local cd = Constants.DODGE_COOLDOWN * (1 - math.clamp(s.dodgeBonus, 0, 0.5))
 	if now < s.dodgeReadyAt then
 		return
 	end
 	s.dodgeReadyAt = now + cd
+	if typeof(facingArg) == "number" then
+		s.facing = if facingArg >= 0 then 1 else -1
+	end
 	local char = player.Character
-	local hrp = char and char:FindFirstChild("HumanoidRootPart") :: BasePart?
-	if not hrp then
-		return
-	end
-	local facing = s.facing
-	local vel = hrp.AssemblyLinearVelocity
-	if math.abs(vel.X) > 1 then
-		facing = if vel.X >= 0 then 1 else -1
-	end
-	hrp.CFrame = hrp.CFrame + Vector3.new(facing * Constants.DODGE_DISTANCE, 0, 0)
+	-- Client MovementController performs the dash + trail; server grants i-frames only
 	if char then
 		char:SetAttribute("IFrame", true)
 		task.delay(Constants.DODGE_IFRAME, function()
@@ -700,6 +746,7 @@ function GameService.DoDodge(player: Player)
 		end)
 	end
 	Remotes.Get("CombatEvent"):FireClient(player, { kind = "dodge" })
+	Remotes.Get("PlaySound"):FireClient(player, "SFX_Swing")
 	pushState(player)
 end
 
@@ -842,8 +889,21 @@ function GameService.SetupRemotes()
 	Remotes.Get("RequestSkill").OnServerEvent:Connect(function(player)
 		GameService.DoSkill(player)
 	end)
-	Remotes.Get("RequestDodge").OnServerEvent:Connect(function(player)
-		GameService.DoDodge(player)
+	Remotes.Get("RequestDodge").OnServerEvent:Connect(function(player, facingArg)
+		GameService.DoDodge(player, facingArg)
+	end)
+	Remotes.Get("EquipWeapon").OnServerEvent:Connect(function(player, weaponId)
+		local st = states[player]
+		if not st or typeof(weaponId) ~= "string" then
+			return
+		end
+		if not st.unlockedWeapons[weaponId] or not Weapons.Get(weaponId) then
+			return
+		end
+		st.weaponId = weaponId
+		local wdef = Weapons.Get(weaponId)
+		toast(player, "Equipped: " .. (if wdef then wdef.name else weaponId))
+		pushState(player)
 	end)
 	Remotes.Get("RequestSwap").OnServerEvent:Connect(function(player)
 		GameService.DoSwap(player)
@@ -1007,13 +1067,17 @@ function GameService.SetupRemotes()
 						end
 					end
 				end
-				-- lock Z to lane
+				-- soft lane safety if client desyncs badly (MovementController owns fine lock)
 				local char = player.Character
 				local hrp = char and char:FindFirstChild("HumanoidRootPart") :: BasePart?
 				if hrp then
 					local p = hrp.Position
-					if math.abs(p.Z - Constants.LANE_Z) > 0.15 then
-						hrp.CFrame = CFrame.new(p.X, p.Y, Constants.LANE_Z) * (hrp.CFrame - hrp.CFrame.Position)
+					if math.abs(p.Z - Constants.LANE_Z) > 2.5 then
+						hrp.CFrame = CFrame.new(p.X, p.Y, Constants.LANE_Z)
+					end
+					local st2 = states[player]
+					if st2 then
+						applyCharacterSpeed(player)
 					end
 				end
 			end
