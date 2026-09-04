@@ -56,7 +56,7 @@ function CaptainSteveUI.Open()
 	sub.TextWrapped = true
 	sub.TextSize = 14
 	sub.TextColor3 = Color3.fromRGB(190, 200, 220)
-	sub.Text = "Smash unwanted personas → Sunburn. Upgrade Common→Rare→Unique→Legendary. Sunburn: " .. tostring(lastState.sunburn)
+	sub.Text = "\"It IS Florida…\" Smash personas → Sunburn. Rarity: +15/30/50% skill power. Sunburn: " .. tostring(lastState.sunburn)
 	sub.Parent = panel
 
 	local scroll = Instance.new("ScrollingFrame")
