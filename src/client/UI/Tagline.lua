@@ -1,4 +1,5 @@
 --!strict
+--[[ Steve vignette — typewriter toast + SFX (VO optional skipped; no VO assets). ]]
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 
@@ -18,7 +19,7 @@ function Tagline.Show(text: string, speaker: string?)
 	gui.Parent = pg
 
 	local frame = Instance.new("Frame")
-	frame.Size = UDim2.new(0.7, 0, 0, 90)
+	frame.Size = UDim2.new(0.7, 0, 0, 96)
 	frame.Position = UDim2.new(0.15, 0, 0.72, 0)
 	frame.BackgroundColor3 = Color3.fromRGB(15, 20, 28)
 	frame.BackgroundTransparency = 0.15
@@ -39,23 +40,51 @@ function Tagline.Show(text: string, speaker: string?)
 	who.TextSize = 14
 	who.TextXAlignment = Enum.TextXAlignment.Left
 	who.TextColor3 = Color3.fromRGB(255, 190, 70)
-	who.Text = (speaker or "Captain Steve") .. " — newspaper sting"
+	who.Text = (speaker or "Captain Steve") .. " — live from the swamp"
 	who.Parent = frame
 
 	local body = Instance.new("TextLabel")
-	body.Size = UDim2.new(1, -24, 0, 50)
+	body.Size = UDim2.new(1, -24, 0, 54)
 	body.Position = UDim2.new(0, 12, 0, 32)
 	body.BackgroundTransparency = 1
 	body.Font = Enum.Font.GothamBold
 	body.TextWrapped = true
 	body.TextSize = 20
+	body.TextXAlignment = Enum.TextXAlignment.Left
+	body.TextYAlignment = Enum.TextYAlignment.Top
 	body.TextColor3 = Color3.fromRGB(255, 245, 220)
-	body.Text = '"' .. text .. '"'
+	body.Text = ""
 	body.Parent = frame
 
 	frame.BackgroundTransparency = 1
 	TweenService:Create(frame, TweenInfo.new(0.35), { BackgroundTransparency = 0.15 }):Play()
-	task.delay(5.5, function()
+
+	local full = '"' .. text .. '"'
+	local cancelled = false
+	gui.Destroying:Connect(function()
+		cancelled = true
+	end)
+	pcall(function()
+		local AudioDirector = require(script.Parent.Parent.Controllers:WaitForChild("AudioDirector"))
+		AudioDirector.Play("SFX_SteveBeep", { volume = 0.4, pitch = 1.1 })
+	end)
+	task.spawn(function()
+		for i = 1, #full do
+			if cancelled or not gui.Parent then
+				return
+			end
+			body.Text = string.sub(full, 1, i)
+			if i % 4 == 0 then
+				pcall(function()
+					local AudioDirector = require(script.Parent.Parent.Controllers:WaitForChild("AudioDirector"))
+					AudioDirector.Play("SFX_Typewriter", { volume = 0.18, pitch = 1.35 })
+				end)
+			end
+			task.wait(0.028)
+		end
+	end)
+
+	task.delay(6.2, function()
 		if gui.Parent then
 			gui:Destroy()
 		end

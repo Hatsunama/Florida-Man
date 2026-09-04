@@ -119,4 +119,30 @@ function Balance.WaveSpawnCap(stageIndex: number, requested: number): number
 	end
 end
 
+
+-- Phase 5: Act1–2 minibosses slightly softer so pacing teaches, not sponges
+Balance.MINIBOSS_HP_ACT = {
+	[1] = 0.88, -- Hangover Coast
+	[2] = 0.92, -- Swamp
+	[3] = 1.0,
+	[4] = 1.0,
+	[5] = 1.0,
+}
+
+function Balance.MinibossHpMult(stageIndex: number): number
+	local act = Balance.ActNumber(stageIndex)
+	return Balance.MINIBOSS_HP_ACT[act] or 1
+end
+
+function Balance.RestToast(actNumber: number): string
+	local lines = {
+		[1] = "REST — Dawn Bonfire. Captain Steve stocks upgrades at the hub only.",
+		[2] = "REST — Swamp edge. Catch your breath; Steve's shop is back at hub.",
+		[3] = "REST — Turtle beach calm. Shop = hub Steve only (by design).",
+		[4] = "REST — Facility airlock. No mid-act shops — Steve waits at hub.",
+		[5] = "REST — Rig approach. Last stretch. Steve stays at hub.",
+	}
+	return lines[actNumber] or "REST — Return to hub for Captain Steve upgrades."
+end
+
 return Balance

@@ -34,6 +34,11 @@ local function spring(current: Vector3, target: Vector3, vel: Vector3, dt: numbe
 end
 
 function CameraController.Shake(amount: number, duration: number?)
+	local player = Players.LocalPlayer
+	local enabled = player:GetAttribute("ShakeEnabled")
+	if enabled == false then
+		return
+	end
 	shakeAmp = math.max(shakeAmp, amount)
 	shakeUntil = os.clock() + (duration or 0.2)
 end

@@ -6,6 +6,7 @@ local Items = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Ite
 local Weapons = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Weapons"))
 local Stages = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Stages"))
 local Util = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Util"))
+local Settings = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Settings"))
 
 local HUD = {}
 local gui: ScreenGui
@@ -133,6 +134,38 @@ function HUD.Init()
 	skillCdLbl.TextColor3 = Color3.fromRGB(160, 220, 255)
 	skillCdLbl.Text = "Skill: Ready (K)"
 	skillCdLbl.Parent = gui
+
+	-- Phase 5 accessibility toggles
+	local function a11yBtn(text: string, x: number, key: string): TextButton
+		local b = Instance.new("TextButton")
+		b.Size = UDim2.new(0, 118, 0, 26)
+		b.Position = UDim2.new(1, x, 0, 12)
+		b.BackgroundColor3 = Color3.fromRGB(28, 32, 42)
+		b.Font = Enum.Font.GothamBold
+		b.TextSize = 12
+		b.TextColor3 = Color3.fromRGB(220, 230, 245)
+		b.AutoButtonColor = true
+		b.Parent = gui
+		corner(b, 6)
+		stroke(b, Color3.fromRGB(120, 140, 180), 1)
+		local function refresh()
+			local on = Settings.GetBool(Players.LocalPlayer, key)
+			b.Text = text .. (if on then ": ON" else ": OFF")
+		end
+		refresh()
+		b.MouseButton1Click:Connect(function()
+			Settings.Toggle(Players.LocalPlayer, key)
+			refresh()
+			pcall(function()
+				local AudioDirector = require(script.Parent.Parent.Controllers:WaitForChild("AudioDirector"))
+				AudioDirector.Play("SFX_UIClick", { volume = 0.35 })
+			end)
+			HUD.Toast(b.Text)
+		end)
+		return b
+	end
+	a11yBtn("Shake", -260, "ShakeEnabled")
+	a11yBtn("CB Tele", -136, "ColorblindTelegraphs")
 
 	local bossBar = Instance.new("Frame")
 	bossBar.Name = "BossBar"

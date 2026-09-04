@@ -29,7 +29,11 @@ local MobileControls = require(UI:WaitForChild("MobileControls"))
 local LoadingGui = require(UI:WaitForChild("LoadingGui"))
 local TutorialController = require(Controllers:WaitForChild("TutorialController"))
 local AnimController = require(Controllers:WaitForChild("AnimController"))
+local AudioDirector = require(Controllers:WaitForChild("AudioDirector"))
+local Settings = require(Shared:WaitForChild("Settings"))
 
+Settings.EnsureDefaults(Players.LocalPlayer)
+AudioDirector.Start()
 LoadingGui.Init()
 HUD.Init()
 AnimController.Start()
@@ -82,18 +86,13 @@ end)
 Remotes.Get("StageLoaded").OnClientEvent:Connect(function(stageId, name)
 	HUD.Toast("Stage: " .. tostring(name))
 	TutorialController.ResetForStage(tostring(stageId))
+	task.defer(function()
+		AudioDirector.SyncBiomeFromWorld()
+	end)
 end)
 
 Remotes.Get("PlaySound").OnClientEvent:Connect(function(soundName: string)
-	local world = workspace:FindFirstChild("GameWorld")
-	local folder = world and world:FindFirstChild("StageSounds")
-	local s = folder and folder:FindFirstChild(soundName)
-	if s and s:IsA("Sound") then
-		-- placeholder: play if SoundId set later; still useful hook
-		if s.SoundId ~= "" then
-			s:Play()
-		end
-	end
+	AudioDirector.PlayFromWorld(tostring(soundName))
 end)
 
 Remotes.Get("DamageNumber").OnClientEvent:Connect(function(pos: Vector3, amount: number, _isPlayer: boolean?)

@@ -17,6 +17,7 @@ local Remotes = require(Shared:WaitForChild("Remotes"))
 local Util = require(Shared:WaitForChild("Util"))
 local Balance = require(Shared:WaitForChild("Balance"))
 local Story = require(Shared:WaitForChild("Story"))
+local Settings = require(Shared:WaitForChild("Settings"))
 
 local WorldBuilder = require(script.Parent:WaitForChild("WorldBuilder"))
 local EnemyService = require(script.Parent:WaitForChild("EnemyService"))
@@ -446,6 +447,8 @@ function GameService.LoadStage(player: Player, stageId: string)
 		s.lastActShown = act
 		task.delay(0.35, function()
 			toast(player, Story.ActOpener(act))
+			-- Phase 5: rest toast between acts (shop density note)
+			toast(player, Balance.RestToast(act))
 			Remotes.Get("ShowTagline"):FireClient(player, Story.SteveLine(act, s.deaths), "Captain Steve")
 		end)
 	end
@@ -1046,7 +1049,7 @@ function GameService.DoDodge(player: Player, facingArg: number?)
 		end)
 	end
 	Remotes.Get("CombatEvent"):FireClient(player, { kind = "dodge" })
-	Remotes.Get("PlaySound"):FireClient(player, "SFX_Swing")
+	Remotes.Get("PlaySound"):FireClient(player, "SFX_Dodge")
 	pushState(player)
 end
 
@@ -1197,6 +1200,7 @@ function GameService.TickWaves(player: Player)
 					EnemyService.Spawn(pick.id, mid.Position.X - 6 - i * 5)
 				end
 			elseif s.midRoomState == "locked" and EnemyService.CountHostile() == 0 then
+				-- Phase 5 softlock hunt: once locked, 0 hostiles always unlocks (never stick locked)
 				s.midRoomState = "cleared"
 				mid:SetAttribute("Locked", false)
 				mid.CanCollide = false
@@ -1239,6 +1243,7 @@ function GameService.TickWaves(player: Player)
 end
 
 function GameService.InitPlayer(player: Player)
+	Settings.EnsureDefaults(player)
 	states[player] = newRunState(0)
 	player.CharacterAdded:Connect(function(char)
 		local hrp = char:WaitForChild("HumanoidRootPart", 8) :: BasePart?
@@ -1731,16 +1736,41 @@ function GameService.SetupRemotes()
 						if stg and p.X > st2.checkpointX + 8 then
 							st2.checkpointX = math.max(st2.checkpointX, math.min(p.X, stg.length - 15))
 						end
-						if p.Y < -6 then
+						-- Phase 5: soft-fall checkpoint (Y < -2 catches barge gaps sooner)
+						if p.Y < -2 then
 							local lastFall = char:GetAttribute("LastSoftFallAt")
-							if typeof(lastFall) ~= "number" or os.clock() - lastFall > 1.2 then
+							if typeof(lastFall) ~= "number" or os.clock() - lastFall > 1.0 then
 								char:SetAttribute("LastSoftFallAt", os.clock())
 								local cx = st2.checkpointX or Constants.SPAWN_X
+								if typeof(cx) ~= "number" or cx < Constants.SPAWN_X then
+									cx = Constants.SPAWN_X
+								end
 								hrp.CFrame = CFrame.new(cx, 5, Constants.LANE_Z)
 								hrp.AssemblyLinearVelocity = Vector3.zero
 								toast(player, "Soft checkpoint — back on the lane.")
 								Remotes.Get("CombatEvent"):FireClient(player, { kind = "shake", amount = 0.4 })
 								Remotes.Get("PlaySound"):FireClient(player, "SFX_Splash")
+							end
+						end
+						-- Phase 5 softlock hunt: re-attach turtle Rescue prompts if missing
+						local worldT = Workspace:FindFirstChild("GameWorld")
+						if worldT then
+							for _, m in worldT:GetChildren() do
+								if m:IsA("Model") and m:GetAttribute("IsAlly") and m:GetAttribute("EnemyId") == "RescueTurtle" and not m:GetAttribute("Rescued") then
+									local root = m.PrimaryPart
+									if root and not root:FindFirstChildOfClass("ProximityPrompt") then
+										local pp = Instance.new("ProximityPrompt")
+										pp.ActionText = "Rescue"
+										pp.ObjectText = "Baby Turtle"
+										pp.KeyboardKeyCode = Enum.KeyCode.E
+										pp.HoldDuration = 0
+										pp.ClickablePrompt = true
+										pp.RequiresLineOfSight = false
+										pp.MaxActivationDistance = 12
+										pp:SetAttribute("FM_Action", "RescueTurtle")
+										pp.Parent = root
+									end
+								end
 							end
 						end
 					end

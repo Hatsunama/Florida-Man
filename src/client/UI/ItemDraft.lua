@@ -44,6 +44,10 @@ function ItemDraft.Show(picks: { any })
 	dim.ZIndex = 1
 	dim.Parent = gui
 	TweenService:Create(dim, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { BackgroundTransparency = 0.4 }):Play()
+	pcall(function()
+		local AudioDirector = require(script.Parent.Parent.Controllers:WaitForChild("AudioDirector"))
+		AudioDirector.Play("SFX_DraftSting", { volume = 0.6 })
+	end)
 
 	local title = Instance.new("TextLabel")
 	title.Size = UDim2.new(0, 600, 0, 40)

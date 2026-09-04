@@ -52,6 +52,9 @@ function EnemyService.Spawn(enemyId: string, x: number): Model?
 		if hum then
 			local hpM = Balance.EnemyHpMult(EnemyService._stageIndex)
 			local dmgM = Balance.EnemyDmgMult(EnemyService._stageIndex)
+			if def.isMiniboss then
+				hpM = hpM * Balance.MinibossHpMult(EnemyService._stageIndex)
+			end
 			hum.MaxHealth = math.floor(def.hp * hpM)
 			hum.Health = hum.MaxHealth
 			local scaled = math.floor(def.damage * dmgM + 0.5)
@@ -81,7 +84,7 @@ function EnemyService.SpawnTurtle(x: number): Model?
 			pp.HoldDuration = 0
 			pp.ClickablePrompt = true
 			pp.RequiresLineOfSight = false
-			pp.MaxActivationDistance = 10
+			pp.MaxActivationDistance = 12
 			pp:SetAttribute("FM_Action", "RescueTurtle")
 			pp.Parent = root
 			local bb = root:FindFirstChildOfClass("BillboardGui")
@@ -440,6 +443,26 @@ function EnemyService._TelegraphAttack(model: Model, target: Player, behavior: s
 		zone.Transparency = trans or 0.5
 		zone.Size = size
 		zone.CFrame = cf
+		zone:SetAttribute("TelegraphStripe", false)
+		-- Phase 5 colorblind: stripe/pattern when any player opted in
+		local needStripe = false
+		for _, plr in Players:GetPlayers() do
+			if plr:GetAttribute("ColorblindTelegraphs") == true then
+				needStripe = true
+				break
+			end
+		end
+		if needStripe then
+			zone:SetAttribute("TelegraphStripe", true)
+			zone.Material = Enum.Material.DiamondPlate
+			local decal = Instance.new("Texture")
+			decal.Name = "CB_Stripe"
+			decal.Face = Enum.NormalId.Top
+			decal.StudsPerTileU = 2
+			decal.StudsPerTileV = 2
+			decal.Transparency = 0.35
+			decal.Parent = zone
+		end
 		zone.Parent = Workspace
 		Debris:AddItem(zone, tele + 0.2)
 		table.insert(zones, zone)
