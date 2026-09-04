@@ -50,6 +50,7 @@ Remotes.Get("StateUpdate").OnClientEvent:Connect(function(state)
 	HUD.Update(state)
 	CaptainSteveUI.SetState(state)
 	if state then
+		InputController.SetWeaponState(state.weaponId, state.unlockedWeapons)
 		if typeof(state.personas) == "table" and typeof(state.activePersona) == "number" then
 			local pid = state.personas[state.activePersona]
 			if typeof(pid) == "string" then

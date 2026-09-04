@@ -2,7 +2,6 @@
 
 local DataStoreService = game:GetService("DataStoreService")
 local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -220,12 +219,7 @@ function MetaService.Unload(player: Player)
 	profiles[player] = nil
 end
 
-if RunService:IsStudio() then
-
-end
-
 Players.PlayerRemoving:Connect(function(player)
-
 	if profiles[player] then
 		MetaService.Unload(player)
 	end

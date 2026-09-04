@@ -111,6 +111,26 @@ function HUD.Init()
 	weaponLbl.Text = "Weapon: Bare Hands"
 	weaponLbl.Parent = gui
 
+	local cycleBtn = Instance.new("TextButton")
+	cycleBtn.Name = "FM_WeaponCycle"
+	cycleBtn.Size = UDim2.new(0, 72, 0, 24)
+	cycleBtn.Position = UDim2.new(0, 300, 1, -60)
+	cycleBtn.BackgroundColor3 = Color3.fromRGB(28, 36, 48)
+	cycleBtn.Font = Enum.Font.GothamBold
+	cycleBtn.TextSize = 12
+	cycleBtn.TextColor3 = Color3.fromRGB(180, 220, 255)
+	cycleBtn.Text = "NEXT WPN"
+	cycleBtn.AutoButtonColor = true
+	cycleBtn.Parent = gui
+	corner(cycleBtn, 6)
+	stroke(cycleBtn, Color3.fromRGB(100, 140, 180), 1)
+	cycleBtn.MouseButton1Click:Connect(function()
+		pcall(function()
+			local InputController = require(script.Parent.Parent.Controllers:WaitForChild("InputController"))
+			InputController.CycleWeapon(1)
+		end)
+	end)
+
 	swapCdLbl = Instance.new("TextLabel")
 	swapCdLbl.Size = UDim2.new(0, 200, 0, 22)
 	swapCdLbl.Position = UDim2.new(0, 310, 1, -88)
@@ -289,7 +309,7 @@ function HUD.Init()
 	controlsLbl.Font = Enum.Font.Gotham
 	controlsLbl.TextScaled = true
 	controlsLbl.TextColor3 = Color3.fromRGB(180, 190, 210)
-	controlsLbl.Text = "A/D move · Space jump · Shift i-frame dash · Click/J attack · K skill · Q swap (+swap attack) · E or click prompt"
+	controlsLbl.Text = "A/D move · Space jump · Shift dash · Click/J attack · K skill · Q swap · 1/2/3 weapons · E prompt"
 	controlsLbl.Parent = gui
 	corner(controlsLbl, 8)
 
@@ -409,7 +429,19 @@ function HUD.Update(s: any)
 	if weaponLbl then
 		local w = Weapons.Get(s.weaponId or "BareHands")
 		local kind = if w then w.kind else "?"
-		weaponLbl.Text = "Weapon: " .. (if w then w.name else tostring(s.weaponId)) .. " [" .. kind .. "]"
+		local slotHint = ""
+		if typeof(s.unlockedWeapons) == "table" then
+			local n = 0
+			for _, def in Weapons.List do
+				if s.unlockedWeapons[def.id] then
+					n += 1
+					if def.id == (s.weaponId or "BareHands") and n <= 3 then
+						slotHint = " [" .. tostring(n) .. "]"
+					end
+				end
+			end
+		end
+		weaponLbl.Text = "Weapon: " .. (if w then w.name else tostring(s.weaponId)) .. " [" .. kind .. "]" .. slotHint
 	end
 
 	local stage = Stages.Get(s.stageId)

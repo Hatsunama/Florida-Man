@@ -50,7 +50,10 @@ function MobileControls.Init(inputController: any?)
 
 	local attack = mk("ATK", UDim2.new(1, -24, 1, -24), Color3.fromRGB(220, 80, 60), function()
 		if inputController and inputController._enabled ~= false then
-			-- mirror keyboard attack path via remote; local VFX from InputController if hooked
+			local pg = Players.LocalPlayer:FindFirstChild("PlayerGui")
+			if pg and (pg:FindFirstChild("FM_Draft") or pg:FindFirstChild("FM_Newspaper") or pg:FindFirstChild("FM_Steve") or pg:FindFirstChild("FM_Credits")) then
+				return
+			end
 			fire("RequestAttack")
 		end
 	end)
@@ -65,10 +68,13 @@ function MobileControls.Init(inputController: any?)
 		end
 	end)
 	mk("USE", UDim2.new(1, -108, 1, -108), Color3.fromRGB(220, 180, 60), function()
-		-- Interact: fire start/talk via same proximity; client also has tryInteract on E
-		-- Prefer RequestStartRun when near flame — server validates hub
 		fire("RequestStartRun")
 		fire("TalkCaptainSteve")
+	end)
+	mk("WPN", UDim2.new(1, -192, 1, -24), Color3.fromRGB(120, 100, 200), function()
+		if inputController and inputController.CycleWeapon then
+			inputController.CycleWeapon(1)
+		end
 	end)
 
 	UserInputService.LastInputTypeChanged:Connect(function()

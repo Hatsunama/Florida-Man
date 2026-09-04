@@ -9,7 +9,6 @@ local NAMES = {
 	"RequestSkill",
 	"RequestDodge",
 	"RequestSwap",
-	"RequestJump",
 	"EquipWeapon",
 	"PickDraftItem",
 	"SmashPersona",

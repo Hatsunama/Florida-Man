@@ -115,6 +115,7 @@ local function pushState(player: Player)
 		awaitingNewspaper = s.awaitingNewspaper,
 		bossDefeated = s.bossDefeated,
 		weaponId = s.weaponId,
+		unlockedWeapons = s.unlockedWeapons,
 		moveSpeed = s.moveSpeed,
 		hangoverActive = os.clock() < s.hangoverUntil,
 		actName = Balance.TierName(s.stageIndex),
@@ -1505,12 +1506,16 @@ function GameService.SetupRemotes()
 		if not Items.Get(itemId) then
 			return
 		end
-		table.insert(s.items, itemId)
-		local it = Items.Get(itemId)
-		if it and it.healOnPickup > 0 then
-			s.hp = math.min(s.maxHp, s.hp + it.healOnPickup)
+		if #s.items >= s.itemSlots then
+			toast(player, "Item slots full — draft skipped")
+		else
+			table.insert(s.items, itemId)
+			local it = Items.Get(itemId)
+			if it and it.healOnPickup > 0 then
+				s.hp = math.min(s.maxHp, s.hp + it.healOnPickup)
+			end
+			computeStats(s)
 		end
-		computeStats(s)
 		s.awaitingDraft = false
 		local stage = Stages.Get(s.stageId)
 		local nextStage = stage and Stages.NextAfter(stage.id)
@@ -1629,19 +1634,6 @@ function GameService.SetupRemotes()
 				end
 				GameService.TickWaves(player)
 				tryColdOnePickup(player)
-
-				local st = states[player]
-				if st and st.inHub then
-					local char = player.Character
-					local hrp = char and char:FindFirstChild("HumanoidRootPart") :: BasePart?
-					local world = Workspace:FindFirstChild("GameWorld")
-					if hrp and world then
-						local flame = world:FindFirstChild("Flame")
-						if flame and flame:IsA("BasePart") and (flame.Position - hrp.Position).Magnitude < 8 then
-
-						end
-					end
-				end
 
 				local stH = states[player]
 				if stH then

@@ -4,7 +4,9 @@ local ContextActionService = game:GetService("ContextActionService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Remotes = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Remotes"))
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Remotes = require(Shared:WaitForChild("Remotes"))
+local Weapons = require(Shared:WaitForChild("Weapons"))
 local VFX = require(script.Parent:WaitForChild("VFX"))
 local AnimController = require(script.Parent:WaitForChild("AnimController"))
 local CaptainSteveUI = require(script.Parent.Parent:WaitForChild("UI"):WaitForChild("CaptainSteveUI"))
@@ -13,9 +15,76 @@ local TutorialController = require(script.Parent:WaitForChild("TutorialControlle
 local InputController = {}
 InputController._enabled = true
 InputController._movement = nil :: any
+InputController._unlockedWeapons = { BareHands = true, FlipFlopSlap = true } :: { [string]: boolean }
+InputController._weaponId = "BareHands"
 
-local function fire(name: string)
-	Remotes.Get(name):FireServer()
+local function fire(name: string, ...)
+	Remotes.Get(name):FireServer(...)
+end
+
+local function uiBlocking(): boolean
+	local pg = Players.LocalPlayer:FindFirstChild("PlayerGui")
+	if not pg then
+		return false
+	end
+	return pg:FindFirstChild("FM_Newspaper") ~= nil
+		or pg:FindFirstChild("FM_Draft") ~= nil
+		or pg:FindFirstChild("FM_Steve") ~= nil
+		or pg:FindFirstChild("FM_Credits") ~= nil
+end
+
+local function unlockedOrdered(): { string }
+	local ids = {}
+	for _, w in Weapons.List do
+		if InputController._unlockedWeapons[w.id] then
+			table.insert(ids, w.id)
+		end
+	end
+	if #ids == 0 then
+		table.insert(ids, "BareHands")
+	end
+	return ids
+end
+
+local function equipBySlot(slot: number)
+	if uiBlocking() or not InputController._enabled then
+		return
+	end
+	local ids = unlockedOrdered()
+	local id = ids[slot]
+	if not id then
+		return
+	end
+	fire("EquipWeapon", id)
+end
+
+local function cycleWeapon(delta: number)
+	if uiBlocking() or not InputController._enabled then
+		return
+	end
+	local ids = unlockedOrdered()
+	local cur = 1
+	for i, id in ids do
+		if id == InputController._weaponId then
+			cur = i
+			break
+		end
+	end
+	local nextIdx = ((cur - 1 + delta) % #ids) + 1
+	fire("EquipWeapon", ids[nextIdx])
+end
+
+function InputController.SetWeaponState(weaponId: string?, unlocked: { [string]: boolean }?)
+	if typeof(weaponId) == "string" then
+		InputController._weaponId = weaponId
+	end
+	if typeof(unlocked) == "table" then
+		InputController._unlockedWeapons = unlocked
+	end
+end
+
+function InputController.CycleWeapon(delta: number?)
+	cycleWeapon(if typeof(delta) == "number" then delta else 1)
 end
 
 local function tryInteract()
@@ -45,6 +114,9 @@ local attackReadyAt = 0
 local ATTACK_RECOVERY = 0.2
 
 local function doSwingFire()
+	if uiBlocking() then
+		return
+	end
 	local mov = InputController._movement
 	local facing = 1
 	if mov then
@@ -75,17 +147,20 @@ local function doSwingFire()
 end
 
 local function tryAttack()
+	if uiBlocking() then
+		return
+	end
 	local now = os.clock()
 	if now >= attackReadyAt then
 		doSwingFire()
 	else
-
 		attackBufferedUntil = now + 0.12
 		task.delay(attackReadyAt - now, function()
+			if uiBlocking() or not InputController._enabled then
+				return
+			end
 			if os.clock() <= attackBufferedUntil + 0.02 and os.clock() >= attackReadyAt - 0.01 then
-				if InputController._enabled then
-					doSwingFire()
-				end
+				doSwingFire()
 			end
 		end)
 	end
@@ -100,12 +175,8 @@ function InputController.Start()
 		if gp or not InputController._enabled then
 			return
 		end
-
-		local pg = Players.LocalPlayer:FindFirstChild("PlayerGui")
-		if pg and input.KeyCode == Enum.KeyCode.Space then
-			if pg:FindFirstChild("FM_Newspaper") or pg:FindFirstChild("FM_Draft") or pg:FindFirstChild("FM_Steve") or pg:FindFirstChild("FM_Credits") then
-				return
-			end
+		if uiBlocking() then
+			return
 		end
 		local k = input.KeyCode
 		local t = input.UserInputType
@@ -116,33 +187,38 @@ function InputController.Start()
 		elseif k == Enum.KeyCode.Q then
 			fire("RequestSwap")
 		elseif k == Enum.KeyCode.LeftShift then
-
+			-- dodge via MovementController
 		elseif k == Enum.KeyCode.E then
 			tryInteract()
-
+		elseif k == Enum.KeyCode.One then
+			equipBySlot(1)
+		elseif k == Enum.KeyCode.Two then
+			equipBySlot(2)
+		elseif k == Enum.KeyCode.Three then
+			equipBySlot(3)
 		end
 	end)
 
 	ContextActionService:BindAction("FM_Attack", function(_, state)
-		if state == Enum.UserInputState.Begin and InputController._enabled then
+		if state == Enum.UserInputState.Begin and InputController._enabled and not uiBlocking() then
 			tryAttack()
 		end
 	end, false, Enum.KeyCode.ButtonX, Enum.KeyCode.ButtonR2)
 
 	ContextActionService:BindAction("FM_Skill", function(_, state)
-		if state == Enum.UserInputState.Begin and InputController._enabled then
+		if state == Enum.UserInputState.Begin and InputController._enabled and not uiBlocking() then
 			fire("RequestSkill")
 		end
 	end, false, Enum.KeyCode.ButtonY, Enum.KeyCode.ButtonL2)
 
 	ContextActionService:BindAction("FM_Swap", function(_, state)
-		if state == Enum.UserInputState.Begin and InputController._enabled then
+		if state == Enum.UserInputState.Begin and InputController._enabled and not uiBlocking() then
 			fire("RequestSwap")
 		end
 	end, false, Enum.KeyCode.ButtonB)
 
 	ContextActionService:BindAction("FM_Dodge", function(_, state)
-		if state == Enum.UserInputState.Begin and InputController._enabled then
+		if state == Enum.UserInputState.Begin and InputController._enabled and not uiBlocking() then
 			local mov = InputController._movement
 			if mov then
 				mov.RequestDodge()
@@ -154,7 +230,7 @@ function InputController.Start()
 	end, false, Enum.KeyCode.ButtonR1)
 
 	ContextActionService:BindAction("FM_Interact", function(_, state)
-		if state == Enum.UserInputState.Begin and InputController._enabled then
+		if state == Enum.UserInputState.Begin and InputController._enabled and not uiBlocking() then
 			tryInteract()
 		end
 	end, false, Enum.KeyCode.ButtonL1)
