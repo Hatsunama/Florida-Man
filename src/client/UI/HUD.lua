@@ -72,7 +72,7 @@ function HUD.Init()
 	corner(hpBg, 8)
 	hpFill = Instance.new("Frame")
 	hpFill.Size = UDim2.fromScale(1, 1)
-	hpFill.BackgroundColor3 = Color3.fromRGB(60, 200, 100)
+	hpFill.BackgroundColor3 = Color3.fromRGB(40, 200, 90) -- Florida Dew green
 	hpFill.Parent = hpBg
 	corner(hpFill, 8)
 	hpText = Instance.new("TextLabel")
@@ -195,6 +195,13 @@ function HUD.Init()
 	controlsLbl.Text = "A/D lane · Space jump · Shift dash · Click/J attack · K skill · Q swap · E interact"
 	controlsLbl.Parent = gui
 	corner(controlsLbl, 8)
+	-- Fade controls after first few seconds at hub
+	task.delay(8, function()
+		if controlsLbl and controlsLbl.Parent then
+			local TweenService = game:GetService("TweenService")
+			TweenService:Create(controlsLbl, TweenInfo.new(2), { BackgroundTransparency = 1, TextTransparency = 1 }):Play()
+		end
+	end)
 
 	toastLbl = Instance.new("TextLabel")
 	toastLbl.Size = UDim2.new(0.6, 0, 0, 36)
@@ -235,8 +242,16 @@ local function updatePersonaFrame(frame: Frame, personaId: string?, active: bool
 	frame.BackgroundColor3 = if def then def.color:Lerp(Color3.fromRGB(20, 20, 25), 0.45) else Color3.fromRGB(25, 28, 36)
 	local s = frame:FindFirstChildOfClass("UIStroke")
 	if s then
-		s.Color = if active then Color3.fromRGB(255, 230, 100) else Color3.fromRGB(120, 120, 140)
-		s.Thickness = if active then 3 else 1.5
+		local rcol = Color3.fromRGB(120, 120, 140)
+		if rarity == "Rare" then
+			rcol = Color3.fromRGB(80, 140, 255)
+		elseif rarity == "Unique" then
+			rcol = Color3.fromRGB(180, 80, 255)
+		elseif rarity == "Legendary" then
+			rcol = Color3.fromRGB(255, 200, 60)
+		end
+		s.Color = if active then Color3.fromRGB(255, 230, 100) else rcol
+		s.Thickness = if active then 3 else 2
 	end
 end
 
@@ -247,7 +262,7 @@ function HUD.Update(s: any)
 	end
 	local pct = if s.maxHp > 0 then s.hp / s.maxHp else 0
 	hpFill.Size = UDim2.fromScale(math.clamp(pct, 0, 1), 1)
-	hpFill.BackgroundColor3 = if pct > 0.5 then Color3.fromRGB(60, 200, 100) elseif pct > 0.25 then Color3.fromRGB(230, 180, 50) else Color3.fromRGB(220, 60, 60)
+	hpFill.BackgroundColor3 = if pct > 0.5 then Color3.fromRGB(40, 200, 90) elseif pct > 0.25 then Color3.fromRGB(230, 180, 50) else Color3.fromRGB(220, 60, 60)
 	hpText.Text = string.format("HP %d/%d", math.floor(s.hp), math.floor(s.maxHp))
 	sunburnLbl.Text = string.format("☀️ Sunburn: %d", s.sunburn or 0)
 	if weaponLbl then
@@ -256,9 +271,21 @@ function HUD.Update(s: any)
 	end
 
 	local stage = Stages.Get(s.stageId)
-	stageText.Text = if stage then ("FLORIDA MAN — " .. stage.name) else "FLORIDA MAN"
+	local act = s.actName or ""
+	if stage then
+		if act ~= "" and not stage.isHub then
+			stageText.Text = string.format("ACT %s — %s", tostring(s.actNumber or ""), stage.name)
+		else
+			stageText.Text = "FLORIDA MAN — " .. stage.name
+		end
+	else
+		stageText.Text = "FLORIDA MAN"
+	end
 	if s.turtlesNeeded and s.turtlesNeeded > 0 then
 		stageText.Text ..= string.format("  ·  Turtles %d/%d", s.turtlesRescued or 0, s.turtlesNeeded)
+	end
+	if s.hangoverActive then
+		stageText.Text ..= "  ·  HANGOVER"
 	end
 
 	updatePersonaFrame(p1, s.personas[1], s.activePersona == 1, s.personaRarity[s.personas[1]])

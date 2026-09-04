@@ -10,12 +10,18 @@ local Enemies = require(Shared:WaitForChild("Enemies"))
 local Constants = require(Shared:WaitForChild("Constants"))
 local Remotes = require(Shared:WaitForChild("Remotes"))
 local Util = require(Shared:WaitForChild("Util"))
+local Balance = require(Shared:WaitForChild("Balance"))
 local EnemyFactory = require(script.Parent:WaitForChild("EnemyFactory"))
 
 local EnemyService = {}
 EnemyService._alive = {} :: { [Model]: boolean }
 EnemyService._onKilled = nil :: ((Player, string, Model) -> ())?
 EnemyService._onTurtleRescued = nil :: ((Player, Model) -> ())?
+EnemyService._stageIndex = 1
+
+function EnemyService.SetStageContext(stageIndex: number)
+	EnemyService._stageIndex = stageIndex or 1
+end
 
 function EnemyService.SetCallbacks(onKilled, onTurtleRescued)
 	EnemyService._onKilled = onKilled
@@ -39,6 +45,19 @@ function EnemyService.Spawn(enemyId: string, x: number): Model?
 	end
 	local pos = Vector3.new(x, def.size.Y * 0.5 + 0.5, Constants.LANE_Z)
 	local model = EnemyFactory.Build(def, pos)
+	-- Apply stage scaling (allies/turtles skip)
+	if not def.isAlly then
+		local hum = model:FindFirstChildOfClass("Humanoid")
+		if hum then
+			local hpM = Balance.EnemyHpMult(EnemyService._stageIndex)
+			local dmgM = Balance.EnemyDmgMult(EnemyService._stageIndex)
+			hum.MaxHealth = math.floor(def.hp * hpM)
+			hum.Health = hum.MaxHealth
+			local scaled = math.floor(def.damage * dmgM + 0.5)
+			model:SetAttribute("ScaledDamage", scaled)
+			model:SetAttribute("Damage", scaled)
+		end
+	end
 	model.Parent = Workspace:WaitForChild("GameWorld")
 	EnemyService._alive[model] = true
 	return model
@@ -336,10 +355,24 @@ function EnemyService._TelegraphAttack(model: Model, target: Player, behavior: s
 	zone.Anchored = true
 	zone.CanCollide = false
 	zone.Material = Enum.Material.Neon
-	zone.Color = if behavior == "firearc" then Color3.fromRGB(255, 140, 40) else Color3.fromRGB(255, 60, 60)
+	local tc = model:GetAttribute("TelegraphColor")
+	if typeof(tc) == "Color3" then
+		zone.Color = tc
+	else
+		zone.Color = if behavior == "firearc" then Color3.fromRGB(255, 140, 40) else Color3.fromRGB(255, 60, 60)
+	end
 	zone.Transparency = 0.55
-	zone.Size = Vector3.new(width, 0.4, 6)
-	zone.CFrame = CFrame.new(root.Position + Vector3.new(facing * width * 0.5, -root.Size.Y * 0.35, 0))
+	-- Fire arcs telegraph ON THE GROUND as a cone wedge
+	if behavior == "firearc" then
+		zone.Size = Vector3.new(width, 0.35, 10)
+		zone.CFrame = CFrame.new(root.Position.X + facing * width * 0.4, 0.25, Constants.LANE_Z)
+	elseif behavior == "spitter" then
+		zone.Size = Vector3.new(width * 0.7, 0.35, 8)
+		zone.CFrame = CFrame.new(root.Position + Vector3.new(facing * width * 0.45, -root.Size.Y * 0.35, 0))
+	else
+		zone.Size = Vector3.new(width, 0.4, 6)
+		zone.CFrame = CFrame.new(root.Position + Vector3.new(facing * width * 0.5, -root.Size.Y * 0.35, 0))
+	end
 	zone.Parent = Workspace
 	Debris:AddItem(zone, tele + 0.15)
 

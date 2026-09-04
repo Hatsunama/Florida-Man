@@ -77,3 +77,68 @@
 - `src/client/Controllers/InputController.lua` (local swing)
 - `src/client/init.client.lua` (no double slash)
 - `AUDIT.md` (this file)
+
+---
+
+# Full Quality Reconstruction — 2026-09-04 (ET)
+
+**HEAD base:** `2c582a3` (P0 movement/crab fixes) — AlignPosition Z, AlignOrientation facing, no CFrame stomp, SetNetworkOwner **kept**.
+
+## Player brief
+
+Improve every aspect: story, levels, difficulty/power scaling, controls, enemy concepts, art top-to-bottom. Ship to `origin/main`.
+
+## What changed
+
+### Story
+- New `Story.lua`: act Steve banter, hub headlines (updates after death), death lines, emotional+funny sunrise credits
+- All 20 stage headlines rewritten to **advance plot** (not generic BREAKING)
+- Acts 1–5 tone arc: comedy → unease → mutants → turtle rescue → facility reveal → Spillfather
+- Newspaper cards show act name + storyBeat; Credits full-screen sunrise scroll
+
+### Levels (`WorldBuilder` + `Stages` fields)
+- Extended StageDef: `setPiece`, `hazards`, `lighting`, `storyBeat`, `scalingTier`, `goalLabel`, `steveAct`, `platformLedges`
+- Unique set pieces per stage (pier, fryer, neon canopy, parking arena, canal pads, cypress, nests, gate, conveyor, pipe maze, barge gaps, helipad wind, boss arena)
+- 3+ parallax layers with biome-specific silhouettes
+- Hazards: oil/fryer slow, fire cones, HOA cones, red tide, wind push, jump pads
+- Mini-arena spotlight framing for minibosses/boss
+- Visible goals (pier light, nest, rig flare, etc.)
+- Lighting profiles: dawnGold, neonGas, greenBlack, clinicalLab, industrialOrange, finaleRig, …
+- Hub: real bonfire particles+flicker light, lawn chairs, cooler, news stand, pelican-shaped Steve
+
+### Scaling (`Balance.lua`)
+- HP `1+0.12*idx`, damage `1+0.08*idx`
+- Max hostiles 2/3/4 by stage band
+- Rarity +15/30/50% on attack **and** skill
+- Hangover clears on Cold One; stage-1 only
+- Wave spawner respects max-on-screen cap
+
+### Controls
+- AlignPosition Z MaxAxesForce raised (250k); snappier accel
+- Longer dodge trail (6 ghosts), shorter dodge CD (0.72)
+- Attack buffer 100ms; Space ignored while UI panels open
+- Camera depth 32, FOV 65; controls HUD fades at hub
+
+### Enemies
+- Rethemed names/flavors to Florida folklore headlines
+- Telegraph colors + ground fire-cone zones
+- Art upgrades: crab sand material, Influencer selfie stick, HOA binder, hazmat grunt tanks, Spillfather sludge-mech chassis/tie/claws/oil drips
+
+### Art / UI
+- HUD: act banner, Florida Dew green HP, rarity-colored persona frames
+- Newspaper: serif + red BREAKING badge
+- Draft: thicker Unique/Legendary borders
+- Credits: sunrise gradient + story lines
+
+## Files touched (major)
+
+- `src/shared/Balance.lua` (new), `Story.lua` (new), `Stages.lua`, `Enemies.lua`, `Constants.lua`
+- `src/server/WorldBuilder.lua`, `GameService.lua`, `EnemyService.lua`, `EnemyFactory.lua`
+- `src/client/Controllers/MovementController.lua`, `CameraController.lua`, `InputController.lua`
+- `src/client/UI/HUD.lua`, `Newspaper.lua`, `Credits.lua`, `ItemDraft.lua`, `CaptainSteveUI.lua`
+- `README.md`, `AUDIT.md`
+
+## Verification
+
+- `rojo` may be missing on box — build skipped if absent
+- Push: `origin/main` as Hatsunama

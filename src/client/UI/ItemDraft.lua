@@ -71,7 +71,7 @@ function ItemDraft.Show(picks: { any })
 		corner(card, 12)
 		local st = Instance.new("UIStroke")
 		st.Color = Util.RarityColor(it.rarity)
-		st.Thickness = 3
+		st.Thickness = if it.rarity == "Legendary" then 5 elseif it.rarity == "Unique" then 4 else 3
 		st.Parent = card
 
 		local rarity = Instance.new("TextLabel")

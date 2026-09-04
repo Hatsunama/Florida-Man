@@ -14,6 +14,8 @@ local Enemies = require(Shared:WaitForChild("Enemies"))
 local Weapons = require(Shared:WaitForChild("Weapons"))
 local Remotes = require(Shared:WaitForChild("Remotes"))
 local Util = require(Shared:WaitForChild("Util"))
+local Balance = require(Shared:WaitForChild("Balance"))
+local Story = require(Shared:WaitForChild("Story"))
 
 local WorldBuilder = require(script.Parent:WaitForChild("WorldBuilder"))
 local EnemyService = require(script.Parent:WaitForChild("EnemyService"))
@@ -97,6 +99,8 @@ local function pushState(player: Player)
 		weaponId = s.weaponId,
 		moveSpeed = s.moveSpeed,
 		hangoverActive = os.clock() < s.hangoverUntil,
+		actName = Balance.TierName(s.stageIndex),
+		actNumber = Balance.ActNumber(s.stageIndex),
 	})
 end
 
@@ -238,11 +242,15 @@ function GameService.LoadHub(player: Player)
 	s.awaitingDraft = false
 	s.awaitingNewspaper = false
 	EnemyService.Clear()
-	WorldBuilder.BuildStage("Hub")
+	WorldBuilder.BuildStage("Hub", s.deaths)
 	teleportPlayer(player, WorldBuilder.GetSpawnCFrame("Hub"))
 	applyCharacterSpeed(player)
 	pushState(player)
-	toast(player, "Dawn. Bonfire. Crabs stole your Cold One.")
+	local line = Story.SteveLine(1, s.deaths)
+	toast(player, if s.deaths > 0 then Story.HubHeadline(s.deaths) else "Dawn. Bonfire. Crabs stole your Cold One.")
+	task.delay(1.5, function()
+		Remotes.Get("ShowTagline"):FireClient(player, line, "Captain Steve")
+	end)
 end
 
 local function spawnStageThreats(player: Player)
@@ -284,20 +292,33 @@ function GameService.LoadStage(player: Player, stageId: string)
 	s.turtlesNeeded = 0
 	s.coldOneTaken = false
 	EnemyService.Clear()
-	WorldBuilder.BuildStage(stageId)
+	EnemyService.SetStageContext(stage.index)
+	WorldBuilder.BuildStage(stageId, s.deaths)
 	teleportPlayer(player, WorldBuilder.GetSpawnCFrame(stageId))
 	if stage.hangover then
 		s.hangoverUntil = os.clock() + Constants.HANGOVER_DURATION
-		toast(player, "Status: Hangover — slower for a bit. (No drinks. Just vibes.)")
+		toast(player, "Status: Hangover — slower until you reclaim The Cold One. (Florida Dew. Not alcohol.)")
+	else
+		s.hangoverUntil = 0
 	end
 	applyCharacterSpeed(player)
 	spawnStageThreats(player)
 	Remotes.Get("StageLoaded"):FireClient(player, stageId, stage.name)
 	pushState(player)
 
+	local beat = stage.storyBeat
+	if beat and beat ~= "" then
+		task.delay(1.0, function()
+			toast(player, beat)
+		end)
+	end
 	if stage.showMutantTagline then
 		task.delay(2.5, function()
 			Remotes.Get("ShowTagline"):FireClient(player, Constants.TAGLINE_MUTANTS, "Captain Steve")
+		end)
+	elseif stage.steveAct and stage.steveAct >= 2 then
+		task.delay(3.0, function()
+			Remotes.Get("ShowTagline"):FireClient(player, Story.SteveLine(stage.steveAct, s.deaths), "Captain Steve")
 		end)
 	end
 end
@@ -446,8 +467,10 @@ function GameService.FinishStage(player: Player)
 	Remotes.Get("ShowNewspaper"):FireClient(player, {
 		headline = stage.headline,
 		blurb = stage.blurb,
+		storyBeat = stage.storyBeat,
+		actName = Balance.TierName(stage.index),
 		stageName = stage.name,
-		nextName = if nextStage then nextStage.name else "Credits",
+		nextName = if nextStage then nextStage.name else "Sunrise Credits",
 		isFinale = nextStage == nil,
 	})
 end
@@ -459,19 +482,17 @@ function GameService.FinishRun(player: Player)
 	end
 	s.runActive = false
 	unlockPersona(player, "FireworksEnthusiast")
+	local creditLines = {}
+	for _, line in Story.CREDITS do
+		table.insert(creditLines, line)
+	end
+	table.insert(creditLines, "")
+	table.insert(creditLines, "Deaths this legend: " .. tostring(s.deaths))
+	table.insert(creditLines, "Turtles rescued forever: " .. tostring(s.turtlesRescued))
 	Remotes.Get("ShowCredits"):FireClient(player, {
 		title = "FLORIDA MAN",
-		lines = {
-			"You saved the turtles.",
-			"GulfGulp Energy stock: down.",
-			"Captain Steve says:",
-			Constants.TAGLINE_MUTANTS,
-			"",
-			"Personas unlocked: " .. tostring(#s.personas) .. "+ catalog",
-			"Deaths this legend: " .. tostring(s.deaths),
-			"",
-			"Thanks for playing — touch the bonfire to run it back.",
-		},
+		subtitle = "Sunrise over a swamp that gets to stay wild",
+		lines = creditLines,
 	})
 	task.delay(2, function()
 		GameService.LoadHub(player)
@@ -510,7 +531,7 @@ function GameService.StartRun(player: Player)
 	computeStats(s)
 	s.hp = s.maxHp
 	GameService.LoadStage(player, "DaytonaHangover")
-	toast(player, "FLORIDA MAN — the crabs stole your Cold One.")
+	toast(player, "You wake after the last honest night of your life. The crabs stole your Cold One.")
 end
 
 function GameService.KillPlayer(player: Player)
@@ -521,7 +542,7 @@ function GameService.KillPlayer(player: Player)
 	s.deaths += 1
 	s.hp = 0
 	s.runActive = false
-	toast(player, "You poofed. Back to the bonfire. (+1 starting item slot after first death)")
+	toast(player, Story.DeathLine(s.deaths) .. " (+1 item slot after first death)")
 	local deaths = s.deaths
 	local unlocked = s.unlockedPersonas
 	local rarities = s.personaRarity
@@ -596,13 +617,7 @@ function GameService.DoAttack(player: Player)
 	local weapon = Weapons.Get(s.weaponId) or Weapons.GetStarter()
 	local base = (persona.attackDamage + (weapon.damage - 10) * 0.65) * s.damageMult
 	local rarity = s.personaRarity[persona.id] or "Common"
-	if rarity == "Rare" then
-		base *= 1.1
-	elseif rarity == "Unique" then
-		base *= 1.25
-	elseif rarity == "Legendary" then
-		base *= 1.45
-	end
+	base *= Balance.RarityMult(rarity)
 	if s.combo == 3 then
 		base *= 1.35
 	end
@@ -636,9 +651,11 @@ function GameService.DoAttack(player: Player)
 		local cold = world:FindFirstChild("ColdOne")
 		if cold and cold:IsA("BasePart") and (cold.Position - origin).Magnitude < 8 then
 			s.coldOneTaken = true
+			s.hangoverUntil = 0
 			s.hp = math.min(s.maxHp, s.hp + Constants.COLD_ONE_HEAL)
 			cold:Destroy()
-			toast(player, "Reclaimed The Cold One (Florida Dew)! +" .. Constants.COLD_ONE_HEAL .. " HP")
+			applyCharacterSpeed(player)
+			toast(player, "Reclaimed The Cold One (Florida Dew)! Hangover cleared. +" .. Constants.COLD_ONE_HEAL .. " HP")
 			pushState(player)
 		end
 	end
@@ -665,7 +682,8 @@ function GameService.DoSkill(player: Player)
 	if not hrp then
 		return
 	end
-	local dmg = persona.skillDamage * s.damageMult
+	local rarity = s.personaRarity[persona.id] or "Common"
+	local dmg = persona.skillDamage * s.damageMult * Balance.RarityMult(rarity)
 	local facing = s.facing
 	local origin = hrp.Position
 
@@ -802,7 +820,14 @@ function GameService.TickWaves(player: Player)
 	for i, wave in stage.waves do
 		if not s.waveFlags[i] and progress >= wave.atProgress then
 			s.waveFlags[i] = true
-			for _ = 1, wave.count do
+			local maxH = Balance.MaxHostiles(stage.index)
+			local room = math.max(0, maxH - EnemyService.CountHostile())
+			local toSpawn = math.min(wave.count, math.max(1, room))
+			-- Early stages: fewer simultaneous
+			if stage.index <= 2 then
+				toSpawn = math.min(toSpawn, 2)
+			end
+			for _ = 1, toSpawn do
 				local x = hrp.Position.X + 18 + rng:NextNumber(0, 12)
 				EnemyService.Spawn(wave.enemyId, x)
 			end
@@ -973,8 +998,16 @@ function GameService.SetupRemotes()
 		if not s then
 			return
 		end
-		toast(player, "Captain Steve: Smash spare personas for Sunburn. Upgrade rarity here!")
-		Remotes.Get("ShowTagline"):FireClient(player, Constants.TAGLINE_MUTANTS, "Captain Steve")
+		local act = 1
+		local st = Stages.Get(s.stageId)
+		if st and st.steveAct then
+			act = st.steveAct
+		elseif s.deaths > 0 then
+			act = math.clamp(Balance.ActNumber(s.stageIndex), 1, 5)
+		end
+		local line = Story.SteveLine(act, s.deaths)
+		toast(player, "Captain Steve: " .. line)
+		Remotes.Get("ShowTagline"):FireClient(player, line, "Captain Steve")
 		pushState(player)
 	end)
 	Remotes.Get("SmashPersona").OnServerEvent:Connect(function(player, personaId)
@@ -1081,6 +1114,45 @@ function GameService.SetupRemotes()
 						end
 					end
 				end
+
+				-- Hazard contact (cartoon damage / slow)
+				local worldH = Workspace:FindFirstChild("GameWorld")
+				local charH = player.Character
+				local hrpH = charH and charH:FindFirstChild("HumanoidRootPart") :: BasePart?
+				local stH = states[player]
+				if worldH and hrpH and stH and stH.runActive then
+					for _, child in worldH:GetChildren() do
+						if child:IsA("BasePart") and child:GetAttribute("Hazard") then
+							local hk = child:GetAttribute("Hazard")
+							if (child.Position - hrpH.Position).Magnitude < 5 then
+								if hk == "oilSlick" or hk == "sandSlow" or hk == "slushPuddle" or hk == "fryerOil" or hk == "redTide" then
+									stH.moveSpeed = math.min(stH.moveSpeed, 12)
+									charH:SetAttribute("MoveSpeed", stH.moveSpeed)
+									charH:SetAttribute("Hangover", true) -- reuse slow feel briefly
+								elseif hk == "fireCone" and not charH:GetAttribute("IFrame") then
+									local last = charH:GetAttribute("LastHazardAt")
+									if typeof(last) ~= "number" or os.clock() - last > 0.8 then
+										charH:SetAttribute("LastHazardAt", os.clock())
+										GameService.ApplyDamageToPlayer(player, 4)
+									end
+								elseif hk == "windPush" then
+									local dir = (child:GetAttribute("WindDir") :: number?) or -1
+									hrpH.AssemblyLinearVelocity = Vector3.new(dir * 18, hrpH.AssemblyLinearVelocity.Y, 0)
+								elseif hk == "canalWater" and child:GetAttribute("JumpPad") then
+									-- visual only; jump pads are Neon parts with JumpPad
+								end
+							end
+						elseif child:IsA("BasePart") and child:GetAttribute("JumpPad") then
+							if math.abs(child.Position.X - hrpH.Position.X) < 3 and hrpH.Position.Y < child.Position.Y + 3 then
+								local v = hrpH.AssemblyLinearVelocity
+								if v.Y < 10 then
+									hrpH.AssemblyLinearVelocity = Vector3.new(v.X, 52, 0)
+								end
+							end
+						end
+					end
+				end
+
 				-- soft lane safety if client desyncs badly (MovementController owns fine lock)
 				local char = player.Character
 				local hrp = char and char:FindFirstChild("HumanoidRootPart") :: BasePart?

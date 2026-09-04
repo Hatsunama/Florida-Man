@@ -80,7 +80,7 @@ local function buildCrab(model: Model, root: Part, def: any)
 	-- Wider flatter body — stylized crab silhouette
 	root.Size = Vector3.new(s.X * 0.95, s.Y * 0.55, s.Z * 0.75)
 	root.Shape = Enum.PartType.Block
-	root.Material = Enum.Material.SmoothPlastic
+	root.Material = Enum.Material.Sand
 	root.Color = def.color
 	root.TopSurface = Enum.SurfaceType.Smooth
 	root.BottomSurface = Enum.SurfaceType.Smooth
@@ -434,6 +434,11 @@ local function buildHumanoidish(model: Model, root: Part, def: any)
 	local s = def.size
 	root.Size = Vector3.new(s.X * 0.7, s.Y * 0.45, s.Z * 0.6)
 	root.Color = def.color
+	-- Hazmat suit for corp grunts
+	if def.id == "GulfGulpGrunt" then
+		root.Material = Enum.Material.SmoothPlastic
+		root.Color = Color3.fromRGB(60, 70, 50)
+	end
 	local head = part({
 		Name = "Head",
 		Parent = model,
@@ -452,6 +457,69 @@ local function buildHumanoidish(model: Model, root: Part, def: any)
 		CFrame = head.CFrame * CFrame.new(0, 0.8, 0),
 	})
 	attachToRoot(root, accent)
+	-- Selfie stick for influencer
+	if def.id == "SelfieZombie" then
+		local stick = part({
+			Name = "SelfieStick",
+			Parent = model,
+			Size = Vector3.new(0.2, 3.5, 0.2),
+			Color = Color3.fromRGB(40, 40, 50),
+			Material = Enum.Material.Metal,
+			CFrame = root.CFrame * CFrame.new(1.2, 1.5, -0.5),
+		})
+		attachToRoot(root, stick)
+		local phone = part({
+			Name = "Phone",
+			Parent = model,
+			Size = Vector3.new(0.8, 1.2, 0.15),
+			Color = Color3.fromRGB(20, 20, 30),
+			Material = Enum.Material.SmoothPlastic,
+			CFrame = stick.CFrame * CFrame.new(0, 1.9, 0),
+		})
+		attachToRoot(root, phone)
+		local flash = part({
+			Name = "Flash",
+			Parent = model,
+			Size = Vector3.new(0.5, 0.5, 0.5),
+			Shape = Enum.PartType.Ball,
+			Color = Color3.fromRGB(255, 255, 220),
+			Material = Enum.Material.Neon,
+			CFrame = phone.CFrame * CFrame.new(0, 0, -0.3),
+		})
+		attachToRoot(root, flash)
+	end
+	-- HOA binder for Karen
+	if def.id == "CondoKaren" then
+		local binder = part({
+			Name = "HOABinder",
+			Parent = model,
+			Size = Vector3.new(1.4, 1.8, 0.3),
+			Color = Color3.fromRGB(200, 40, 80),
+			CFrame = root.CFrame * CFrame.new(1.1, 0.3, 0),
+		})
+		attachToRoot(root, binder)
+	end
+	-- Hazmat tank for grunt
+	if def.id == "GulfGulpGrunt" then
+		local tank = part({
+			Name = "AirTank",
+			Parent = model,
+			Size = Vector3.new(1.2, 2.2, 1.0),
+			Color = Color3.fromRGB(255, 180, 0),
+			Material = Enum.Material.Metal,
+			CFrame = root.CFrame * CFrame.new(0, 0.2, 0.9),
+		})
+		attachToRoot(root, tank)
+		local tape = part({
+			Name = "CautionTape",
+			Parent = model,
+			Size = Vector3.new(2.4, 0.3, 0.3),
+			Color = Color3.fromRGB(255, 200, 40),
+			Material = Enum.Material.Neon,
+			CFrame = root.CFrame * CFrame.new(0, 0.8, 0),
+		})
+		attachToRoot(root, tape)
+	end
 	for _, side in { -1, 1 } do
 		local arm = part({
 			Name = "Arm",
@@ -480,6 +548,8 @@ end
 local function buildBoss(model: Model, root: Part, def: any)
 	buildHumanoidish(model, root, def)
 	root.Size = def.size * Vector3.new(0.5, 0.4, 0.5)
+	root.Material = Enum.Material.Metal
+	root.Color = def.color
 	local crown = part({
 		Name = "Crown",
 		Parent = model,
@@ -498,7 +568,57 @@ local function buildBoss(model: Model, root: Part, def: any)
 		CFrame = root.CFrame * CFrame.new(0, def.size.Y * 0.1, -def.size.Z * 0.25),
 	})
 	attachToRoot(root, weak)
-	-- glow pulse
+	-- Spillfather sludge mech extras
+	if def.id == "Spillfather" then
+		local chassis = part({
+			Name = "SludgeChassis",
+			Parent = model,
+			Size = Vector3.new(def.size.X * 0.7, def.size.Y * 0.35, def.size.Z * 0.6),
+			Color = Color3.fromRGB(30, 40, 35),
+			Material = Enum.Material.Mud,
+			CFrame = root.CFrame * CFrame.new(0, -def.size.Y * 0.15, 0),
+		})
+		attachToRoot(root, chassis)
+		local suit = part({
+			Name = "ExecSuit",
+			Parent = model,
+			Size = Vector3.new(3, 4, 2),
+			Color = Color3.fromRGB(25, 25, 35),
+			Material = Enum.Material.SmoothPlastic,
+			CFrame = root.CFrame * CFrame.new(0, def.size.Y * 0.15, 0),
+		})
+		attachToRoot(root, suit)
+		local tie = part({
+			Name = "OilTie",
+			Parent = model,
+			Size = Vector3.new(0.5, 2, 0.2),
+			Color = Color3.fromRGB(255, 140, 0),
+			Material = Enum.Material.Neon,
+			CFrame = suit.CFrame * CFrame.new(0, 0, -1.1),
+		})
+		attachToRoot(root, tie)
+		for _, side in { -1, 1 } do
+			local claw = part({
+				Name = "MechClaw",
+				Parent = model,
+				Size = Vector3.new(2.5, 1.5, 4),
+				Color = Color3.fromRGB(255, 160, 40),
+				Material = Enum.Material.Metal,
+				CFrame = root.CFrame * CFrame.new(side * def.size.X * 0.4, 0, -2),
+			})
+			attachToRoot(root, claw)
+		end
+		local drip = Instance.new("Attachment")
+		drip.Name = "OilDrip"
+		drip.Parent = chassis
+		local pe = Instance.new("ParticleEmitter")
+		pe.Color = ColorSequence.new(Color3.fromRGB(30, 40, 20))
+		pe.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.4), NumberSequenceKeypoint.new(1, 0) })
+		pe.Lifetime = NumberRange.new(0.6, 1.0)
+		pe.Rate = 10
+		pe.Speed = NumberRange.new(1, 3)
+		pe.Parent = drip
+	end
 	task.spawn(function()
 		while weak.Parent do
 			local t = TweenService:Create(weak, TweenInfo.new(0.8, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {
@@ -612,6 +732,9 @@ function EnemyFactory.Build(def: any, position: Vector3): Model
 	model:SetAttribute("Facing", 1)
 	model:SetAttribute("AnimPhase", 0)
 	model:SetAttribute("Shape", def.shape)
+	if def.telegraphColor then
+		model:SetAttribute("TelegraphColor", def.telegraphColor)
+	end
 
 	local bb = Instance.new("BillboardGui")
 	bb.Name = "NamePlate"

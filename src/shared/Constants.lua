@@ -4,12 +4,13 @@ local Constants = {
 	TAGLINE_MUTANTS = "It IS Florida… Anything is possible in the swamp I guess.",
 	COMBO_WINDOW = 0.45,
 	DODGE_IFRAME = 0.38,
-	DODGE_COOLDOWN = 0.85,
+	DODGE_COOLDOWN = 0.72,
 	DODGE_DISTANCE = 18,
 	SWAP_COOLDOWN = 1.2,
 	SWAP_ATTACK_DAMAGE_MULT = 1.35,
 	BASE_HP = 100,
 	ATTACK_RANGE = 10,
+	ATTACK_BUFFER = 0.1,
 	STARTING_PERSONA = "BeachBurnout",
 	STARTING_WEAPON = "BareHands",
 	STARTING_ITEM_SLOTS = 1,
@@ -26,7 +27,7 @@ local Constants = {
 	REMOTE_FOLDER = "Remotes",
 	COLD_ONE_HEAL = 35,
 	HANGOVER_SLOW = 0.88,
-	HANGOVER_DURATION = 12,
+	HANGOVER_DURATION = 999, -- cleared by Cold One pickup (stage 1 only)
 	KNOCKBACK_BASE = 6,
 }
 return Constants

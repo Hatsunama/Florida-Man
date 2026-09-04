@@ -33,10 +33,10 @@ local hangoverMult = 1
 local baseSpeed = 18
 local enabled = true
 
-local ACCEL = 85
-local DECEL = 95
-local AIR_ACCEL = 45
-local MAX_SPEED = 22
+local ACCEL = 100
+local DECEL = 110
+local AIR_ACCEL = 52
+local MAX_SPEED = 23
 local JUMP_VELOCITY = 56
 local JUMP_CUT = 0.45
 local COYOTE_TIME = 0.12
@@ -92,10 +92,10 @@ local function setupMovers(hrp: BasePart)
 	ap.Attachment0 = att
 	ap.ApplyAtCenterOfMass = true
 	ap.RigidityEnabled = false
-	ap.Responsiveness = 45
+	ap.Responsiveness = 55
 	ap.MaxForce = 1e6
 	ap.ForceLimitMode = Enum.ForceLimitMode.PerAxis
-	ap.MaxAxesForce = Vector3.new(0, 0, 120000)
+	ap.MaxAxesForce = Vector3.new(0, 0, 250000)
 	ap.Position = Vector3.new(hrp.Position.X, hrp.Position.Y, Constants.LANE_Z)
 	ap.Parent = hrp
 	alignPos = ap
@@ -138,8 +138,8 @@ local function isGrounded(hrp: BasePart, hum: Humanoid): boolean
 end
 
 local function spawnDodgeTrail(hrp: BasePart)
-	for i = 1, 4 do
-		task.delay((i - 1) * 0.03, function()
+	for i = 1, 6 do
+		task.delay((i - 1) * 0.028, function()
 			if not hrp.Parent then
 				return
 			end
@@ -152,8 +152,8 @@ local function spawnDodgeTrail(hrp: BasePart)
 			ghost.Color = Color3.fromRGB(160, 220, 255)
 			ghost.Transparency = 0.35
 			ghost.Parent = workspace
-			TweenService:Create(ghost, TweenInfo.new(0.25), { Transparency = 1 }):Play()
-			Debris:AddItem(ghost, 0.3)
+			TweenService:Create(ghost, TweenInfo.new(0.35), { Transparency = 1 }):Play()
+			Debris:AddItem(ghost, 0.4)
 		end)
 	end
 	local att = Instance.new("Attachment")

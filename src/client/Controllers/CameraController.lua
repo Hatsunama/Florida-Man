@@ -16,10 +16,10 @@ local shakeAmp = 0
 local shakeUntil = 0
 local deadzoneX = 3.5
 local followBiasX = 6
-local height = 10
-local depth = 38
-local STIFFNESS = 55
-local DAMPING = 14
+local height = 9
+local depth = 32
+local STIFFNESS = 48
+local DAMPING = 15
 
 local function spring(current: Vector3, target: Vector3, vel: Vector3, dt: number): (Vector3, Vector3)
 	local force = (target - current) * STIFFNESS
@@ -97,7 +97,7 @@ function CameraController.Start()
 		end
 
 		cam.CFrame = CFrame.new(camPos + shake, lookPos + shake * 0.3)
-		cam.FieldOfView = 70
+		cam.FieldOfView = 65
 	end)
 end
 

@@ -2,9 +2,21 @@
 
 **Tagline:** *It IS Florida… Anything is possible in the swamp I guess.*
 
-A playable Roblox **2.5D side-scroll roguelite** inspired by *Skul: The Hero Slayer* — absurdist Florida Man headlines, dual personas, weapon loadouts, item drafts, and a fight against **GulfGulp Energy** to save the turtles.
+A playable Roblox **2.5D side-scroll roguelite** inspired by *Skul: The Hero Slayer* — absurdist Florida Man headlines that become a real campaign, dual personas, weapon loadouts, item drafts, and a fight against **GulfGulp Energy** to save the turtles.
 
-Wake on a beach after dancing around a bonfire. Crabs stole your **Cold One** (**Florida Dew** — a heal/buff can, *not* alcohol). Fight through a long parody headline campaign, unlock mutant wildlife personas and Florida-nonsense weapons, and take down **The Spillfather**.
+You wake after the last honest night of your life. Crabs stole your **Cold One** (**Florida Dew** — a heal/buff can, *not* alcohol). That's the joke. The truth: GulfGulp has been running "wildlife enhancement" in the swamp — radio-collared gators, fire lizards, oiled turtle nests so pipelines can claim "no habitat." **Captain Steve** (pelican) knows. He won't spell it out until the swamp.
+
+## Story arc (5 acts · 20 stages + hub)
+
+| Act | Stages | Tone |
+|-----|--------|------|
+| **1 Hangover Coast** | 1–5 | Viral comedy → first radio collar on Drive-Thru Gator |
+| **2 The Swamp That Isn't Wild** | 6–10 | Snakes → mutants; Steve's tagline; animals aren't the enemy |
+| **3 Red Tide Bargain** | 11–12 | Rescue turtles; "cleanup" is a cover; Turtle Paladin |
+| **4 Inside GulfGulp** | 13–19 | Gate → lab files → pipes → docks → barge → platform → helipad |
+| **5 The Spillfather** | 20 | Oil-exec sludge mech; save remaining turtles; sunrise credits |
+
+Newspaper cards **advance the plot**. Hub headline board updates after first death. Unique Steve banter per act.
 
 ## Requirements
 
@@ -13,20 +25,12 @@ Wake on a beach after dancing around a bonfire. Crabs stole your **Cold One** (*
 - Rokit optional (`rokit.toml` pins Rojo)
 - Git
 
-Refresh PATH after installs:
-
-```powershell
-$env:Path = [System.Environment]::GetEnvironmentVariable('Path','Machine') + ';' + [System.Environment]::GetEnvironmentVariable('Path','User')
-```
-
 ## Open in Studio (Rojo)
 
-1. Open repo folder, e.g. `C:\Users\<you>\Projects\Florida-Man`
+1. Open repo folder
 2. Run `rojo serve` at the repo root
-3. In Roblox Studio, open a place and connect the **Rojo plugin** to `localhost:34872`
+3. In Roblox Studio, connect the **Rojo plugin** to `localhost:34872`
 4. Press Play. Touch the **bonfire** (or press **E**) to start
-
-Rebuild place file:
 
 ```powershell
 rojo build -o FloridaMan.rbxlx
@@ -38,42 +42,31 @@ rojo build -o FloridaMan.rbxlx
 |--------|----------|------|
 | Move (lane) | A/D or ←/→ | Left stick |
 | Jump (coyote + variable) | Space | A |
-| Attack (3-hit combo) | Click / J | X / RT |
+| Attack (3-hit combo, 100ms buffer) | Click / J | X / RT |
 | Skill | K | Y / LT |
 | Swap persona (+ swap attack) | Q | B |
 | Dodge dash (i-frames + trail) | Left Shift | RB |
 | Interact (bonfire / Captain Steve) | E | LB |
 
-Movement is a **custom client 2.5D controller** (accel/decel, coyote jump, lane Z lock, spring camera). Default Humanoid WalkSpeed is zeroed so it does not fight the camera.
+Movement is a **custom client 2.5D controller**: `AlignPosition` Z-lane lock, `AlignOrientation` facing, X via `AssemblyLinearVelocity` only (no CFrame stomp). Always-run with snappy accel. Controls prompt fades at hub.
 
-## Campaign arc (20 stages + hub)
+Camera: depth ~32, FOV 65, shake on hits only.
 
-Beach → boardwalk/town → swamp conspiracy → GulfGulp facilities → offshore → finale.
+## Difficulty + power scaling
 
-1. Daytona Hangover Beach (Cold One, Crab King)
-2. Boardwalk Chaos
-3. Gas Station of Legends (Slushie King, Golf Cart Bandit)
-4. Strip Mall Showdown (HOA Hydra)
-5. Drive-Thru Disaster (Drive-Thru Gator)
-6. Canal Run
-7. The Swamp Shift (mutants tagline)
-8. Cypress Cathedral
-9. Sludge Bayou
-10. Conspiracy Shack
-11. Turtle Beach / Red Tide (rescue turtles)
-12. Nest Guard Night
-13. GulfGulp Gate
-14. Mutant Lab Wing
-15. Pipe Gauntlet (Rig Overlord)
-16. Loading Dock Riot
-17. Barge Crossing
-18. Oil Platform Approach
-19. Helipad Hysteria
-20. GulfGulp Rig — **The Spillfather**
+Implemented in `Balance.lua` + `GameService` / `EnemyService`:
 
-Between stages: BREAKING newspaper → 3-item draft (pick 1). Inscriptions HUMID/FERAL/LUCKY/GREASY/HEROIC/CHAOS — 3 matching = set bonus.
+- **Enemy HP** `*= (1 + 0.12 * stageIndex)` · **damage** `*= (1 + 0.08 * stageIndex)`
+- Stages 1–5 tutorial-fair (HP ~25–50 base, slow telegraphs, ≤2–3 on screen)
+- 6–10 denser packs + elites; 11–15 mixed roles + turtle pressure; 16–20 elites + hazards + built-character bosses
+- **Max hostiles on screen:** 2 → 3 → 4 (never cube soup)
+- Persona rarity: **+15% / +30% / +50%** attack & skill power (Rare / Unique / Legendary)
+- Hangover **only stage 1**, clears when you reclaim The Cold One
+- Lucky draft melts late game; unlucky run stays completable with dodge skill
 
-Death → bonfire. After first death: +1 starting item slot. Smash personas at Captain Steve for Sunburn; upgrade rarity Common→Rare→Unique→Legendary.
+## Level quality
+
+Each stage has a unique **set piece** (collapsing pier, fryer oil, neon canopy, canal jump pads, cypress canopy, lab conveyor, pipe maze, barge gaps, helipad wind, Spillfather arena), 3-layer parallax, cartoon hazards, mini-arena framing for bosses, visible goal lights, and biome lighting (Atmosphere + ColorCorrection + Bloom).
 
 ## Content counts
 
@@ -85,33 +78,19 @@ Death → bonfire. After first death: +1 starting item slot. Smash personas at C
 | Weapons | **28** |
 | Enemies (unique behaviors) | **34** |
 
-### Personas (8)
+### Personas
 
 Beach Burnout, Crab King, Gator Hauler, Snake Charmer, Golf Cart Bandit, Fireworks Enthusiast, Lizard Breath, Turtle Paladin.
 
-### Weapons (sample)
+### Enemy folklore (roles kept)
 
-Flip-Flop, Lawn Dart, Golf Club, Gator Wrestle Gloves, Roman Candle, Snake Lasso, Spill Skimmer, Pool Noodle, Net Gun, Finale Rocket, and more Florida nonsense (melee / ranged / thrown).
-
-### Enemy behaviors
-
-chase, charger, spitter, burrower, hopper, summoner, puddle/oil slicks, firearc, scuttle (crabs), tank.
-
-## Premium systems rewritten
-
-- `MovementController` — client-authoritative 2.5D mover
-- `CameraController` — deadzone + spring dampening + screen shake
-- `EnemyFactory` — welded multi-part silhouettes (crabs with 6-leg walk cycle + claw snap); no orphan Anchored accents
-- `EnemyService` — behavior AI + hit flash + particle death poof
-- `Weapons` catalog + equip progression along the arc
-- `WorldBuilder` — parallax layers, biome Atmosphere/CC/Bloom/DoF, audio hook Sounds
-- `CombatService` / `VFX` helpers
+Hangover Pinchers, Stolen-Sunglasses Crab, King of the Tide Pool · Influencer Stick, HOA Binder Karen · Drive-Thru Gator (collar beat) · Rattle Cottonmouth, Collared Oil Gator, Fire-Breathing Lizard · Cheap Hazmat Grunts, Mark Drones, Sample Tossers, Barrel Rollers · **The Spillfather** (slam / summon / arena slick). Turtles always allies.
 
 ## Layout
 
 ```
 default.project.json
-src/shared/   Personas Items Weapons Stages Enemies Constants Remotes Util Types
+src/shared/   Personas Items Weapons Stages Enemies Balance Story Constants Remotes Util Types
 src/server/   GameService WorldBuilder EnemyService EnemyFactory CombatService
 src/client/   Controllers (Movement Camera Input VFX) UI (HUD Newspaper ItemDraft …)
 ```
@@ -119,13 +98,14 @@ src/client/   Controllers (Movement Camera Input VFX) UI (HUD Newspaper ItemDraf
 ## Content policy
 
 - No drugs / intoxication gameplay
-- No real alcohol brands or drinking — Cold One = Florida Dew heal can; hangover = slow status only
+- No real alcohol — Cold One = Florida Dew heal can; hangover = slow status only
 - Cartoon poof combat; no gore; turtles always allies
-- Parody headlines only; no realistic firearms
+- Parody headlines only; no realistic firearms; no real names
 
 ## Lore
 
 - Fire lizards + Lizard Breath persona
 - Gators = GulfGulp science experiments (radio collars, sludge armor)
+- Lab files: they engineered gators to guard spills
 - Turtles always rescued
 - Captain Steve: "It IS Florida… Anything is possible in the swamp I guess."

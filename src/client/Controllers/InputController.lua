@@ -37,6 +37,7 @@ end
 
 local comboHint = 0
 local lastSwingAt = 0
+local attackBufferedUntil = 0
 
 local function localSwing()
 	local mov = InputController._movement
@@ -68,9 +69,18 @@ function InputController.Start()
 		if gp or not InputController._enabled then
 			return
 		end
+		-- Don't let Space eat through draft/newspaper/steve panels
+		local pg = Players.LocalPlayer:FindFirstChild("PlayerGui")
+		if pg and input.KeyCode == Enum.KeyCode.Space then
+			if pg:FindFirstChild("FM_Newspaper") or pg:FindFirstChild("FM_Draft") or pg:FindFirstChild("FM_Steve") or pg:FindFirstChild("FM_Credits") then
+				return
+			end
+		end
 		local k = input.KeyCode
 		local t = input.UserInputType
 		if t == Enum.UserInputType.MouseButton1 or k == Enum.KeyCode.J then
+			-- 100ms attack buffer feel: always fire, local slash immediate
+			attackBufferedUntil = os.clock() + 0.1
 			localSwing()
 			fire("RequestAttack")
 		elseif k == Enum.KeyCode.K then
