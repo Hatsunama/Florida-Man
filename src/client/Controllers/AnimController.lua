@@ -1,7 +1,7 @@
 --!strict
 --[[ AnimController — play uploaded AnimationIds when present; else procedural
 	Motor6D attack/idle poses (BeachBurnout slap, CrabKing pinch lean).
-	NEVER invent rbxassetid Animation IDs — leave registry strings empty until Studio upload.
+	NEVER invent rbxassetid Animation IDs — registry lives in ArtAssets (empty until upload).
 	Does NOT resize HumanoidRootPart (physics-safe).
 ]]
 
@@ -9,31 +9,13 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local ArtAssets = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("ArtAssets"))
+local Settings = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Settings"))
+
 local AnimController = {}
 
--- Fill ONLY with real uploaded AnimationIds. Empty string = procedural fallback.
-AnimController.AnimationIds = {
-	BeachBurnout = {
-		Idle = "",
-		Run = "",
-		Jump = "",
-		Attack1 = "",
-		Attack2 = "",
-		Attack3 = "",
-		Dodge = "",
-		Skill = "",
-	},
-	CrabKing = {
-		Idle = "",
-		Run = "",
-		Jump = "",
-		Attack1 = "",
-		Attack2 = "",
-		Attack3 = "",
-		Dodge = "",
-		Skill = "",
-	},
-}
+-- Back-compat alias: prefer ArtAssets.AnimationIds (single source of truth).
+AnimController.AnimationIds = ArtAssets.AnimationIds
 
 local player = Players.LocalPlayer
 local tracks: { [string]: AnimationTrack } = {}
@@ -80,12 +62,8 @@ local function motor(char: Model, name: string): Motor6D?
 end
 
 local function tryLoad(clip: string): AnimationTrack?
-	local bag = AnimController.AnimationIds[personaId]
-	if not bag then
-		return nil
-	end
-	local id = bag[clip]
-	if typeof(id) ~= "string" or id == "" or not string.find(id, "rbxassetid://") then
+	local id = ArtAssets.GetAnimationId(personaId, clip)
+	if not id then
 		return nil
 	end
 	if not animator then
@@ -127,6 +105,13 @@ local function stopClip(clip: string)
 	end
 end
 
+local function motionScale(): number
+	if Settings.IsReduceMotion(player) then
+		return 0.35
+	end
+	return 1
+end
+
 local function applyProcedural(_dt: number, moving: boolean, airborne: boolean)
 	local char = player.Character
 	if not char then
@@ -141,12 +126,12 @@ local function applyProcedural(_dt: number, moving: boolean, airborne: boolean)
 	rememberMotor(ls)
 	rememberMotor(root)
 
+	local scale = motionScale()
 	local now = os.clock()
 	if now < poseUntil then
 		local u = math.clamp(1 - (poseUntil - now) / 0.3, 0, 1)
-		local swing = math.sin(u * math.pi)
+		local swing = math.sin(u * math.pi) * scale
 		if poseKind == "attack_BeachBurnout" then
-			-- Wide slap: torso yaw + right arm sweep
 			if waist and savedC0[waist] then
 				waist.C0 = savedC0[waist] * CFrame.Angles(0, math.rad(22 * swing), 0)
 			end
@@ -157,7 +142,6 @@ local function applyProcedural(_dt: number, moving: boolean, airborne: boolean)
 				ls.C0 = savedC0[ls] * CFrame.Angles(math.rad(-20 * swing), 0, math.rad(-15 * swing))
 			end
 		elseif poseKind == "attack_CrabKing" then
-			-- Sideways pinch lean (crab swagger)
 			if waist and savedC0[waist] then
 				waist.C0 = savedC0[waist] * CFrame.Angles(math.rad(8 * swing), math.rad(-28 * swing), math.rad(12 * swing))
 			end
@@ -176,20 +160,35 @@ local function applyProcedural(_dt: number, moving: boolean, airborne: boolean)
 			end
 		elseif poseKind == "jump" then
 			if rs and savedC0[rs] then
-				rs.C0 = savedC0[rs] * CFrame.Angles(math.rad(-40), 0, math.rad(20))
+				rs.C0 = savedC0[rs] * CFrame.Angles(math.rad(-40 * scale), 0, math.rad(20 * scale))
 			end
 			if ls and savedC0[ls] then
-				ls.C0 = savedC0[ls] * CFrame.Angles(math.rad(-40), 0, math.rad(-20))
+				ls.C0 = savedC0[ls] * CFrame.Angles(math.rad(-40 * scale), 0, math.rad(-20 * scale))
+			end
+		elseif poseKind == "skill" then
+			if waist and savedC0[waist] then
+				waist.C0 = savedC0[waist] * CFrame.Angles(math.rad(-12 * swing), math.rad(18 * swing), 0)
+			end
+			if rs and savedC0[rs] then
+				rs.C0 = savedC0[rs] * CFrame.Angles(math.rad(-90 * swing), 0, math.rad(40 * swing))
+			end
+			if ls and savedC0[ls] then
+				ls.C0 = savedC0[ls] * CFrame.Angles(math.rad(-50 * swing), 0, math.rad(-30 * swing))
+			end
+		elseif poseKind == "swap" then
+			if root and savedC0[root] then
+				root.C0 = savedC0[root] * CFrame.Angles(0, math.rad(40 * swing), 0)
 			end
 		end
 		return
 	end
 
-	-- Idle / run breathe (subtle)
 	restoreMotors()
 	if waist and savedC0[waist] then
-		local bob = if airborne then 0 elseif moving then math.sin(now * 10) * 0.04 else math.sin(now * 2.5) * 0.02
-		waist.C0 = savedC0[waist] * CFrame.new(0, bob, 0) * CFrame.Angles(0, 0, if moving then math.rad(math.sin(now * 10) * 3) else 0)
+		local bobAmp = 0.02 * scale
+		local bob = if airborne then 0 elseif moving then math.sin(now * 10) * bobAmp * 2 else math.sin(now * 2.5) * bobAmp
+		local sway = if moving then math.rad(math.sin(now * 10) * 3 * scale) else 0
+		waist.C0 = savedC0[waist] * CFrame.new(0, bob, 0) * CFrame.Angles(0, 0, sway)
 	end
 end
 
@@ -233,9 +232,21 @@ function AnimController.PlayJump()
 end
 
 function AnimController.PlaySkill()
-	playClip("Skill", 0.05)
-	poseKind = if personaId == "CrabKing" then "attack_CrabKing" else "attack_BeachBurnout"
+	if playClip("Skill", 0.05) then
+		poseUntil = 0
+		return
+	end
+	poseKind = "skill"
 	poseUntil = os.clock() + 0.35
+end
+
+function AnimController.PlaySwap()
+	if playClip("Swap", 0.05) then
+		poseUntil = 0
+		return
+	end
+	poseKind = "swap"
+	poseUntil = os.clock() + 0.25
 end
 
 local function bindCharacter(char: Model)
@@ -290,8 +301,8 @@ function AnimController.Start()
 				playClip("Idle", 0.2)
 			end
 		end
-		-- Procedural overlay when Attack/Idle clips are not uploaded
-		if tryLoad("Attack1") == nil then
+		-- Procedural overlay when Attack clips are not uploaded (validated IDs only)
+		if ArtAssets.GetAnimationId(personaId, "Attack1") == nil then
 			applyProcedural(dt, moving, airborne)
 		end
 	end)

@@ -8,6 +8,15 @@
       },
       "Remotes": {
         "$className": "Folder"
+      },
+      "Assets": {
+        "$className": "Folder",
+        "Meshes": {
+          "$className": "Folder"
+        },
+        "Animations": {
+          "$className": "Folder"
+        }
       }
     },
     "ServerScriptService": {
@@ -32,11 +41,19 @@
     },
     "Lighting": {
       "$properties": {
-        "Ambient": [0.4, 0.45, 0.5],
+        "Ambient": [
+          0.4,
+          0.45,
+          0.5
+        ],
         "Brightness": 2,
         "ClockTime": 6.5,
         "GeographicLatitude": 28,
-        "OutdoorAmbient": [0.5, 0.55, 0.45]
+        "OutdoorAmbient": [
+          0.5,
+          0.55,
+          0.45
+        ]
       }
     },
     "SoundService": {

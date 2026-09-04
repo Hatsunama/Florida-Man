@@ -1,8 +1,8 @@
 # Florida Man — Art Pipeline
 
-**Phase:** 2 (in-engine ceiling + pipeline docs)  
+**Phase:** N7 (mesh/anim pipeline hardened; Part kits ship until real uploads)  
 **Date:** 2026-09-04 (America/New_York)  
-**Honesty rule:** We do **not** invent MeshPart / Animation `rbxassetid://` values. Until real Studio uploads exist, gameplay ships **Part + SpecialMesh (built-in MeshType) + Material** kits tagged `ArtKit = "InEngine_v2"`.
+**Honesty rule:** We do **not** invent MeshPart / Animation `rbxassetid://` values. Until real Studio uploads exist, gameplay ships **Part + SpecialMesh (built-in MeshType) + Material** kits tagged `ArtKit = "InEngine_v3"`.
 
 ---
 
@@ -15,7 +15,7 @@
 | 3. Export | FBX 7.4 binary | Apply modifiers; Forward −Z, Up Y; bake scale 0.01 if working in cm |
 | 4. Import | Roblox Studio Asset Manager / 3D Importer | One MeshPart per LOD; weld under Model with PrimaryPart = root |
 | 5. Materials | SurfaceAppearance | ColorMap + optional Normal/RoughnessMetalness; MetalnessMap only when needed |
-| 6. Wire | Rojo `ReplicatedStorage.Assets` **or** Studio-only folder | Lua clones by name; never hardcode fake IDs |
+| 6. Wire | Rojo `ReplicatedStorage.Assets.Meshes` **or** Studio-only folder | Lua clones by **name** via `ArtAssets.TryCloneMeshModel`; never hardcode fake IDs |
 | 7. QA | Device + mid Android | LOD0 only near camera; LOD2 for far parallax |
 
 ### Naming
@@ -30,21 +30,25 @@ Roles: `Enemy`, `NPC`, `Prop`, `Persona`, `VFX`, `UI`.
 
 - R15-compatible Humanoid rig **or** custom Motor6D skeleton matching `EnemyFactory` bone names.
 - Export actions: `Idle`, `Run`, `Jump`, `Dodge`, `Attack1`, `Attack2`, `Attack3`, `Skill`, `Swap`.
-- Upload via Animation Editor → paste real AnimationId into `AnimController.AnimationIds` (see §5). Empty / missing IDs → procedural fallback (already implemented).
+- Upload via Animation Editor → paste real AnimationId into `ArtAssets.AnimationIds` **only** after upload.
+- `ArtAssets.IsValidAssetId` rejects empty / `rbxassetid://0` / short stubs / obvious placeholders. Empty → procedural fallback in `AnimController`.
 
 ---
 
-## 2. Swapping Part kits for MeshParts
+## 2. Swapping Part kits for MeshParts (code path live)
 
-**Today:** `EnemyFactory` / `WorldBuilder` build Part soup and set `model:SetAttribute("ArtKit", "InEngine_v2")`.
+**Today:** `EnemyFactory` / `WorldBuilder` build Part soup and set `ArtKit = "InEngine_v3"` (or `Mesh_v1` when a Studio kit is present).
 
 **When meshes exist:**
 
-1. Drop MeshPart models under `ReplicatedStorage.Assets.Meshes` (Studio) named exactly like subject (`BeachCrab`, `CrabKingBoss`, `CaptainSteve`, …).
-2. At build time: `local kit = Assets.Meshes:FindFirstChild(def.id)`; if present, clone + scale to `def.size`, set `ArtKit = "Mesh_v1"`, skip Part builder.
+1. Drop MeshPart models under `ReplicatedStorage.Assets.Meshes` (Studio; Rojo folder is empty scaffolding) named exactly like subject (`BeachCrab`, `CrabKingBoss`, `CaptainSteve`, `DriveThruGator`, `Spillfather`, …).
+2. At build time: `ArtAssets.TryCloneMeshModel(def.id)` → if present, clone + place, set `ArtKit = "Mesh_v1"`, skip Part builder.
 3. Keep Part builder as permanent fallback for Studio-less CI / Rojo smoke.
 
-**Do not** delete Part kits until Mesh_v1 covers all slice enemies + hub NPC.
+**Do not** delete Part kits until Mesh_v1 covers all slice enemies + hub NPC.  
+**Do not** invent `rbxassetid://` MeshIds in Lua — clone by instance name only.
+
+Module: `src/shared/ArtAssets.lua`
 
 ---
 
@@ -57,44 +61,37 @@ Roblox `SurfaceAppearance` needs uploaded textures. Until then we approximate wi
 | Sand | `Sand` / `SmoothPlastic` | Beach crabs, ground |
 | Sludge | `Mud` | Oil gator, Spillfather chassis |
 | Hazmat / metal | `Metal` | Drive-Thru collar, boss mech |
-| Neon gas | `Neon` | Crowns, weak points, flame |
-| Glass / wet | `Glass` / `ForceField` | Slushie, eyes, spill sheen |
+| Neon gas | `Neon` | Crowns, weak points, flame, mustard stripe |
+| Glass / wet | `Glass` / `ForceField` | Slushie, eyes, oil sheen |
 | Soft body | `Plastic` / `SmoothPlastic` | Steve feathers, cooler |
 
-Particle **ColorSequence** decals stand in for painted markings (mustard stripe sparks, oil drip, sand dust).
+Particle **ColorSequence** decals stand in for painted markings (mustard stripe, oil drip, sand dust).
 
 ---
 
-## 4. Hero kit targets (Phase 2 cast)
+## 4. Hero kit targets (N7 cast)
 
-| Subject | Builder | In-engine upgrade |
-|---------|---------|-------------------|
-| Florida Man (player) | Default R15 + persona tint | `BodyColors` + `Highlight` from active persona |
-| Captain Steve | `WorldBuilder._BuildHub` | Pelican SpecialMesh spheres/wedges, neon beak, pouf particles |
-| Beach Crab | `EnemyFactory.buildCrab` | Sand carapace, Ball dome SpecialMesh, Neon pupils |
-| Crab King | `buildCrab` miniboss branch | Tide crown wedges + PointLight |
-| Drive-Thru Gator | `buildGator` | Mud body, Metal radio collar, Neon GULFGULP |
-| Spillfather | `buildBoss` | Mud chassis, Metal claws, oil ColorSequence drip |
-| Hub bonfire | `_BuildHub` | Cylinder logs, layered flame particles, warm PointLight |
+| Subject | Builder | In-engine (InEngine_v3) | Mesh gate |
+|---------|---------|-------------------------|-----------|
+| Florida Man (player) | Default R15 + persona tint | `BodyColors` + `Highlight` from active persona | — |
+| Captain Steve | `WorldBuilder._BuildHub` | Pelican spheres/wedges, crest, stance legs, feather fluff | `Assets.Meshes.CaptainSteve` |
+| Beach Crab | `EnemyFactory.buildCrab` | Sand carapace, mustard neon stripe, Ball dome, Neon pupils | `Assets.Meshes.<EnemyId>` |
+| Crab King | `buildCrab` miniboss | Tide crown + PointLight | same |
+| Drive-Thru Gator | `buildGator` | Mud body, Metal collar, ForceField oil sheen, drip | same |
+| Spillfather | `buildBoss` | Mud chassis, Metal claws, oil ColorSequence drip | same |
+| Hub bonfire | `_BuildHub` | Cylinder logs, layered flame particles, warm PointLight | — |
 
 ---
 
 ## 5. Animation layer
 
-Module: `src/client/Controllers/AnimController.lua`
+Modules: `ArtAssets.lua` (registry) + `AnimController.lua` (play / procedural)
 
-1. If `AnimController.AnimationIds[personaId][clip]` is a non-empty `rbxassetid://…`, `Humanoid:LoadAnimation` + play/override default Animate.
-2. Else **procedural fallback:** HRP squash-stretch + Motor6D pose offsets (RightUpperArm / LeftUpperArm when present).
-3. Starter poses authored in code: **BeachBurnout** (wide slap) and **CrabKing** (sideways pinch lean).
+1. If `ArtAssets.GetAnimationId(personaId, clip)` returns a validated `rbxassetid://…`, `Humanoid:LoadAnimation` + play.
+2. Else **procedural fallback:** Motor6D pose offsets (Waist / shoulders / Root). Poses: BeachBurnout slap, CrabKing pinch, dodge, jump, skill, swap.
+3. `ReduceMotion` scales procedural pose amplitude (~35%).
 
-**Registry (fill when uploaded):**
-
-```lua
-AnimController.AnimationIds = {
-  BeachBurnout = { Idle = "", Run = "", Jump = "", Attack1 = "", Dodge = "", Skill = "" },
-  CrabKing = { Idle = "", Run = "", Jump = "", Attack1 = "", Dodge = "", Skill = "" },
-}
-```
+**Registry:** fill `ArtAssets.AnimationIds` only after Studio upload. Empty strings are intentional.
 
 ---
 
@@ -102,26 +99,27 @@ AnimController.AnimationIds = {
 
 `src/client/Controllers/VFX.lua` — `SwingSlash(hrp, facing, combo, vfxKind)`
 
-Wired `weapon.vfx` strings (catalog must not lie for these):
+Wired `weapon.vfx` strings:
 
 | `vfx` | Arc |
 |-------|-----|
 | `punch` | Short neon fist burst |
 | `slap` | Wide horizontal flip-flop arc |
-| `dart` | Thin thrown streak + tip spark |
-| `firework` | Multicolor sparkler trail |
+| `dart` / thrown kinds | Lobbing streak |
+| `firework` / ranged kinds | Flat spark trail |
+| `bash` / `grab` | Distinct bash slash / claw grab |
 
-Other catalog `vfx` values fall back to generic slash until Phase 3 polish.
+`ReduceMotion`: particle budget quartered; HitSpark / SwapBurst skipped; SkillPattern soft ball only.
 
-Server sets `character:SetAttribute("WeaponVfx", weapon.vfx)` so client InputController can pass the kind without inventing IDs.
+Server sets `character:SetAttribute("WeaponVfx", weapon.vfx)`.
 
 ---
 
 ## 7. UI image pack fallback
 
-- Persona HUD icons: **circular** colored frames (`UICorner` scale 1) + accent glyph; rarity stroke colors unchanged.
-- Optional `ImageLabel` fill: `rbxasset://textures/ui/GuiImagePlaceholder.png` only as frame texture — never fake marketplace icons.
-- Real PNG pack lands in `assets/ui/` then Studio upload → replace ImageLabel `Image` with real IDs in a follow-up.
+- Persona HUD icons: circular colored frames + accent glyph.
+- Optional `ImageLabel`: `rbxasset://textures/ui/GuiImagePlaceholder.png` only — never fake marketplace icons.
+- Real PNG pack → `assets/ui/` → Studio upload → replace Image IDs in a follow-up.
 
 ---
 
@@ -129,30 +127,27 @@ Server sets `character:SetAttribute("WeaponVfx", weapon.vfx)` so client InputCon
 
 | Asset | Size | Copy / notes |
 |-------|------|----------------|
-| Experience icon | **512×512** | Bonfire silhouette + “FLORIDA MAN” wordmark; high contrast |
-| Thumbnails (up to 10) | **1920×1080** | Hub bonfire, Crab King pinch, Drive-Thru Gator collar, Spillfather arena |
-| Wide thumbnail | **1920×1080** | Same as primary trailer still |
-| Loading / splash | in-game ScreenGui | Title **FLORIDA MAN**, subtitle *Bonfire to Boardwalk*, warm orange on night blue — **no marketplace upload required** |
+| Experience icon | **512×512** | Bonfire silhouette + “FLORIDA MAN” wordmark |
+| Thumbnails (up to 10) | **1920×1080** | Hub bonfire, Crab King, Drive-Thru Gator, Spillfather |
+| Loading / splash | in-game ScreenGui | `LoadingGui.lua` — no marketplace ID required |
 
-In-game: `src/client/UI/LoadingGui.lua` (fades after client ready). Marketplace Creative Hub upload is a **publish** step, not a Lua ID invent.
+Marketplace Creative Hub upload is a **publish** step, not a Lua ID invent.
 
 ---
 
 ## 9. LOD / part-count budgets (slice stages)
 
-Budgets are **targets** for mid-range Android (~Adreno 6xx). Measure in Studio MicroProfiler before claiming PASS.
-
 | Stage | Index | Enemy peak | Soft part budget (active) | Notes |
 |-------|------:|------------|---------------------------:|-------|
 | Hub | 0 | 0 hostiles | ≤ 180 parts | Steve + bonfire + décor |
-| Daytona Hangover | 1 | ~8 + Crab King | ≤ 450 | Teach telegraphs; sand particles low rate |
-| Boardwalk Chaos | 2 | ~10 | ≤ 550 | Carts/tourists denser |
+| Daytona Hangover | 1 | ~8 + Crab King | ≤ 450 | Sand particles low rate |
+| Boardwalk Chaos | 2 | ~10 | ≤ 550 | Carts denser |
 | Gas Station | 3 | ~12 | ≤ 650 | MidGate + oil props |
 
 | LOD | Distance | Mesh tris (future) | Part kit rule |
 |-----|----------|--------------------:|---------------|
 | LOD0 | &lt; 40 studs | ≤ 8k | Full kit |
-| LOD1 | 40–90 | ≤ 3k | Drop eye pupils / drip / secondary claws |
+| LOD1 | 40–90 | ≤ 3k | Drop pupils / drip / secondary claws |
 | LOD2 | &gt; 90 | ≤ 800 / billboard | Root + 1 silhouette part |
 
 **VFX:** ≤ 3 ParticleEmitters emitting per player action; death poofs Debris ≤ 0.6s.
@@ -163,14 +158,17 @@ Budgets are **targets** for mid-range Android (~Adreno 6xx). Measure in Studio M
 
 | Key | Type | ID | Notes |
 |-----|------|----|-------|
-| — | — | — | *No Mesh/Animation IDs checked in. Add rows only after Studio upload.* |
+| — | — | — | *No Mesh/Animation IDs checked in. Add rows only after Studio upload + `ArtAssets.IsValidAssetId` passes.* |
+
+Code registry: `ArtAssets.AnimationIds` + `ArtAssets.MeshSubjects` (names only, not IDs).
 
 ---
 
 ## 11. Checklist before claiming Mesh_v1 done
 
-- [ ] ≥6 slice characters use real MeshParts  
-- [ ] BeachBurnout Attack1 AnimationId plays  
-- [ ] SurfaceAppearance sand/sludge on ground or hero props  
-- [ ] Budgets measured on mid Android  
-- [ ] `./scripts/check_invariants.sh` still green  
+- [ ] ≥6 slice characters use real MeshParts under `Assets.Meshes`
+- [ ] BeachBurnout Attack1 AnimationId plays (validated ID in `ArtAssets`)
+- [ ] SurfaceAppearance sand/sludge on ground or hero props
+- [ ] Budgets measured on mid Android
+- [ ] `./scripts/check_invariants.sh` still green
+- [ ] Zero invented / placeholder `rbxassetid` in `src/`

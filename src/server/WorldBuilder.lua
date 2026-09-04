@@ -5,9 +5,11 @@ local Lighting = game:GetService("Lighting")
 local TweenService = game:GetService("TweenService")
 local Debris = game:GetService("Debris")
 
-local Constants = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("Constants"))
-local Stages = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("Stages"))
-local Story = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("Story"))
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Constants = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Constants"))
+local Stages = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Stages"))
+local Story = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Story"))
+local ArtAssets = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("ArtAssets"))
 
 local WorldBuilder = {}
 
@@ -818,80 +820,124 @@ function WorldBuilder._BuildHub(world: Folder, stage: any, laneZ: number, deaths
 		CFrame = CFrame.new(8, 2.6, laneZ - 3), Color = Color3.fromRGB(140, 100, 60), Material = Enum.Material.Wood, CanCollide = false })
 	label(stand, "THE DAILY SWAMP", Color3.fromRGB(255, 240, 200), 3)
 
-	local steveModel = Instance.new("Model")
-	steveModel.Name = "CaptainSteveModel"
-	steveModel:SetAttribute("ArtKit", "InEngine_v2")
-	steveModel.Parent = world
-	local body = part({
-		Name = "CaptainSteve",
-		Parent = steveModel,
-		Size = Vector3.new(2.9, 3.4, 2.5),
-		CFrame = CFrame.new(32, 2.1, laneZ - 2),
-		Color = Color3.fromRGB(248, 248, 240),
-		Material = Enum.Material.SmoothPlastic,
-	})
-	addSpecialMesh(body, Enum.MeshType.Sphere, Vector3.new(0.95, 1.15, 0.9))
+	local steveCF = CFrame.new(32, 2.1, laneZ - 2)
+	local steveModel = ArtAssets.TryCloneMeshModel("CaptainSteve")
+	local body: BasePart
+	if steveModel then
+		steveModel.Name = "CaptainSteveModel"
+		steveModel.Parent = world
+		local root = steveModel.PrimaryPart or steveModel:FindFirstChild("CaptainSteve") or steveModel:FindFirstChildWhichIsA("BasePart")
+		if root and root:IsA("BasePart") then
+			steveModel.PrimaryPart = root
+			root.Name = "CaptainSteve"
+			root.CFrame = steveCF
+			body = root
+		else
+			steveModel:Destroy()
+			steveModel = nil
+		end
+	end
+	if not steveModel then
+		steveModel = Instance.new("Model")
+		steveModel.Name = "CaptainSteveModel"
+		steveModel:SetAttribute("ArtKit", ArtAssets.ART_KIT_PART)
+		steveModel.Parent = world
+		body = part({
+			Name = "CaptainSteve",
+			Parent = steveModel,
+			Size = Vector3.new(2.9, 3.4, 2.5),
+			CFrame = steveCF,
+			Color = Color3.fromRGB(248, 248, 240),
+			Material = Enum.Material.SmoothPlastic,
+		})
+		addSpecialMesh(body, Enum.MeshType.Sphere, Vector3.new(0.95, 1.15, 0.9))
+	end
 	body:SetAttribute("Interact", "CaptainSteve")
-	local _head = part({
-		Name = "Head",
-		Parent = steveModel,
-		Size = Vector3.new(1.8, 1.8, 1.8),
-		Shape = Enum.PartType.Ball,
-		CFrame = CFrame.new(32.6, 4.0, laneZ - 2),
-		Color = Color3.fromRGB(250, 250, 245),
-		Material = Enum.Material.SmoothPlastic,
-		CanCollide = false,
-	})
-	local beak = part({
-		Name = "Beak",
-		Parent = steveModel,
-		Size = Vector3.new(3.4, 0.75, 0.95),
-		CFrame = CFrame.new(34.5, 2.7, laneZ - 2),
-		Color = Color3.fromRGB(255, 150, 35),
-		Material = Enum.Material.Neon,
-		CanCollide = false,
-	})
-	addSpecialMesh(beak, Enum.MeshType.Wedge, Vector3.new(1.2, 0.7, 0.9))
-	local pouch = part({
-		Name = "Pouch",
-		Parent = steveModel,
-		Size = Vector3.new(1.9, 1.5, 1.3),
-		CFrame = CFrame.new(33.6, 1.45, laneZ - 2),
-		Color = Color3.fromRGB(255, 185, 90),
-		Material = Enum.Material.SmoothPlastic,
-		CanCollide = false,
-	})
-	addSpecialMesh(pouch, Enum.MeshType.Sphere, Vector3.new(1, 0.85, 1))
-	local wingL = part({
-		Name = "WingL",
-		Parent = steveModel,
-		Size = Vector3.new(0.45, 2.6, 3.6),
-		CFrame = CFrame.new(32, 2.3, laneZ - 4.1),
-		Color = Color3.fromRGB(235, 235, 228),
-		Material = Enum.Material.SmoothPlastic,
-		CanCollide = false,
-	})
-	addSpecialMesh(wingL, Enum.MeshType.Wedge, Vector3.new(0.6, 1.1, 1.2))
-	local wingR = part({
-		Name = "WingR",
-		Parent = steveModel,
-		Size = Vector3.new(0.45, 2.6, 3.6),
-		CFrame = CFrame.new(32, 2.3, laneZ + 0.3),
-		Color = Color3.fromRGB(235, 235, 228),
-		Material = Enum.Material.SmoothPlastic,
-		CanCollide = false,
-	})
-	addSpecialMesh(wingR, Enum.MeshType.Wedge, Vector3.new(0.6, 1.1, 1.2))
-	part({
-		Name = "Eye",
-		Parent = steveModel,
-		Size = Vector3.new(0.5, 0.5, 0.5),
-		Shape = Enum.PartType.Ball,
-		CFrame = CFrame.new(33.3, 4.15, laneZ - 2.65),
-		Color = Color3.fromRGB(20, 20, 20),
-		Material = Enum.Material.Glass,
-		CanCollide = false,
-	})
+	-- Procedural kit extras only when Part kit (Mesh_v1 already authored)
+	local usePartKit = steveModel:GetAttribute("ArtKit") ~= ArtAssets.ART_KIT_MESH
+	if usePartKit then
+		local _head = part({
+			Name = "Head",
+			Parent = steveModel,
+			Size = Vector3.new(1.8, 1.8, 1.8),
+			Shape = Enum.PartType.Ball,
+			CFrame = CFrame.new(32.6, 4.0, laneZ - 2),
+			Color = Color3.fromRGB(250, 250, 245),
+			Material = Enum.Material.SmoothPlastic,
+			CanCollide = false,
+		})
+		local beak = part({
+			Name = "Beak",
+			Parent = steveModel,
+			Size = Vector3.new(3.4, 0.75, 0.95),
+			CFrame = CFrame.new(34.5, 2.7, laneZ - 2),
+			Color = Color3.fromRGB(255, 150, 35),
+			Material = Enum.Material.Neon,
+			CanCollide = false,
+		})
+		addSpecialMesh(beak, Enum.MeshType.Wedge, Vector3.new(1.2, 0.7, 0.9))
+		local pouch = part({
+			Name = "Pouch",
+			Parent = steveModel,
+			Size = Vector3.new(1.9, 1.5, 1.3),
+			CFrame = CFrame.new(33.6, 1.45, laneZ - 2),
+			Color = Color3.fromRGB(255, 185, 90),
+			Material = Enum.Material.SmoothPlastic,
+			CanCollide = false,
+		})
+		addSpecialMesh(pouch, Enum.MeshType.Sphere, Vector3.new(1, 0.85, 1))
+		local wingL = part({
+			Name = "WingL",
+			Parent = steveModel,
+			Size = Vector3.new(0.45, 2.6, 3.6),
+			CFrame = CFrame.new(32, 2.3, laneZ - 4.1),
+			Color = Color3.fromRGB(235, 235, 228),
+			Material = Enum.Material.SmoothPlastic,
+			CanCollide = false,
+		})
+		addSpecialMesh(wingL, Enum.MeshType.Wedge, Vector3.new(0.6, 1.1, 1.2))
+		local wingR = part({
+			Name = "WingR",
+			Parent = steveModel,
+			Size = Vector3.new(0.45, 2.6, 3.6),
+			CFrame = CFrame.new(32, 2.3, laneZ + 0.3),
+			Color = Color3.fromRGB(235, 235, 228),
+			Material = Enum.Material.SmoothPlastic,
+			CanCollide = false,
+		})
+		addSpecialMesh(wingR, Enum.MeshType.Wedge, Vector3.new(0.6, 1.1, 1.2))
+		part({
+			Name = "Eye",
+			Parent = steveModel,
+			Size = Vector3.new(0.5, 0.5, 0.5),
+			Shape = Enum.PartType.Ball,
+			CFrame = CFrame.new(33.3, 4.15, laneZ - 2.65),
+			Color = Color3.fromRGB(20, 20, 20),
+			Material = Enum.Material.Glass,
+			CanCollide = false,
+		})
+		-- Cap crest + stance legs (N7 procedural polish)
+		part({
+			Name = "Crest",
+			Parent = steveModel,
+			Size = Vector3.new(0.6, 1.2, 1.4),
+			CFrame = CFrame.new(32.2, 4.7, laneZ - 2),
+			Color = Color3.fromRGB(255, 160, 50),
+			Material = Enum.Material.Neon,
+			CanCollide = false,
+		})
+		for _, side in { -1, 1 } do
+			part({
+				Name = "StanceLeg",
+				Parent = steveModel,
+				Size = Vector3.new(0.55, 1.4, 0.55),
+				CFrame = CFrame.new(31.4, 0.7, laneZ - 2 + side * 0.7),
+				Color = Color3.fromRGB(220, 220, 210),
+				Material = Enum.Material.SmoothPlastic,
+				CanCollide = false,
+			})
+		end
+	end
 	local fluff = Instance.new("Attachment")
 	fluff.Parent = body
 	local peSteve = Instance.new("ParticleEmitter")

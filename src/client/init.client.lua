@@ -198,6 +198,7 @@ Remotes.Get("CombatEvent").OnClientEvent:Connect(function(ev)
 			AnimController.SetPersona(ev.personaId)
 		end
 		VFX.SwapBurst(hrp, col)
+		AnimController.PlaySwap()
 		CameraController.Shake(if ev.punish then 0.55 else 0.35, if ev.punish then 0.22 else 0.16)
 		MovementController.Hitstop(if ev.punish then 0.06 else 0.04)
 	elseif ev.kind == "hit" then

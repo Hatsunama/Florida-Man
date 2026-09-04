@@ -6,6 +6,8 @@
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local Debris = game:GetService("Debris")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ArtAssets = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("ArtAssets"))
 
 local EnemyFactory = {}
 
@@ -60,8 +62,8 @@ local function addSpecialMesh(p: BasePart, meshType: Enum.MeshType, scale: Vecto
 	return sm
 end
 
-local function tagArtKit(model: Model)
-	model:SetAttribute("ArtKit", "InEngine_v2")
+local function tagArtKit(model: Model, kit: string?)
+	model:SetAttribute("ArtKit", kit or ArtAssets.ART_KIT_PART)
 end
 
 local function motor6d(name: string, part0: BasePart, part1: BasePart, c0: CFrame, c1: CFrame?): Motor6D
@@ -129,6 +131,15 @@ local function buildCrab(model: Model, root: Part, def: any)
 		CFrame = root.CFrame * CFrame.new(0, s.Y * 0.5, 0),
 	})
 	attachToRoot(root, ridge)
+	local mustard = part({
+		Name = "MustardStripe",
+		Parent = model,
+		Size = Vector3.new(s.X * 0.08, s.Y * 0.12, s.Z * 0.55),
+		Color = Color3.fromRGB(255, 200, 40),
+		Material = Enum.Material.Neon,
+		CFrame = root.CFrame * CFrame.new(0, s.Y * 0.52, 0),
+	})
+	attachToRoot(root, mustard)
 
 	local belly = part({
 		Name = "CrabBelly",
@@ -428,6 +439,26 @@ local function buildGator(model: Model, root: Part, def: any)
 		t.TextScaled = true
 		t.Font = Enum.Font.GothamBold
 		t.Parent = bb
+		local sheen = part({
+			Name = "OilSheen",
+			Parent = model,
+			Size = Vector3.new(s.X * 0.75, s.Y * 0.15, s.Z * 0.75),
+			Color = Color3.fromRGB(40, 60, 30),
+			Material = Enum.Material.ForceField,
+			Transparency = 0.35,
+			CFrame = root.CFrame * CFrame.new(0, s.Y * 0.2, 0),
+		})
+		attachToRoot(root, sheen)
+		local drip = Instance.new("Attachment")
+		drip.Name = "GatorOilDrip"
+		drip.Parent = root
+		local pe = Instance.new("ParticleEmitter")
+		pe.Color = ColorSequence.new(Color3.fromRGB(30, 40, 20), Color3.fromRGB(10, 15, 8))
+		pe.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.35), NumberSequenceKeypoint.new(1, 0) })
+		pe.Lifetime = NumberRange.new(0.5, 0.9)
+		pe.Rate = 6
+		pe.Speed = NumberRange.new(0.5, 1.5)
+		pe.Parent = drip
 	end
 end
 
@@ -1048,7 +1079,83 @@ local SHAPERS: { [string]: (Model, Part, any) -> () } = {
 	cloud = buildSlime,
 }
 
+local function applyEnemyAttrs(model: Model, root: BasePart, def: any)
+	model:SetAttribute("EnemyId", def.id)
+	model:SetAttribute("IsAlly", def.isAlly)
+	model:SetAttribute("IsBoss", def.isBoss)
+	model:SetAttribute("IsMiniboss", def.isMiniboss)
+	model:SetAttribute("Damage", def.damage)
+	model:SetAttribute("Speed", def.speed)
+	model:SetAttribute("Telegraph", def.telegraph)
+	model:SetAttribute("AttackCooldown", def.attackCooldown)
+	model:SetAttribute("Behavior", def.behavior or "chase")
+	model:SetAttribute("Facing", 1)
+	model:SetAttribute("AnimPhase", 0)
+	model:SetAttribute("Shape", def.shape)
+	if def.telegraphColor then
+		model:SetAttribute("TelegraphColor", def.telegraphColor)
+	end
+	if not model:FindFirstChild("NamePlate") and not root:FindFirstChild("NamePlate") then
+		local bb = Instance.new("BillboardGui")
+		bb.Name = "NamePlate"
+		bb.Size = UDim2.fromOffset(160, 36)
+		bb.StudsOffset = Vector3.new(0, def.size.Y * 0.55 + 2, 0)
+		bb.AlwaysOnTop = true
+		bb.Parent = root
+		local nameLbl = Instance.new("TextLabel")
+		nameLbl.Size = UDim2.new(1, 0, 0.55, 0)
+		nameLbl.BackgroundTransparency = 1
+		nameLbl.Text = if def.isAlly then (def.name .. " · Press E") else def.name
+		nameLbl.TextColor3 = if def.isAlly then Color3.fromRGB(120, 255, 180) else Color3.fromRGB(255, 220, 200)
+		nameLbl.TextScaled = true
+		nameLbl.Font = Enum.Font.GothamBold
+		nameLbl.Parent = bb
+		local hpLbl = Instance.new("TextLabel")
+		hpLbl.Name = "HP"
+		hpLbl.Size = UDim2.new(1, 0, 0.45, 0)
+		hpLbl.Position = UDim2.new(0, 0, 0.55, 0)
+		hpLbl.BackgroundTransparency = 1
+		hpLbl.Text = if def.isAlly then "Rescue (never harm)" else string.format("%d / %d", def.hp, def.hp)
+		hpLbl.TextColor3 = Color3.fromRGB(200, 255, 200)
+		hpLbl.TextScaled = true
+		hpLbl.Font = Enum.Font.Gotham
+		hpLbl.Parent = bb
+	end
+end
+
+local function tryMeshEnemy(def: any, position: Vector3): Model?
+	local clone = ArtAssets.TryCloneMeshModel(def.id)
+	if not clone then
+		return nil
+	end
+	clone.Name = def.id
+	local root = clone.PrimaryPart or clone:FindFirstChild("HumanoidRootPart") :: BasePart?
+	if not root or not root:IsA("BasePart") then
+		clone:Destroy()
+		return nil
+	end
+	clone.PrimaryPart = root
+	root.Anchored = true
+	root.CanCollide = true
+	root.CFrame = CFrame.new(position)
+	local hum = clone:FindFirstChildOfClass("Humanoid")
+	if not hum then
+		hum = Instance.new("Humanoid")
+		hum.Parent = clone
+	end
+	hum.MaxHealth = def.hp
+	hum.Health = def.hp
+	hum.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
+	applyEnemyAttrs(clone, root, def)
+	return clone
+end
+
 function EnemyFactory.Build(def: any, position: Vector3): Model
+	local meshed = tryMeshEnemy(def, position)
+	if meshed then
+		return meshed
+	end
+
 	local model = Instance.new("Model")
 	tagArtKit(model)
 	model.Name = def.id
@@ -1086,46 +1193,7 @@ function EnemyFactory.Build(def: any, position: Vector3): Model
 	hum.Parent = model
 
 	model.PrimaryPart = root
-	model:SetAttribute("EnemyId", def.id)
-	model:SetAttribute("IsAlly", def.isAlly)
-	model:SetAttribute("IsBoss", def.isBoss)
-	model:SetAttribute("IsMiniboss", def.isMiniboss)
-	model:SetAttribute("Damage", def.damage)
-	model:SetAttribute("Speed", def.speed)
-	model:SetAttribute("Telegraph", def.telegraph)
-	model:SetAttribute("AttackCooldown", def.attackCooldown)
-	model:SetAttribute("Behavior", def.behavior or "chase")
-	model:SetAttribute("Facing", 1)
-	model:SetAttribute("AnimPhase", 0)
-	model:SetAttribute("Shape", def.shape)
-	if def.telegraphColor then
-		model:SetAttribute("TelegraphColor", def.telegraphColor)
-	end
-
-	local bb = Instance.new("BillboardGui")
-	bb.Name = "NamePlate"
-	bb.Size = UDim2.fromOffset(160, 36)
-	bb.StudsOffset = Vector3.new(0, def.size.Y * 0.55 + 2, 0)
-	bb.AlwaysOnTop = true
-	bb.Parent = root
-	local nameLbl = Instance.new("TextLabel")
-	nameLbl.Size = UDim2.new(1, 0, 0.55, 0)
-	nameLbl.BackgroundTransparency = 1
-	nameLbl.Text = if def.isAlly then (def.name .. " · Press E") else def.name
-	nameLbl.TextColor3 = if def.isAlly then Color3.fromRGB(120, 255, 180) else Color3.fromRGB(255, 220, 200)
-	nameLbl.TextScaled = true
-	nameLbl.Font = Enum.Font.GothamBold
-	nameLbl.Parent = bb
-	local hpLbl = Instance.new("TextLabel")
-	hpLbl.Name = "HP"
-	hpLbl.Size = UDim2.new(1, 0, 0.45, 0)
-	hpLbl.Position = UDim2.new(0, 0, 0.55, 0)
-	hpLbl.BackgroundTransparency = 1
-	hpLbl.Text = if def.isAlly then "Rescue (never harm)" else string.format("%d / %d", def.hp, def.hp)
-	hpLbl.TextColor3 = Color3.fromRGB(200, 255, 200)
-	hpLbl.TextScaled = true
-	hpLbl.Font = Enum.Font.Gotham
-	hpLbl.Parent = bb
+	applyEnemyAttrs(model, root, def)
 
 	return model
 end
@@ -1245,8 +1313,20 @@ function EnemyFactory.DeathPoof(pos: Vector3, color: Color3)
 	pe.Speed = NumberRange.new(6, 14)
 	pe.SpreadAngle = Vector2.new(180, 180)
 	pe.Rate = 0
+	pe.LightEmission = 0.6
 	pe.Parent = att
 	pe:Emit(28)
+	local ring = Instance.new("Part")
+	ring.Anchored = true
+	ring.CanCollide = false
+	ring.Material = Enum.Material.ForceField
+	ring.Color = color
+	ring.Size = Vector3.new(0.3, 2, 2)
+	ring.CFrame = CFrame.new(pos) * CFrame.Angles(0, 0, math.rad(90))
+	ring.Transparency = 0.25
+	ring.Parent = workspace
+	TweenService:Create(ring, TweenInfo.new(0.35), { Size = Vector3.new(0.3, 9, 9), Transparency = 1 }):Play()
+	Debris:AddItem(ring, 0.4)
 	TweenService:Create(puff, TweenInfo.new(0.4), { Size = Vector3.new(7, 7, 7), Transparency = 1 }):Play()
 	Debris:AddItem(puff, 0.5)
 end

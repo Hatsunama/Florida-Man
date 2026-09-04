@@ -10,6 +10,13 @@ local Settings = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("
 
 local VFX = {}
 
+local function particleBudget(count: number): number
+	if Settings.IsReduceMotion(Players.LocalPlayer) then
+		return math.max(2, math.floor(count * 0.25))
+	end
+	return count
+end
+
 local function emitBurst(at: Vector3, color: ColorSequence, count: number, speed: NumberRange?)
 	local p = Instance.new("Part")
 	p.Anchored = true
@@ -29,7 +36,7 @@ local function emitBurst(at: Vector3, color: ColorSequence, count: number, speed
 	pe.Rate = 0
 	pe.LightEmission = 0.75
 	pe.Parent = att
-	pe:Emit(count)
+	pe:Emit(particleBudget(count))
 	Debris:AddItem(p, 0.4)
 end
 
@@ -51,7 +58,7 @@ function VFX.FootstepDust(at: Vector3)
 	pe.Speed = NumberRange.new(1, 3)
 	pe.Rate = 0
 	pe.Parent = att
-	pe:Emit(6)
+	pe:Emit(particleBudget(6))
 	Debris:AddItem(p, 0.5)
 end
 
@@ -226,7 +233,31 @@ function VFX.SwingSlash(hrp: BasePart, facing: number, combo: number?, vfxKind: 
 		return
 	end
 
-	-- Default / catalog fallback (swing, grab, bash, …)
+	if kind == "bash" then
+		genericSlash(hrp, facing, c, Color3.fromRGB(180, 200, 255), 1.15, 12)
+		emitBurst(origin, ColorSequence.new(Color3.fromRGB(200, 220, 255), Color3.fromRGB(80, 120, 200)), 12 + c * 2)
+		return
+	elseif kind == "grab" then
+		local claw = Instance.new("Part")
+		claw.Name = "GrabArc"
+		claw.Anchored = true
+		claw.CanCollide = false
+		claw.Material = Enum.Material.Neon
+		claw.Color = Color3.fromRGB(255, 200, 100)
+		claw.Size = Vector3.new(3.5 + c, 0.4, 2.2)
+		claw.CFrame = CFrame.new(origin) * CFrame.Angles(0, 0, facing * math.rad(25))
+		claw.Transparency = 0.1
+		claw.Parent = workspace
+		TweenService:Create(claw, TweenInfo.new(0.2), {
+			Transparency = 1,
+			CFrame = claw.CFrame * CFrame.new(facing * 2.5, 0, 0),
+		}):Play()
+		Debris:AddItem(claw, 0.25)
+		emitBurst(origin, ColorSequence.new(Color3.fromRGB(255, 220, 140)), 10)
+		return
+	end
+
+	-- Default / catalog fallback (swing, …)
 	genericSlash(
 		hrp,
 		facing,
@@ -260,7 +291,7 @@ function VFX.HitSpark(at: Vector3, heavy: boolean?)
 	pe.Rate = 0
 	pe.LightEmission = 0.9
 	pe.Parent = att
-	pe:Emit(if heavy then 22 else 12)
+	pe:Emit(particleBudget(if heavy then 22 else 12))
 	local ring = Instance.new("Part")
 	ring.Anchored = true
 	ring.CanCollide = false
@@ -312,12 +343,27 @@ function VFX.SwapBurst(hrp: BasePart, color: Color3?)
 	pe.Rate = 0
 	pe.LightEmission = 0.8
 	pe.Parent = att
-	pe:Emit(24)
+	pe:Emit(particleBudget(24))
 	Debris:AddItem(att, 0.5)
 end
 
 function VFX.SkillPattern(hrp: BasePart, kind: string, facing: number)
 	local origin = hrp.Position
+	if Settings.IsReduceMotion(Players.LocalPlayer) then
+		local soft = Instance.new("Part")
+		soft.Shape = Enum.PartType.Ball
+		soft.Anchored = true
+		soft.CanCollide = false
+		soft.Material = Enum.Material.ForceField
+		soft.Color = Color3.fromRGB(255, 200, 120)
+		soft.Size = Vector3.new(3, 3, 3)
+		soft.CFrame = CFrame.new(origin)
+		soft.Transparency = 0.4
+		soft.Parent = workspace
+		TweenService:Create(soft, TweenInfo.new(0.25), { Size = Vector3.new(10, 10, 10), Transparency = 1 }):Play()
+		Debris:AddItem(soft, 0.3)
+		return
+	end
 	if kind == "beam" then
 		local beam = Instance.new("Part")
 		beam.Anchored = true

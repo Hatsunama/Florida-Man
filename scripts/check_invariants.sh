@@ -160,4 +160,45 @@ else
   fail=1
 fi
 
+# N7 art / anim pipeline (no fake Mesh IDs)
+check "ArtAssets module" 'IsValidAssetId' src/shared/ArtAssets.lua
+check "ArtAssets TryCloneMeshModel" 'TryCloneMeshModel' src/shared/ArtAssets.lua
+check "ArtAssets ART_KIT_PART" 'InEngine_v3' src/shared/ArtAssets.lua
+check "EnemyFactory mesh try" 'tryMeshEnemy' src/server/EnemyFactory.lua
+check "EnemyFactory ArtAssets" 'ArtAssets' src/server/EnemyFactory.lua
+check "WorldBuilder ArtAssets" 'ArtAssets' src/server/WorldBuilder.lua
+check "WorldBuilder CaptainSteve mesh try" 'TryCloneMeshModel\("CaptainSteve"\)' src/server/WorldBuilder.lua
+check "AnimController uses ArtAssets" 'ArtAssets.GetAnimationId' src/client/Controllers/AnimController.lua
+check "AnimController procedural skill" 'poseKind = "skill"' src/client/Controllers/AnimController.lua
+check "AnimController PlaySwap" 'function AnimController.PlaySwap' src/client/Controllers/AnimController.lua
+check "AnimController ReduceMotion scale" 'IsReduceMotion' src/client/Controllers/AnimController.lua
+check "VFX particleBudget ReduceMotion" 'particleBudget' src/client/Controllers/VFX.lua
+check "VFX bash/grab arcs" 'kind == "bash"' src/client/Controllers/VFX.lua
+check "ReduceMotion hitstop" 'IsReduceMotion' src/client/Controllers/MovementController.lua
+check "ReduceMotion shake" 'IsReduceMotion' src/client/Controllers/CameraController.lua
+check "Persona BodyColors + Highlight" 'FM_PersonaHighlight' src/server/RunContext.lua
+check "ART_PIPELINE honesty" 'do \*\*not\*\* invent' docs/ART_PIPELINE.md
+check "Rojo Assets.Meshes folder" '"Meshes"' default.project.json
+
+# Reject invented / placeholder rbxassetid numeric stubs in src (allow comments mentioning the prefix)
+if rg -n 'rbxassetid://(0+|00+|000+|1234+|1111+|9999+)([^0-9]|$)' "$ROOT/src" ; then
+  echo "FAIL N7 no placeholder rbxassetid stubs"
+  fail=1
+else
+  echo "OK  N7 no placeholder rbxassetid stubs"
+fi
+# Any non-empty rbxassetid in src must pass through ArtAssets validation path — for now expect ZERO concrete IDs
+if rg -n 'AnimationId\s*=\s*"rbxassetid://[1-9]' "$ROOT/src" ; then
+  echo "FAIL N7 direct AnimationId assignment (use ArtAssets registry)"
+  fail=1
+else
+  echo "OK  N7 no direct AnimationId rbxassetid assignments"
+fi
+if rg -n 'MeshId\s*=\s*"rbxassetid://' "$ROOT/src" ; then
+  echo "FAIL N7 MeshId rbxassetid in src"
+  fail=1
+else
+  echo "OK  N7 no MeshId rbxassetid in src"
+fi
+
 exit $fail
