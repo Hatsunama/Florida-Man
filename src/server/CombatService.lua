@@ -1,15 +1,4 @@
 --!strict
---[[ CombatService — real combat owner (Phase 3).
-	Owns: hit validation, attack recovery, cancel-window notes, knockback impulses,
-	persona 3-hit movesets, ranged/thrown projectiles, shield absorb, rate limits.
-	I-frames remain server-authoritative (never trust client IFrame attribute for immunity).
-
-	Cancel windows (documented):
-	- Attack recovery locks the next swing (MarkAttack). Dodge / swap may still fire
-	  (their own CDs) — intentional Skul-like escape/cancel routes.
-	- Skill and swap are cooldown-gated (not attack-recovery gated). Anti-spam = CD +
-	  attack recovery; remotes that arrive early are no-ops.
-]]
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -31,15 +20,13 @@ export type MovesetHit = {
 
 local iframesUntil: { [Player]: number } = {}
 local attackReadyAt: { [Player]: number } = {}
-local skillReadyAt: { [Player]: number } = {} -- mirror / rate-limit (GameService also tracks)
+local skillReadyAt: { [Player]: number } = {}
 local swapReadyAt: { [Player]: number } = {}
 local shieldAbsorb: { [Player]: number } = {}
 
 local ATTACK_RECOVERY = Constants.ATTACK_RECOVERY
 local POINT_BLANK = 2.5
 
--- Persona 3-hit movesets (timing / range / knock / damage feel). Weapons modify via their own stats.
--- BeachBurnout = snappy sand rhythm; CrabKing = slower pinch with heavy finisher.
 local MOVESETS: { [string]: { MovesetHit } } = {
 	BeachBurnout = {
 		{ recovery = 0.16, rangeMul = 1.00, knockMul = 0.95, dmgMul = 0.95, label = "jab" },
@@ -89,10 +76,6 @@ local DEFAULT_MOVESET: { MovesetHit } = {
 	{ recovery = 0.28, rangeMul = 1.2, knockMul = 1.35, dmgMul = 1.35, label = "hit3" },
 }
 
---------------------------------------------------------------------------
--- I-frames (server table; attribute IFrameVFX is juice only)
---------------------------------------------------------------------------
-
 function CombatService.SetIFrames(player: Player, duration: number)
 	local untilT = os.clock() + math.max(0, duration)
 	local prev = iframesUntil[player] or 0
@@ -115,10 +98,6 @@ function CombatService.ClearIFrames(player: Player)
 	iframesUntil[player] = nil
 end
 
---------------------------------------------------------------------------
--- Shield absorb (Turtle Paladin) — damage counter, not client-trusted
---------------------------------------------------------------------------
-
 function CombatService.SetShieldAbsorb(player: Player, amount: number)
 	shieldAbsorb[player] = math.max(shieldAbsorb[player] or 0, amount)
 end
@@ -131,7 +110,6 @@ function CombatService.ClearShieldAbsorb(player: Player)
 	shieldAbsorb[player] = nil
 end
 
---- Returns remaining damage after absorb. 0 = fully blocked.
 function CombatService.ConsumeShieldAbsorb(player: Player, amount: number): number
 	local left = shieldAbsorb[player] or 0
 	if left <= 0 then
@@ -144,10 +122,6 @@ function CombatService.ConsumeShieldAbsorb(player: Player, amount: number): numb
 	shieldAbsorb[player] = nil
 	return amount - left
 end
-
---------------------------------------------------------------------------
--- Rate limits / recovery
---------------------------------------------------------------------------
 
 function CombatService.CanAttack(player: Player): boolean
 	local t = attackReadyAt[player]
@@ -185,19 +159,11 @@ function CombatService.MarkSwap(player: Player, cooldown: number)
 	swapReadyAt[player] = os.clock() + math.max(0, cooldown)
 end
 
---------------------------------------------------------------------------
--- Movesets
---------------------------------------------------------------------------
-
 function CombatService.GetMovesetHit(personaId: string, comboIndex: number): MovesetHit
 	local set = MOVESETS[personaId] or DEFAULT_MOVESET
 	local idx = math.clamp(comboIndex, 1, 3)
 	return set[idx] or DEFAULT_MOVESET[idx]
 end
-
---------------------------------------------------------------------------
--- Lane geometry / melee validation
---------------------------------------------------------------------------
 
 function CombatService.LaneKnockback(originX: number, targetPos: Vector3, strength: number): Vector3
 	local dir = if targetPos.X >= originX then 1 else -1
@@ -224,10 +190,6 @@ function CombatService.InLaneRange(attackerX: number, facing: number, targetX: n
 	return CombatService.InLaneMelee(attackerX, facing, targetX, range)
 end
 
---------------------------------------------------------------------------
--- Knockback — prefer AssemblyLinearVelocity impulse; PivotTo fallback for Anchored AI roots
---------------------------------------------------------------------------
-
 function CombatService.ApplyKnockback(model: Model, attacker: Player?, strength: number?, heavy: boolean?)
 	local root = model.PrimaryPart
 	if not root then
@@ -243,25 +205,19 @@ function CombatService.ApplyKnockback(model: Model, attacker: Player?, strength:
 	end
 	local lift = if heavy then 0.6 else 0.25
 
-	-- Prefer physics impulse when the root can move (unanchored assemblies).
 	if not root.Anchored then
 		local impulse = Vector3.new(dir * kb * 12, lift * 18, 0)
 		root:ApplyImpulse(impulse * math.max(root.AssemblyMass, 1) * 0.35)
-		-- Soft clamp Z to lane
+
 		local v = root.AssemblyLinearVelocity
 		root.AssemblyLinearVelocity = Vector3.new(v.X, v.Y, 0)
 		return
 	end
 
-	-- Anchored enemy kits (current EnemyFactory): PivotTo displacement fallback.
 	local np = root.Position + Vector3.new(dir * kb, lift, 0)
 	np = Vector3.new(np.X, math.max(root.Position.Y, np.Y), Constants.LANE_Z)
 	model:PivotTo(CFrame.new(np) * (root.CFrame - root.Position))
 end
-
---------------------------------------------------------------------------
--- Projectiles (ranged = flat fast lane; thrown = arc with gravity-ish Y)
---------------------------------------------------------------------------
 
 export type ProjectileOpts = {
 	origin: Vector3,
@@ -270,7 +226,7 @@ export type ProjectileOpts = {
 	damage: number,
 	knockback: number,
 	heavy: boolean?,
-	kind: string, -- "ranged" | "thrown"
+	kind: string,
 	vfx: string?,
 	attacker: Player,
 	onHit: (model: Model, damage: number, knock: number, heavy: boolean) -> (),
@@ -288,7 +244,7 @@ local function projectileColor(vfx: string?, kind: string): Color3
 		end
 		return Color3.fromRGB(200, 220, 255)
 	end
-	-- ranged
+
 	if vfx == "firework" then
 		return Color3.fromRGB(255, 80, 160)
 	elseif vfx == "foam" then
@@ -346,14 +302,12 @@ function CombatService.SpawnProjectile(opts: ProjectileOpts)
 		local x = x0 + facing * traveled
 		local y = y0
 		if kind == "thrown" then
-			-- Gravity-ish parabola: peak early, land near maxDist
+
 			local u = math.clamp(traveled / maxDist, 0, 1)
 			y = y0 + math.sin(u * math.pi) * 6 - u * u * 2.5
 		end
 		part.CFrame = CFrame.new(x, y, Constants.LANE_Z)
 
-		-- Overlap scan vs alive enemies (callback owns ApplyDamage)
-		-- Lazy require to avoid circular load with EnemyService.
 		local EnemyService = require(script.Parent:WaitForChild("EnemyService"))
 		for _, model in EnemyService.GetAlive() do
 			if hitSet[model] then
@@ -375,8 +329,7 @@ function CombatService.SpawnProjectile(opts: ProjectileOpts)
 				hitSet[model] = true
 				opts.onHit(model, opts.damage, opts.knockback, opts.heavy == true)
 				if kind == "ranged" then
-					-- Ranged pierces one; thrown sticks / pops
-					-- Actually: ranged can pierce light; thrown single-target pop
+
 				end
 				if kind == "thrown" then
 					part:Destroy()
@@ -398,10 +351,6 @@ function CombatService.SpawnProjectile(opts: ProjectileOpts)
 
 	Debris:AddItem(part, lifetime + 0.5)
 end
-
---------------------------------------------------------------------------
--- Lingering summon hitbox (Snake Charmer Coil Call)
---------------------------------------------------------------------------
 
 function CombatService.SpawnLingeringHitbox(opts: {
 	origin: Vector3,

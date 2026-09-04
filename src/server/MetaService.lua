@@ -1,11 +1,4 @@
 --!strict
---[[ Phase 6 — persistent meta profile (DataStore + Studio/local memory fallback).
-
-	Persists: deaths, sunburn, unlocked persona ids, settings (ShakeEnabled,
-	ColorblindTelegraphs), bestStageIndex.
-
-	Load on join; save on death / hub return / leave / settings sync.
-]]
 
 local DataStoreService = game:GetService("DataStoreService")
 local Players = game:GetService("Players")
@@ -173,7 +166,7 @@ function MetaService.CaptureFromRun(
 	if typeof(stageIndex) == "number" and stageIndex > p.bestStageIndex then
 		p.bestStageIndex = math.clamp(math.floor(stageIndex), 0, 20)
 	end
-	-- pull live settings attrs (server-owned after SyncSettings / Load)
+
 	p.settings.ShakeEnabled = Settings.GetBool(player, "ShakeEnabled")
 	p.settings.ColorblindTelegraphs = Settings.GetBool(player, "ColorblindTelegraphs")
 	profiles[player] = p
@@ -193,14 +186,14 @@ function MetaService.Save(player: Player): boolean
 	if not p then
 		return false
 	end
-	-- refresh settings from attrs before write
+
 	p.settings.ShakeEnabled = Settings.GetBool(player, "ShakeEnabled")
 	p.settings.ColorblindTelegraphs = Settings.GetBool(player, "ColorblindTelegraphs")
 	local uid = player.UserId
 	memory[uid] = p
 	ensureStore()
 	if not (storeOk and store) then
-		return true -- memory OK (Studio / offline)
+		return true
 	end
 	local payload = {
 		deaths = p.deaths,
@@ -227,13 +220,12 @@ function MetaService.Unload(player: Player)
 	profiles[player] = nil
 end
 
--- Studio note: ApiServicesEnabled / published place required for real DataStore.
 if RunService:IsStudio() then
-	-- keep quiet; fallback is intentional for local Rojo
+
 end
 
 Players.PlayerRemoving:Connect(function(player)
-	-- GameService also saves; belt-and-suspenders
+
 	if profiles[player] then
 		MetaService.Unload(player)
 	end

@@ -1,8 +1,4 @@
 --!strict
---[[ Builds 2.5D stages with unique set pieces, 3+ parallax layers,
-	hazards, mini-arenas, visible goals, and biome lighting profiles.
-	No more identical lanes with 4 repeated cubes.
-]]
 
 local Workspace = game:GetService("Workspace")
 local Lighting = game:GetService("Lighting")
@@ -37,7 +33,6 @@ local function part(props: { [string]: any }): Part
 	return p
 end
 
-
 local function addSpecialMesh(p: BasePart, meshType: Enum.MeshType, scale: Vector3?): SpecialMesh
 	local sm = Instance.new("SpecialMesh")
 	sm.Name = "ArtMesh"
@@ -66,7 +61,6 @@ local function label(parent: Instance, text: string, color: Color3?, offsetY: nu
 	tl.Parent = bb
 	return bb
 end
-
 
 local function proximityPrompt(parent: Instance, props: { [string]: any }): ProximityPrompt
 	local pp = Instance.new("ProximityPrompt")
@@ -170,7 +164,7 @@ function WorldBuilder._Parallax(world: Folder, stage: any, laneZ: number, length
 	folder.Name = "Parallax"
 	folder.Parent = world
 	local biome = stage.biome
-	-- Layer 1 far sky
+
 	local farColor = if biome == "swamp" then stage.fogColor:Lerp(Color3.fromRGB(20, 40, 25), 0.4)
 		elseif biome == "facility" or biome == "offshore" then stage.fogColor:Lerp(Color3.fromRGB(15, 15, 25), 0.5)
 		else stage.fogColor:Lerp(Color3.fromRGB(255, 190, 130), 0.2)
@@ -184,7 +178,7 @@ function WorldBuilder._Parallax(world: Folder, stage: any, laneZ: number, length
 		CastShadow = false,
 		Transparency = 0.12,
 	})
-	-- Layer 2 mid silhouettes — unique per biome
+
 	local midFolder = Instance.new("Folder")
 	midFolder.Name = "MidSilhouettes"
 	midFolder.Parent = folder
@@ -192,7 +186,7 @@ function WorldBuilder._Parallax(world: Folder, stage: any, laneZ: number, length
 	for i = 1, count do
 		local x = (i - 1) * 36 + 8 + (i % 3) * 4
 		if biome == "beach" or biome == "town" then
-			-- palm / shack / billboard variety
+
 			local kind = i % 4
 			if kind == 0 then
 				part({ Name = "FarPalm", Parent = midFolder, Size = Vector3.new(1.4, 14 + (i % 3) * 2, 1.4),
@@ -218,7 +212,7 @@ function WorldBuilder._Parallax(world: Folder, stage: any, laneZ: number, length
 					CFrame = CFrame.new(x + 3, 1.2, laneZ - 28), Color = Color3.fromRGB(40, 50, 30), CanCollide = false, CastShadow = false, Transparency = 0.3 })
 			end
 		else
-			-- facility / offshore: towers, tanks, cranes
+
 			local kind = i % 3
 			if kind == 0 then
 				part({ Name = "Tank", Parent = midFolder, Size = Vector3.new(8, 10 + (i % 4) * 2, 8),
@@ -234,7 +228,7 @@ function WorldBuilder._Parallax(world: Folder, stage: any, laneZ: number, length
 			end
 		end
 	end
-	-- Layer 3 near backdrop
+
 	part({
 		Name = "BackDrop",
 		Parent = folder,
@@ -262,7 +256,7 @@ local function makeHazard(world: Folder, kind: string, x: number, laneZ: number,
 		h.Material = Enum.Material.Mud
 		h.Size = Vector3.new(9, 0.25, 5)
 		if kind == "slushPuddle" then
-			-- Act1 Gas: timed sticky windows (jump rhythm / wait for cool)
+
 			h:SetAttribute("HazardPeriod", 3.2)
 			h:SetAttribute("HazardDuty", 0.55)
 			h:SetAttribute("HazardDamage", 3)
@@ -272,7 +266,7 @@ local function makeHazard(world: Folder, kind: string, x: number, laneZ: number,
 		h.Color = Color3.fromRGB(180, 120, 30)
 		h.Material = Enum.Material.Glass
 		h.Transparency = 0.4
-		-- Act1 Boardwalk: timed fryer oil — standing during HOT window damages; jump over or wait
+
 		h:SetAttribute("HazardPeriod", 2.6)
 		h:SetAttribute("HazardDuty", 0.48)
 		h:SetAttribute("HazardDamage", 5)
@@ -387,7 +381,7 @@ function WorldBuilder._SetPiece(world: Folder, stage: any, laneZ: number, length
 	elseif sp == "fryerOil" then
 		for i = 1, 4 do
 			makeHazard(world, "fryerOil", 35 + i * 42, laneZ, stage.accentColor)
-			-- Safe landing ledge above every other slick (jump rhythm)
+
 			if i % 2 == 0 then
 				part({ Name = "FryerLedge", Parent = world, Size = Vector3.new(6, 0.7, 5),
 					CFrame = CFrame.new(35 + i * 42, 3.2, laneZ), Color = Color3.fromRGB(160, 100, 40), Material = Enum.Material.Wood })
@@ -404,7 +398,7 @@ function WorldBuilder._SetPiece(world: Folder, stage: any, laneZ: number, length
 			part({ Name = "Pump", Parent = world, Size = Vector3.new(2.2, 5, 2.2),
 				CFrame = CFrame.new(mid - 15 + i * 10, 2.5, laneZ - 5), Color = Color3.fromRGB(200, 40, 40), Material = Enum.Material.Metal, CanCollide = false })
 		end
-		-- Act1 Gas: timed fryer / sticky windows between pumps
+
 		for i = 1, 3 do
 			makeHazard(world, "fryerOil", mid - 20 + i * 18, laneZ, stage.accentColor)
 		end
@@ -412,7 +406,7 @@ function WorldBuilder._SetPiece(world: Folder, stage: any, laneZ: number, length
 			CFrame = CFrame.new(mid, 12, laneZ - 7), Color = Color3.fromRGB(255, 60, 100), Material = Enum.Material.Neon, CanCollide = false })
 		label(neon, "OPEN 24HRS", Color3.fromRGB(255, 255, 200))
 	elseif sp == "parkingArena" then
-		-- mini-arena framing for HOA Hydra
+
 		part({ Name = "ArenaFloor", Parent = world, Size = Vector3.new(36, 0.4, 16),
 			CFrame = CFrame.new(arenaX, 0.25, laneZ), Color = Color3.fromRGB(50, 50, 55), Material = Enum.Material.Asphalt })
 		for _, side in { -1, 1 } do
@@ -433,7 +427,7 @@ function WorldBuilder._SetPiece(world: Folder, stage: any, laneZ: number, length
 			CFrame = CFrame.new(mid + 8, 2, laneZ - 4), Color = Color3.fromRGB(70, 70, 80), CanCollide = false }), "ORDER HERE", Color3.fromRGB(255, 200, 80))
 		part({ Name = "Window", Parent = world, Size = Vector3.new(4, 4, 1),
 			CFrame = CFrame.new(length * 0.72, 3, laneZ - 6), Color = Color3.fromRGB(100, 180, 220), Material = Enum.Material.Glass, CanCollide = false })
-		-- arena for gator
+
 		part({ Name = "ArenaFloor", Parent = world, Size = Vector3.new(32, 0.35, 14),
 			CFrame = CFrame.new(arenaX, 0.2, laneZ), Color = Color3.fromRGB(70, 80, 55) })
 		local spot = part({ Name = "Spotlight", Parent = world, Size = Vector3.new(2, 1, 2),
@@ -443,7 +437,7 @@ function WorldBuilder._SetPiece(world: Folder, stage: any, laneZ: number, length
 		pl.Range = 36
 		pl.Parent = spot
 	elseif sp == "canalPads" then
-		-- Pad chain: deep water slows hard; pads are the only fast path (Act2 verb)
+
 		for i = 1, 5 do
 			local x = 25 + i * 42
 			makeHazard(world, "canalWater", x, laneZ, stage.accentColor)
@@ -533,7 +527,7 @@ function WorldBuilder._SetPiece(world: Folder, stage: any, laneZ: number, length
 				makeHazard(world, "pipeSpray", x + 2, laneZ, stage.accentColor)
 			end
 		end
-		-- miniboss arena
+
 		part({ Name = "ArenaFloor", Parent = world, Size = Vector3.new(34, 0.4, 14),
 			CFrame = CFrame.new(arenaX, 0.25, laneZ), Color = Color3.fromRGB(40, 42, 50), Material = Enum.Material.Metal })
 		local spot = part({ Name = "Spotlight", Parent = world, Size = Vector3.new(2, 1, 2),
@@ -549,7 +543,7 @@ function WorldBuilder._SetPiece(world: Folder, stage: any, laneZ: number, length
 		part({ Name = "Crane", Parent = world, Size = Vector3.new(2, 18, 2),
 			CFrame = CFrame.new(mid + 20, 10, laneZ - 6), Color = Color3.fromRGB(255, 160, 40), Material = Enum.Material.Metal, CanCollide = false })
 	elseif sp == "bargeGaps" then
-		-- Act5: real gaps between decks — soft checkpoint respawn handles falls
+
 		for i = 1, 5 do
 			local x = 20 + i * 48
 			part({ Name = "Deck", Parent = world, Size = Vector3.new(26, 1.2, 10),
@@ -593,7 +587,7 @@ function WorldBuilder._SetPiece(world: Folder, stage: any, laneZ: number, length
 		pl.Range = 55
 		pl.Color = Color3.fromRGB(255, 150, 40)
 		pl.Parent = spot
-		-- Phase-driven slick ring (resized by EnemyService on BossPhase 2/3)
+
 		local ringFolder = Instance.new("Folder")
 		ringFolder.Name = "SpillfatherSlickRing"
 		ringFolder.Parent = world
@@ -611,7 +605,7 @@ function WorldBuilder._SetPiece(world: Folder, stage: any, laneZ: number, length
 				Color = Color3.fromRGB(25, 35, 20),
 				Material = Enum.Material.Mud,
 				CanCollide = false,
-				Transparency = 0.85, -- invisible until phase 2
+				Transparency = 0.85,
 			})
 			slick:SetAttribute("Hazard", "slickRing")
 			slick:SetAttribute("HazardDamage", 7)
@@ -625,10 +619,9 @@ function WorldBuilder._SetPiece(world: Folder, stage: any, laneZ: number, length
 		end
 	end
 
-	-- Generic hazards from stage.hazards list (scattered)
 	local hazards = stage.hazards or {}
 	local skip = { windPush = true, canalWater = true, fryerOil = true, conveyor = true, pipeSpray = true }
-	-- fryerOil / canal / conveyor owned by set pieces when present
+
 	if sp ~= "fryerOil" then
 		skip.fryerOil = nil
 	end
@@ -641,7 +634,7 @@ function WorldBuilder._SetPiece(world: Folder, stage: any, laneZ: number, length
 end
 
 function WorldBuilder._Decor(world: Folder, stage: any, laneZ: number, length: number)
-	-- Sparse unique props — not 4 identical cubes
+
 	local theme = stage.propTheme
 	local rng = Random.new(#stage.id * 17 + stage.index * 91)
 	local count = math.floor(length / 55)
@@ -675,7 +668,7 @@ function WorldBuilder._Decor(world: Folder, stage: any, laneZ: number, length: n
 end
 
 function WorldBuilder._BuildHub(world: Folder, stage: any, laneZ: number, deaths: number?)
-	-- Phase 2: bonfire hero kit — cylinder logs + layered ColorSequence flame
+
 	local base = part({
 		Name = "Bonfire",
 		Parent = world,
@@ -770,24 +763,21 @@ function WorldBuilder._BuildHub(world: Folder, stage: any, laneZ: number, deaths
 		end
 	end)
 
-	-- Lawn chairs
 	for _, ox in { -6, 6 } do
 		part({ Name = "ChairSeat", Parent = world, Size = Vector3.new(2.2, 0.3, 2),
 			CFrame = CFrame.new(20 + ox, 1.2, laneZ + 4), Color = Color3.fromRGB(40, 140, 200), CanCollide = false })
 		part({ Name = "ChairBack", Parent = world, Size = Vector3.new(2.2, 2, 0.3),
 			CFrame = CFrame.new(20 + ox, 2.2, laneZ + 5), Color = Color3.fromRGB(40, 140, 200), CanCollide = false })
 	end
-	-- Cooler
+
 	local cooler = part({ Name = "Cooler", Parent = world, Size = Vector3.new(3, 2.2, 2),
 		CFrame = CFrame.new(14, 1.2, laneZ + 2), Color = Color3.fromRGB(30, 100, 180), Material = Enum.Material.SmoothPlastic, CanCollide = false })
 	label(cooler, "Florida Dew cooler\n(empty… for now)", Color3.fromRGB(180, 255, 200), 2)
 
-	-- Newspaper stand
 	local stand = part({ Name = "NewsStand", Parent = world, Size = Vector3.new(4, 5, 2),
 		CFrame = CFrame.new(8, 2.6, laneZ - 3), Color = Color3.fromRGB(140, 100, 60), Material = Enum.Material.Wood, CanCollide = false })
 	label(stand, "THE DAILY SWAMP", Color3.fromRGB(255, 240, 200), 3)
 
-	-- Phase 2: Captain Steve pelican kit — SpecialMesh spheres/wedges, neon beak, feather fluff
 	local steveModel = Instance.new("Model")
 	steveModel.Name = "CaptainSteveModel"
 	steveModel:SetAttribute("ArtKit", "InEngine_v2")
@@ -895,8 +885,7 @@ end
 function WorldBuilder._BuildGround(world: Folder, stage: any, laneZ: number, length: number, groundMat: Enum.Material)
 	local biome = stage.biome or "beach"
 	local idx = stage.index or 0
-	-- Early stages: continuous slab with subtle height steps (teach footing)
-	-- Mid/late: real gaps + raised shelves so jump matters
+
 	local segs = if idx <= 3 then 3 elseif idx <= 8 then 5 elseif idx <= 14 then 6 else 7
 	local gapChance = if idx <= 4 then 0 elseif idx <= 10 then 0.35 else 0.55
 	local cursor = -10
@@ -916,7 +905,7 @@ function WorldBuilder._BuildGround(world: Folder, stage: any, laneZ: number, len
 		end
 		local thisLen = segLen * (0.85 + rng:NextNumber() * 0.25)
 		if isGap then
-			-- visual water/void under gap (no collide) + small landing lip after
+
 			local gapW = math.clamp(6 + idx * 0.25, 6, 12)
 			part({
 				Name = "GapHazard",
@@ -929,7 +918,7 @@ function WorldBuilder._BuildGround(world: Folder, stage: any, laneZ: number, len
 				Transparency = 0.45,
 			})
 			cursor += gapW
-			-- landing platform
+
 			part({
 				Name = "GroundSeg",
 				Parent = world,
@@ -941,7 +930,7 @@ function WorldBuilder._BuildGround(world: Folder, stage: any, laneZ: number, len
 			cursor += thisLen * 0.55
 		else
 			local y = -1 + hOff
-			-- Raised shelf mid-lane for mid/late (jump up)
+
 			if idx >= 6 and i == math.floor(segs / 2) then
 				part({
 					Name = "GroundShelf",
@@ -963,7 +952,7 @@ function WorldBuilder._BuildGround(world: Folder, stage: any, laneZ: number, len
 			cursor += thisLen
 		end
 	end
-	-- Phase 4: SafetyFloor removed globally — soft checkpoint respawn in GameService for all stages with gaps.
+
 end
 
 function WorldBuilder._MidRoomGate(world: Folder, stage: any, laneZ: number, length: number)
@@ -983,7 +972,7 @@ function WorldBuilder._MidRoomGate(world: Folder, stage: any, laneZ: number, len
 	})
 	gate:SetAttribute("Locked", true)
 	label(gate, "CLEAR THE ROOM", stage.accentColor, 6)
-	-- Enter zone: triggers room lock + wave (GameService)
+
 	local zone = part({
 		Name = "MidRoomZone",
 		Parent = world,
@@ -993,7 +982,7 @@ function WorldBuilder._MidRoomGate(world: Folder, stage: any, laneZ: number, len
 		CanCollide = false,
 	})
 	zone:SetAttribute("MidRoomTrigger", true)
-	-- Left barrier engaged when room locks (blocks retreat)
+
 	local barrier = part({
 		Name = "MidRoomBarrier",
 		Parent = world,
@@ -1005,7 +994,7 @@ function WorldBuilder._MidRoomGate(world: Folder, stage: any, laneZ: number, len
 		Transparency = 1,
 	})
 	barrier:SetAttribute("RoomBarrier", true)
-	-- Arena floor framing
+
 	part({
 		Name = "RoomArenaFloor",
 		Parent = world,
@@ -1029,7 +1018,6 @@ function WorldBuilder._MidRoomGate(world: Folder, stage: any, laneZ: number, len
 	end
 end
 
---- Ambient biome particles (light but present)
 function WorldBuilder._Ambient(world: Folder, stage: any, laneZ: number, length: number)
 	local biome = stage.biome or "beach"
 	local anchor = part({
@@ -1051,7 +1039,7 @@ function WorldBuilder._Ambient(world: Folder, stage: any, laneZ: number, length:
 	pe.LightEmission = 0.2
 	pe.Parent = att
 	if biome == "swamp" then
-		-- bugs
+
 		pe.Color = ColorSequence.new(Color3.fromRGB(40, 80, 30), Color3.fromRGB(120, 200, 60))
 		pe.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.15), NumberSequenceKeypoint.new(1, 0.05) })
 		pe.Lifetime = NumberRange.new(1.2, 2.2)
@@ -1059,7 +1047,7 @@ function WorldBuilder._Ambient(world: Folder, stage: any, laneZ: number, length:
 		pe.Speed = NumberRange.new(1, 3)
 		pe.RotSpeed = NumberRange.new(-90, 90)
 	elseif biome == "facility" then
-		-- sparks
+
 		pe.Color = ColorSequence.new(Color3.fromRGB(255, 200, 80), Color3.fromRGB(255, 80, 20))
 		pe.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.25), NumberSequenceKeypoint.new(1, 0) })
 		pe.Lifetime = NumberRange.new(0.25, 0.55)
@@ -1068,7 +1056,7 @@ function WorldBuilder._Ambient(world: Folder, stage: any, laneZ: number, length:
 		pe.Acceleration = Vector3.new(0, -12, 0)
 		pe.LightEmission = 0.7
 	elseif biome == "offshore" then
-		-- spray
+
 		pe.Color = ColorSequence.new(Color3.fromRGB(180, 220, 255), Color3.fromRGB(220, 240, 255))
 		pe.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.4), NumberSequenceKeypoint.new(1, 0.05) })
 		pe.Lifetime = NumberRange.new(0.6, 1.1)
@@ -1076,7 +1064,7 @@ function WorldBuilder._Ambient(world: Folder, stage: any, laneZ: number, length:
 		pe.Speed = NumberRange.new(2, 6)
 		pe.Acceleration = Vector3.new(0, -4, 0)
 	elseif biome == "beach" or biome == "town" then
-		-- spray / sand grit / neon dust
+
 		if biome == "beach" then
 			pe.Color = ColorSequence.new(Color3.fromRGB(220, 240, 255), Color3.fromRGB(255, 255, 255))
 			pe.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.35), NumberSequenceKeypoint.new(1, 0.05) })
@@ -1097,7 +1085,7 @@ function WorldBuilder._Ambient(world: Folder, stage: any, laneZ: number, length:
 		pe.Size = NumberSequence.new(0.2)
 		pe.Color = ColorSequence.new(stage.accentColor)
 	end
-	-- Second emitter mid-stage for coverage
+
 	local anchor2 = part({
 		Name = "AmbientAnchor2",
 		Parent = world,
@@ -1134,7 +1122,6 @@ function WorldBuilder.BuildStage(stageId: string, deaths: number?): Folder
 		groundMat = Enum.Material.Sand
 	end
 
-	-- Segmented ground: distinct heights per biome; mid/late gaps make jump matter
 	WorldBuilder._BuildGround(world, stage, laneZ, length, groundMat)
 
 	WorldBuilder._Parallax(world, stage, laneZ, length)
@@ -1198,7 +1185,7 @@ function WorldBuilder.BuildStage(stageId: string, deaths: number?): Folder
 			CanCollide = false,
 		})
 		label(gate, stage.goalLabel or "→ NEXT", stage.accentColor)
-		-- goal light
+
 		local glow = part({
 			Name = "GoalLight",
 			Parent = world,
@@ -1216,7 +1203,6 @@ function WorldBuilder.BuildStage(stageId: string, deaths: number?): Folder
 		gpl.Parent = glow
 	end
 
-	-- Phase 5: StageSounds from AudioCatalog (core verbs never empty SoundId)
 	local AudioCatalog = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("AudioCatalog"))
 	local sounds = Instance.new("Folder")
 	sounds.Name = "StageSounds"
@@ -1229,7 +1215,7 @@ function WorldBuilder.BuildStage(stageId: string, deaths: number?): Folder
 		s.RollOffMaxDistance = 80
 		s.Parent = sounds
 	end
-	-- Biome ambient bed clones (looping) so world is never silent if client beds lag
+
 	local biomeKey = stage.biome or "beach"
 	local beds = AudioCatalog.BIOME_BEDS[biomeKey] or AudioCatalog.BIOME_BEDS.beach
 	for _, bed in beds do

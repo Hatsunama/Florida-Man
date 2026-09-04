@@ -49,7 +49,6 @@ function HUD.Init()
 	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	gui.Parent = player:WaitForChild("PlayerGui")
 
-	-- Top stage banner
 	local banner = Instance.new("Frame")
 	banner.Size = UDim2.new(0.56, 0, 0, 42)
 	banner.Position = UDim2.new(0.22, 0, 0, 12)
@@ -67,7 +66,6 @@ function HUD.Init()
 	stageText.Text = "FLORIDA MAN — Dawn Bonfire"
 	stageText.Parent = banner
 
-	-- HP bar
 	local hpBg = Instance.new("Frame")
 	hpBg.Name = "HP"
 	hpBg.Size = UDim2.new(0, 280, 0, 28)
@@ -77,7 +75,7 @@ function HUD.Init()
 	corner(hpBg, 8)
 	hpFill = Instance.new("Frame")
 	hpFill.Size = UDim2.fromScale(1, 1)
-	hpFill.BackgroundColor3 = Color3.fromRGB(40, 200, 90) -- Florida Dew green
+	hpFill.BackgroundColor3 = Color3.fromRGB(40, 200, 90)
 	hpFill.Parent = hpBg
 	corner(hpFill, 8)
 	hpText = Instance.new("TextLabel")
@@ -135,7 +133,6 @@ function HUD.Init()
 	skillCdLbl.Text = "Skill: Ready (K)"
 	skillCdLbl.Parent = gui
 
-	-- Phase 5 accessibility toggles
 	local function a11yBtn(text: string, x: number, key: string): TextButton
 		local b = Instance.new("TextButton")
 		b.Size = UDim2.new(0, 118, 0, 26)
@@ -196,7 +193,6 @@ function HUD.Init()
 	bossText.ZIndex = 2
 	bossText.Parent = bossBar
 
-	-- Persona portraits
 	local function personaSlot(x: number): Frame
 		local f = Instance.new("Frame")
 		f.Size = UDim2.new(0, 148, 0, 64)
@@ -205,8 +201,7 @@ function HUD.Init()
 		f.Parent = gui
 		corner(f, 10)
 		stroke(f, Color3.fromRGB(255, 200, 80), 2)
-		-- Phase 1: colored icon slot (silhouette readability, not text-only)
-		-- Phase 2: circular persona-colored icon + built-in texture fallback (no fake marketplace IDs)
+
 		local icon = Instance.new("Frame")
 		icon.Name = "Icon"
 		icon.Size = UDim2.new(0, 44, 0, 44)
@@ -297,7 +292,7 @@ function HUD.Init()
 	controlsLbl.Text = "A/D move · Space jump · Shift i-frame dash · Click/J attack · K skill · Q swap (+swap attack) · E or click prompt"
 	controlsLbl.Parent = gui
 	corner(controlsLbl, 8)
-	-- Fade controls after first few seconds at hub
+
 	task.delay(8, function()
 		if controlsLbl and controlsLbl.Parent then
 			local TweenService = game:GetService("TweenService")
@@ -446,7 +441,6 @@ function HUD.Update(s: any)
 	local itemText = itemBar:FindFirstChild("Items") :: TextLabel
 	itemText.Text = if #names > 0 then ("Items: " .. table.concat(names, " · ")) else "Items: (none yet — draft between stages)"
 
-	-- inscription hint
 	local counts = Items.CountInscriptions(s.items)
 	local setBits = {}
 	for tag, n in counts do

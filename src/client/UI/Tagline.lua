@@ -1,5 +1,4 @@
 --!strict
---[[ Steve vignette — typewriter toast + SFX (VO optional skipped; no VO assets). ]]
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 
@@ -64,22 +63,12 @@ function Tagline.Show(text: string, speaker: string?)
 	gui.Destroying:Connect(function()
 		cancelled = true
 	end)
-	pcall(function()
-		local AudioDirector = require(script.Parent.Parent.Controllers:WaitForChild("AudioDirector"))
-		AudioDirector.Play("SFX_SteveBeep", { volume = 0.4, pitch = 1.1 })
-	end)
 	task.spawn(function()
 		for i = 1, #full do
 			if cancelled or not gui.Parent then
 				return
 			end
 			body.Text = string.sub(full, 1, i)
-			if i % 4 == 0 then
-				pcall(function()
-					local AudioDirector = require(script.Parent.Parent.Controllers:WaitForChild("AudioDirector"))
-					AudioDirector.Play("SFX_Typewriter", { volume = 0.18, pitch = 1.35 })
-				end)
-			end
 			task.wait(0.028)
 		end
 	end)

@@ -1,10 +1,4 @@
 --!strict
---[[ Premium 2.5D lane mover — Skul/Dead Cells feel.
-	Drives X via AssemblyLinearVelocity only (never stomps full CFrame).
-	Soft Z lock via AlignPosition (Z-axis force). Facing via AlignOrientation.
-	Keeps coyote, jump buffer, variable jump, dash i-frames + trail.
-	No stacked custom gravity — Roblox workspace.Gravity owns Y.
-]]
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -30,7 +24,7 @@ local jumpHeld = false
 local jumping = false
 local attackLockUntil = 0
 local dodgeUntil = 0
-local hitstopUntil = 0 -- set via Hitstop()
+local hitstopUntil = 0
 local hangoverMult = 1
 local baseSpeed = 18
 local enabled = true
@@ -46,14 +40,10 @@ local JUMP_BUFFER = 0.12
 local DODGE_SPEED = 62
 local DODGE_DUR = 0.18
 
--- Per-character constraint refs (rebuilt on spawn)
 local rootAttachment: Attachment? = nil
 local alignPos: AlignPosition? = nil
 local alignOri: AlignOrientation? = nil
 
---[[ Facing for +Z side-scroller: D/+X travel must face +X (LookVector.X > 0).
-	Old Angles(0,+90,0) yielded LookVector (-1,0,0) which caused moonwalk.
-	lookAlong with faceDir = sign(moveX) aligns LookVector with travel. ]]
 local function faceCFrame(faceDir: number): CFrame
 	local dir = if faceDir >= 0 then 1 else -1
 	return CFrame.lookAlong(Vector3.zero, Vector3.new(dir, 0, 0))
@@ -92,7 +82,6 @@ local function setupMovers(hrp: BasePart)
 	att.Parent = hrp
 	rootAttachment = att
 
-	-- Soft lane lock: force only on Z toward LANE_Z (does not fight X/Y physics)
 	local ap = Instance.new("AlignPosition")
 	ap.Name = "FM_LaneLock"
 	ap.Mode = Enum.PositionAlignmentMode.OneAttachment
@@ -107,7 +96,6 @@ local function setupMovers(hrp: BasePart)
 	ap.Parent = hrp
 	alignPos = ap
 
-	-- Snap facing so LookVector matches travel (+X when facing=+1)
 	local ao = Instance.new("AlignOrientation")
 	ao.Name = "FM_Face"
 	ao.Mode = Enum.OrientationAlignmentMode.OneAttachment
@@ -179,7 +167,7 @@ end
 
 local function doJump(hrp: BasePart, hum: Humanoid)
 	local v = hrp.AssemblyLinearVelocity
-	-- Preserve X; set jump Y; zero Z (lane)
+
 	hrp.AssemblyLinearVelocity = Vector3.new(v.X, JUMP_VELOCITY, 0)
 	hum:ChangeState(Enum.HumanoidStateType.Jumping)
 	jumping = true
@@ -312,7 +300,6 @@ function MovementController.Start()
 			return
 		end
 
-		-- Hitstop: brief freeze on connect (Skul juice) — keep facing/lane movers alive
 		if os.clock() < hitstopUntil then
 			local v = hrp.AssemblyLinearVelocity
 			hrp.AssemblyLinearVelocity = Vector3.new(0, v.Y * 0.35, 0)
@@ -326,14 +313,12 @@ function MovementController.Start()
 			return
 		end
 
-		-- Karen slow aura from attribute
 		local slowUntil = char:GetAttribute("SlowUntil")
 		local slowMult = 1
 		if typeof(slowUntil) == "number" and os.clock() < slowUntil then
 			slowMult = 0.55
 		end
 
-		-- Ensure movers exist (respawn / edge cases)
 		if not alignPos or not alignOri or not rootAttachment or rootAttachment.Parent ~= hrp then
 			setupMovers(hrp)
 		end
@@ -395,11 +380,9 @@ function MovementController.Start()
 			end
 		end
 
-		-- Drive X only; preserve physics Y; kill Z velocity (AlignPosition holds Z pos)
 		local v = hrp.AssemblyLinearVelocity
 		hrp.AssemblyLinearVelocity = Vector3.new(velX, v.Y, 0)
 
-		-- Soft Z target tracks current X/Y so we never yank those axes
 		if alignPos then
 			alignPos.Position = Vector3.new(hrp.Position.X, hrp.Position.Y, Constants.LANE_Z)
 		end
@@ -407,7 +390,6 @@ function MovementController.Start()
 			alignOri.CFrame = faceCFrame(facing)
 		end
 
-		-- Keep default Animate forward: MoveDirection shares sign with LookVector/travel
 		if math.abs(moveX) > 0.1 then
 			hum:Move(Vector3.new(moveX, 0, 0), false)
 		else

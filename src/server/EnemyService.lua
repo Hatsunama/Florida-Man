@@ -1,5 +1,5 @@
 --!strict
---[[ Phase 6: FM_EnemyPool + FM_TelegraphPool reuse; Debris telegraphs optional. ]]
+
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
@@ -21,7 +21,6 @@ EnemyService._onKilled = nil :: ((Player, string, Model) -> ())?
 EnemyService._onTurtleRescued = nil :: ((Player, Model) -> ())?
 EnemyService._stageIndex = 1
 
--- Phase 6: simple reuse folders (telegraph Parts + parked enemy models)
 local POOL_MAX_ENEMIES = 12
 local POOL_MAX_TELE = 24
 local enemyPool: { Model } = {}
@@ -48,7 +47,7 @@ local function acquireTelegraph(): Part
 	local _, tp = ensurePoolFolders()
 	local zone = table.remove(telePool)
 	if zone and zone.Parent then
-		-- strip old CB stripe
+
 		local old = zone:FindFirstChild("CB_Stripe")
 		if old then
 			old:Destroy()
@@ -96,7 +95,7 @@ function EnemyService.Clear()
 	for model in EnemyService._alive do
 		if model and model.Parent then
 			local id = model:GetAttribute("EnemyId")
-			-- Park common trash; destroy bosses/minibosses/allies (stateful)
+
 			local park = typeof(id) == "string"
 				and not model:GetAttribute("IsBoss")
 				and not model:GetAttribute("IsMiniboss")
@@ -130,7 +129,7 @@ function EnemyService.Spawn(enemyId: string, x: number): Model?
 	end
 	local pos = Vector3.new(x, def.size.Y * 0.5 + 0.5, Constants.LANE_Z)
 	local model: Model? = nil
-	-- Phase 6: reclaim parked trash of same id (skip allies)
+
 	if not def.isAlly then
 		for i, parked in enemyPool do
 			if parked.Parent and parked:GetAttribute("EnemyId") == enemyId then
@@ -151,7 +150,7 @@ function EnemyService.Spawn(enemyId: string, x: number): Model?
 	else
 		model = EnemyFactory.Build(def, pos)
 	end
-	-- Apply stage scaling (allies/turtles skip)
+
 	if not def.isAlly then
 		local hum = model:FindFirstChildOfClass("Humanoid")
 		if hum then
@@ -194,7 +193,7 @@ function EnemyService.SpawnTurtle(x: number): Model?
 			pp.Parent = root
 			local bb = root:FindFirstChildOfClass("BillboardGui")
 			if not bb then
-				-- nameplate already exists from factory; add rescue hint via attribute
+
 			end
 			root:SetAttribute("RescueHint", "Press E · Rescue")
 		end
@@ -228,11 +227,11 @@ function EnemyService.ApplyDamage(model: Model, amount: number, attacker: Player
 	if not hum or hum.Health <= 0 then
 		return false
 	end
-	-- Hyper armor during boss phase transition: skip flinch (still take damage)
+
 	local hyperUntil = model:GetAttribute("HyperArmorUntil")
 	local hyper = typeof(hyperUntil) == "number" and os.clock() < hyperUntil
 	if not hyper then
-		-- Flinch: brief AI pause so every hit reads
+
 		model:SetAttribute("FlinchUntil", os.clock() + Constants.FLINCH_TIME)
 	end
 	hum.Health = math.max(0, hum.Health - amount)
@@ -250,14 +249,13 @@ function EnemyService.ApplyDamage(model: Model, amount: number, attacker: Player
 			heavy = heavy == true,
 			hitstop = if heavy then Constants.HITSTOP_HEAVY else Constants.HITSTOP,
 		})
-		-- Knockback owned by CombatService (ALV impulse preferred; PivotTo for Anchored kits)
+
 		local kb = knockback or 0
 		if kb > 0 and not hyper then
 			CombatService.ApplyKnockback(model, attacker, kb, heavy)
 		end
 	end
 
-	-- Boss phase transitions (Spillfather / minibosses) + brief hyper armor
 	if model:GetAttribute("IsBoss") or model:GetAttribute("IsMiniboss") then
 		local maxHp = model:GetAttribute("MaxHp") :: number?
 		if maxHp and maxHp > 0 then
@@ -321,7 +319,7 @@ function EnemyService.TryRescue(player: Player, model: Model): boolean
 	local root = model.PrimaryPart
 	local pos = if root then root.Position else Vector3.new(0, 4, Constants.LANE_Z)
 	EnemyFactory.DeathPoof(pos, Color3.fromRGB(255, 120, 160))
-	-- stash pos for cinematic Focus after Destroy
+
 	model:SetAttribute("RescuePosX", pos.X)
 	model:SetAttribute("RescuePosY", pos.Y)
 	model:SetAttribute("RescuePosZ", pos.Z)
@@ -393,7 +391,7 @@ function EnemyService.StartAI()
 			end
 
 			if model:GetAttribute("IsAlly") then
-				-- turtles idle bob
+
 				EnemyFactory.Animate(model, dt, false, false)
 				continue
 			end
@@ -401,7 +399,7 @@ function EnemyService.StartAI()
 				EnemyFactory.Animate(model, dt, false, true)
 				continue
 			end
-			-- Hit flinch: freeze briefly so knockback + flash read
+
 			local flinchUntil = model:GetAttribute("FlinchUntil")
 			if typeof(flinchUntil) == "number" and os.clock() < flinchUntil then
 				EnemyFactory.Animate(model, dt, false, false)
@@ -416,7 +414,7 @@ function EnemyService.StartAI()
 				local hrp = char and char:FindFirstChild("HumanoidRootPart") :: BasePart?
 				if hrp then
 					local d = (hrp.Position - root.Position).Magnitude
-					-- Live Bait (aggro): enemies treat you as closer / more interesting
+
 					if char:GetAttribute("AggroPull") == true then
 						d *= 0.72
 					end
@@ -456,7 +454,7 @@ function EnemyService.StartAI()
 				local last = burrowCD[model] or 0
 				if now - last > 3 and nearestDist < 18 then
 					burrowCD[model] = now
-					-- blink closer
+
 					local nx = targetPos.X - facing * 5
 					model:PivotTo(CFrame.new(nx, root.Position.Y, Constants.LANE_Z))
 					root.Transparency = 0.7
@@ -487,13 +485,13 @@ function EnemyService.StartAI()
 					model:PivotTo(CFrame.new(newPos) * CFrame.Angles(0, if facing > 0 then 0 else math.pi, 0))
 				end
 			elseif behavior == "scuttle" then
-				-- sideways crab approach
+
 				if nearestDist > attackRange then
 					moving = true
 					local dir = Util.SafeUnit(Vector3.new(targetPos.X - root.Position.X, 0, 0))
 					local newPos = root.Position + dir * speed * dt
 					newPos = Vector3.new(newPos.X, root.Position.Y, Constants.LANE_Z)
-					-- face camera-ish with sideways swagger
+
 					model:PivotTo(CFrame.new(newPos) * CFrame.Angles(0, if facing > 0 then -math.pi / 2 else math.pi / 2, 0))
 				end
 			else
@@ -535,14 +533,14 @@ function EnemyService._TelegraphAttack(model: Model, target: Player, behavior: s
 	local facing = (model:GetAttribute("Facing") :: number) or 1
 	local enemyId = (model:GetAttribute("EnemyId") :: string) or ""
 	local phase = (model:GetAttribute("BossPhase") :: number?) or 1
-	-- Phase 1 teach band: stretch telegraphs on stages 1–2 so dodge is readable
+
 	local stageIdx = EnemyService._stageIndex or 1
 	if stageIdx <= 2 then
 		tele = tele * 1.2
 	elseif stageIdx == 3 then
 		tele = tele * 1.08
 	end
-	-- Boss Phase 2–3: slightly faster telegraphs, wider zones (pattern change, not sponge)
+
 	if phase >= 2 then
 		tele = math.max(0.28, tele * (if phase >= 3 then 0.7 else 0.85))
 	end
@@ -562,7 +560,7 @@ function EnemyService._TelegraphAttack(model: Model, target: Player, behavior: s
 		zone.Size = size
 		zone.CFrame = cf
 		zone:SetAttribute("TelegraphStripe", false)
-		-- Phase 5 colorblind: stripe/pattern when any player opted in
+
 		local needStripe = false
 		for _, plr in Players:GetPlayers() do
 			if plr:GetAttribute("ColorblindTelegraphs") == true then
@@ -590,47 +588,46 @@ function EnemyService._TelegraphAttack(model: Model, target: Player, behavior: s
 	local width = if model:GetAttribute("IsBoss") then 16 elseif behavior == "firearc" then 14 else 9
 	local primary: Part? = nil
 
-	-- UNIQUE telegraphs by folklore role
 	if behavior == "firearc" or enemyId == "FireLizard" or enemyId == "EmberSkink" or enemyId == "RigWelder" then
-		-- GROUND fire cone: wedge telegraph then breath
+
 		width = 12 + phase * 2
 		primary = addZone(Vector3.new(width, 0.35, 10), CFrame.new(root.Position.X + facing * width * 0.4, 0.25, Constants.LANE_Z), Color3.fromRGB(255, 100, 20), 0.45)
-		-- cone tip marker
+
 		addZone(Vector3.new(2, 0.5, 2), CFrame.new(root.Position.X + facing * 3, 0.4, Constants.LANE_Z), Color3.fromRGB(255, 220, 60), 0.3)
 	elseif enemyId == "SelfieZombie" or (behavior == "spitter" and enemyId == "SelfieZombie") then
-		-- Flash stun CONE (wide short)
+
 		width = 11
 		primary = addZone(Vector3.new(width * 0.55, 0.4, 12), CFrame.new(root.Position + Vector3.new(facing * width * 0.35, -root.Size.Y * 0.3, 0)), Color3.fromRGB(180, 240, 255), 0.4)
 		addZone(Vector3.new(3, 3, 0.4), CFrame.new(root.Position + Vector3.new(facing * 2, 1.5, 0)), Color3.fromRGB(255, 255, 255), 0.2)
 	elseif enemyId == "CondoKaren" then
-		-- Slow aura ring + clipboard swipe lane
+
 		primary = addZone(Vector3.new(14, 0.3, 14), CFrame.new(root.Position.X, 0.25, Constants.LANE_Z), Color3.fromRGB(255, 80, 120), 0.65)
 		addZone(Vector3.new(10, 0.4, 5), CFrame.new(root.Position + Vector3.new(facing * 5, -root.Size.Y * 0.35, 0)), Color3.fromRGB(200, 40, 80), 0.45)
 		width = 12
 	elseif enemyId == "DroneSpotter" then
-		-- Mark circle then dive
+
 		width = 8
 		primary = addZone(Vector3.new(8, 0.25, 8), CFrame.new(root.Position.X, 0.2, Constants.LANE_Z), Color3.fromRGB(100, 255, 180), 0.4)
-		-- dive lane
+
 		addZone(Vector3.new(6, 0.35, 5), CFrame.new(root.Position.X, 0.3, Constants.LANE_Z), Color3.fromRGB(255, 80, 80), 0.5)
 	elseif behavior == "burrower" or enemyId == "BurrowSnake" then
-		-- Dirt ring then pop
+
 		width = 7
 		primary = addZone(Vector3.new(7, 0.3, 7), CFrame.new(root.Position.X, 0.2, Constants.LANE_Z), Color3.fromRGB(180, 140, 80), 0.4)
 	elseif behavior == "scuttle" or enemyId == "BeachCrab" or enemyId == "OffshoreCrab" or enemyId == "CrabKingBoss" or enemyId == "HermitCrab" then
-		-- Pinch combo: two short telegraphs (left then right)
+
 		width = 8
 		primary = addZone(Vector3.new(7, 0.4, 5), CFrame.new(root.Position + Vector3.new(facing * 4, -root.Size.Y * 0.3, 0)), Color3.fromRGB(255, 120, 80), 0.45)
 		addZone(Vector3.new(5, 0.35, 4), CFrame.new(root.Position + Vector3.new(facing * 6.5, -root.Size.Y * 0.3, 0.5)), Color3.fromRGB(255, 180, 100), 0.55)
 	elseif behavior == "puddle" or enemyId == "OilGator" or enemyId == "OilPuddleLayer" then
-		-- Sludge puddle leave-behind telegraph
+
 		width = 10
 		primary = addZone(Vector3.new(10, 0.3, 6), CFrame.new(root.Position.X + facing * 4, 0.2, Constants.LANE_Z), Color3.fromRGB(40, 50, 30), 0.4)
 	elseif behavior == "summoner" then
 		width = 10
 		primary = addZone(Vector3.new(10, 0.35, 10), CFrame.new(root.Position.X, 0.25, Constants.LANE_Z), Color3.fromRGB(180, 80, 255), 0.5)
 	elseif model:GetAttribute("IsBoss") and enemyId == "Spillfather" then
-		-- Phase patterns: 1 slam lane, 2 double slam + summon, 3 arena slick ring
+
 		if phase <= 1 then
 			width = 16
 			primary = addZone(Vector3.new(16, 0.45, 8), CFrame.new(root.Position + Vector3.new(facing * 8, -1, 0)), Color3.fromRGB(255, 120, 0), 0.4)
@@ -651,7 +648,6 @@ function EnemyService._TelegraphAttack(model: Model, target: Player, behavior: s
 		primary = zones[1]
 	end
 
-	-- claw snap / attack telegraph anim
 	local elapsed = 0
 	while elapsed < tele do
 		local step = task.wait(0.05)
@@ -694,7 +690,7 @@ function EnemyService._TelegraphAttack(model: Model, target: Player, behavior: s
 				break
 			end
 		end
-		-- Karen slow aura: soft damage + attribute flag
+
 		if hit and enemyId == "CondoKaren" then
 			char:SetAttribute("SlowUntil", os.clock() + 1.4)
 		end

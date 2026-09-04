@@ -38,7 +38,6 @@ local function tryInteract()
 	end
 end
 
-
 local comboHint = 0
 local lastSwingAt = 0
 local attackBufferedUntil = 0
@@ -80,7 +79,7 @@ local function tryAttack()
 	if now >= attackReadyAt then
 		doSwingFire()
 	else
-		-- Buffer: fire as soon as recovery ends (Skul-like)
+
 		attackBufferedUntil = now + 0.12
 		task.delay(attackReadyAt - now, function()
 			if os.clock() <= attackBufferedUntil + 0.02 and os.clock() >= attackReadyAt - 0.01 then
@@ -101,7 +100,7 @@ function InputController.Start()
 		if gp or not InputController._enabled then
 			return
 		end
-		-- Don't let Space eat through draft/newspaper/steve panels
+
 		local pg = Players.LocalPlayer:FindFirstChild("PlayerGui")
 		if pg and input.KeyCode == Enum.KeyCode.Space then
 			if pg:FindFirstChild("FM_Newspaper") or pg:FindFirstChild("FM_Draft") or pg:FindFirstChild("FM_Steve") or pg:FindFirstChild("FM_Credits") then
@@ -117,10 +116,10 @@ function InputController.Start()
 		elseif k == Enum.KeyCode.Q then
 			fire("RequestSwap")
 		elseif k == Enum.KeyCode.LeftShift then
-			-- handled by MovementController
+
 		elseif k == Enum.KeyCode.E then
 			tryInteract()
-			-- Phase 1: weapon keys 1–3 stubs removed (Phase 3 owns weapons). No silent no-ops.
+
 		end
 	end)
 

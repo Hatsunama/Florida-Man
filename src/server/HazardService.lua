@@ -1,10 +1,4 @@
 --!strict
---[[ Phase 6 — hazard / world tick helpers extracted from GameService.
-
-	Owns: timed hazard duty cycle, oil/water slow, fryer/slush/pipe damage,
-	conveyor push, wind, jump pads, checkpoint markers, soft-fall respawn,
-	turtle ProximityPrompt re-attach.
-]]
 
 local Workspace = game:GetService("Workspace")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -28,7 +22,7 @@ export type HazardCtx = {
 local function tickTimedHazard(part: BasePart): boolean
 	local period = part:GetAttribute("HazardPeriod")
 	if typeof(period) ~= "number" or period <= 0 then
-		return true -- always active
+		return true
 	end
 	local duty = (part:GetAttribute("HazardDuty") :: number?) or 0.5
 	local phase = (os.clock() % period) / period
@@ -58,7 +52,7 @@ local function scanHazards(
 		if not child:IsA("BasePart") then
 			continue
 		end
-		-- Moving lab samples
+
 		if child:GetAttribute("ConveyorMove") then
 			local ox = (child:GetAttribute("ConveyorOriginX") :: number?) or child.Position.X
 			local amp = (child:GetAttribute("ConveyorAmp") :: number?) or 6
@@ -199,7 +193,6 @@ local function softFallAndLane(
 	end
 end
 
---[[ Tick hazards + soft-fall for one player. Mutates ctx.checkpointX / moveSpeed. ]]
 function HazardService.Tick(
 	player: Player,
 	ctx: HazardCtx,

@@ -1,16 +1,21 @@
 # Florida Man — Audit Index
 
-**Full-system audit (ruthless):** [`docs/AUDIT_FULL.md`](docs/AUDIT_FULL.md)  
-**100× improvement plan (phased):** [`docs/PLAN_100X.md`](docs/PLAN_100X.md)  
+**Gen-2 layer audit (ruthless):** [`docs/AUDIT_LAYERS.md`](docs/AUDIT_LAYERS.md)  
+**Next improvement plan:** [`docs/PLAN_NEXT.md`](docs/PLAN_NEXT.md)  
+**Prior full-system audit:** [`docs/AUDIT_FULL.md`](docs/AUDIT_FULL.md)  
+**Phases 0–6 scorecard:** [`docs/AUDIT_FINAL.md`](docs/AUDIT_FINAL.md)  
+**Prior 100× plan (executed):** [`docs/PLAN_100X.md`](docs/PLAN_100X.md)  
 **Phase 2 art audit:** [docs/AUDIT_PHASE2.md](docs/AUDIT_PHASE2.md)  
 **Phase 3 combat audit:** [docs/AUDIT_PHASE3.md](docs/AUDIT_PHASE3.md)  
-**Art pipeline:** [docs/ART_PIPELINE.md](docs/ART_PIPELINE.md)  
+**Art pipeline:** [docs/ART_PIPELINE.md](docs/ART_PIPELINE.md)
 
-Audited HEAD for the full pass: `8e260c8` (2026-09-04 ET).  
-The sections below are **historical P0 / rebuild notes** kept for regression context. New work should treat `docs/AUDIT_FULL.md` as the source of truth for grades and open defects.
+Audited HEAD for Gen-2 layers: `a28a266` (2026-09-04 ET) + this commit.  
+**Source of truth for open defects / layer leaks:** `docs/AUDIT_LAYERS.md`.  
+**Source of truth for next work:** `docs/PLAN_NEXT.md` (popup-text dialogue policy; comment hygiene).
+
+Historical P0 / rebuild notes below are regression context only.
 
 ---
-
 # Florida Man — P0 Quality Audit
 
 **Date:** 2026-09-04 (America/New_York)  

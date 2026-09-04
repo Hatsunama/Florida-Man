@@ -1,6 +1,4 @@
 --!strict
---[[ Core run loop: hub → stages → draft → finale → credits. Death → beach.
-	Phase 6: MetaService (DataStore) + HazardService extracted; draft daily luck. ]]
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -34,8 +32,8 @@ export type RunState = {
 	stageIndex: number,
 	hp: number,
 	maxHp: number,
-	personas: { string }, -- up to 2
-	activePersona: number, -- 1 or 2
+	personas: { string },
+	activePersona: number,
 	unlockedPersonas: { [string]: boolean },
 	personaRarity: { [string]: string },
 	items: { string },
@@ -60,7 +58,7 @@ export type RunState = {
 	runActive: boolean,
 	combo: number,
 	lastAttackAt: number,
-	lastHurtAt: number, -- for swap-within-2s punish bonus
+	lastHurtAt: number,
 	skillReadyAt: number,
 	swapReadyAt: number,
 	dodgeReadyAt: number,
@@ -73,7 +71,7 @@ export type RunState = {
 	tutorial: any,
 	steveEvents: { [string]: boolean },
 	pendingSteveEvent: string?,
-	midRoomState: string, -- idle | locked | cleared
+	midRoomState: string,
 	lastActShown: number,
 }
 
@@ -84,7 +82,6 @@ local function persistMeta(player: Player, s: RunState)
 	MetaService.CaptureFromRun(player, s.deaths, s.sunburn, s.unlockedPersonas, s.stageIndex)
 	MetaService.Save(player)
 end
-
 
 local function pushState(player: Player)
 	local s = states[player]
@@ -176,7 +173,6 @@ local function computeStats(s: RunState)
 	end
 end
 
-
 local function hasItemSpecial(s: RunState, special: string): boolean
 	for _, id in s.items do
 		local it = Items.Get(id)
@@ -194,17 +190,16 @@ end
 
 local function applyOnHitSpecials(player: Player, s: RunState, model: Model, baseDamage: number): number
 	local dmg = baseDamage
-	-- paperCut: crit-ish bonus
+
 	if hasItemSpecial(s, "paperCut") and rng:NextNumber() < (0.18 + s.luck * 0.25) then
 		dmg *= 1.45
 		toast(player, "Paper cut crit!")
 	end
-	-- radio: vs Oil Gators
+
 	if hasItemSpecial(s, "radio") and model:GetAttribute("EnemyId") == "OilGator" then
 		dmg *= 1.35
 	end
-	-- antiCorp already in computeStats; badge too
-	-- lifesteal from HEROIC set (3 inscriptions)
+
 	if hasHeroicLifesteal(s) then
 		local heal = math.max(2, math.floor(dmg * 0.06))
 		s.hp = math.min(s.maxHp, s.hp + heal)
@@ -275,7 +270,6 @@ local function teleportPlayer(player: Player, cf: CFrame)
 	end
 end
 
-
 local function applyPersonaLook(player: Player)
 	local s = states[player]
 	local char = player.Character
@@ -293,7 +287,7 @@ local function applyPersonaLook(player: Player)
 		char:SetAttribute("WeaponId", weapon.id)
 		char:SetAttribute("WeaponKind", weapon.kind)
 	end
-	-- BodyColors tint (R6/R15)
+
 	local bc = char:FindFirstChildOfClass("BodyColors")
 	if not bc then
 		bc = Instance.new("BodyColors")
@@ -307,7 +301,7 @@ local function applyPersonaLook(player: Player)
 	bc.RightArmColor3 = skin
 	bc.LeftLegColor3 = accent:Lerp(skin, 0.5)
 	bc.RightLegColor3 = accent:Lerp(skin, 0.5)
-	-- Highlight outline for readable persona identity
+
 	local hl = char:FindFirstChild("FM_PersonaHighlight")
 	if not hl then
 		hl = Instance.new("Highlight")
@@ -337,7 +331,7 @@ local function applyCharacterSpeed(player: Player)
 		base *= Constants.HANGOVER_SLOW
 	end
 	s.moveSpeed = base
-	-- Client MovementController drives motion; keep WalkSpeed 0 to avoid fight
+
 	hum.WalkSpeed = 0
 	hum.JumpPower = 0
 	hum.AutoRotate = false
@@ -388,7 +382,7 @@ local function spawnStageThreats(player: Player)
 	if not stage or stage.isHub then
 		return
 	end
-	-- turtles
+
 	if stage.rescueTurtles > 0 then
 		s.turtlesNeeded = stage.rescueTurtles
 		s.turtlesRescued = 0
@@ -429,7 +423,7 @@ function GameService.LoadStage(player: Player, stageId: string)
 	if stage.index == 1 then
 		TutorialService.OnStage1Loaded(player, s.tutorial)
 	end
-	-- Act 1 collar hint on Boardwalk (stage 2)
+
 	if stage.index == 2 and not s.steveEvents["collarHint"] then
 		task.delay(3.5, function()
 			if not s.steveEvents["collarHint"] then
@@ -453,14 +447,13 @@ function GameService.LoadStage(player: Player, stageId: string)
 	Remotes.Get("StageLoaded"):FireClient(player, stageId, stage.name)
 	pushState(player)
 
-	-- Act opener + Steve vignette when crossing into a new act
 	local act = Balance.ActNumber(stage.index)
 	local actChanged = (act ~= s.lastActShown) and stage.index >= 1
 	if actChanged then
 		s.lastActShown = act
 		task.delay(0.35, function()
 			toast(player, Story.ActOpener(act))
-			-- Phase 5: rest toast between acts (shop density note)
+
 			toast(player, Balance.RestToast(act))
 			Remotes.Get("ShowTagline"):FireClient(player, Story.SteveLine(act, s.deaths), "Captain Steve")
 		end)
@@ -476,7 +469,7 @@ function GameService.LoadStage(player: Player, stageId: string)
 			Remotes.Get("ShowTagline"):FireClient(player, Constants.TAGLINE_MUTANTS, "Captain Steve")
 		end)
 	elseif (not actChanged) and stage.steveAct and stage.steveAct >= 2 then
-		-- Non-transition stages still get a Steve line (avoid double with act vignette)
+
 		task.delay(3.0, function()
 			Remotes.Get("ShowTagline"):FireClient(player, Story.SteveLine(stage.steveAct, s.deaths), "Captain Steve")
 		end)
@@ -495,7 +488,7 @@ local function unlockPersona(player: Player, personaId: string)
 	s.personaRarity[personaId] = s.personaRarity[personaId] or "Common"
 	local def = Personas.Get(personaId)
 	toast(player, "Persona unlocked: " .. (if def then def.name else personaId))
-	-- auto-equip if second slot empty
+
 	if #s.personas < 2 then
 		table.insert(s.personas, personaId)
 		toast(player, "Equipped to persona slot 2!")
@@ -508,7 +501,7 @@ local function onEnemyKilled(player: Player, enemyId: string, _model: Model)
 	if not s then
 		return
 	end
-	-- sunburnFind item special: bonus meta currency on kills
+
 	if hasItemSpecial(s, "sunburnFind") then
 		local gain = 1 + (if rng:NextNumber() < (0.12 + s.luck) then 2 else 0)
 		s.sunburn += gain
@@ -518,7 +511,7 @@ local function onEnemyKilled(player: Player, enemyId: string, _model: Model)
 		unlockPersona(player, def.dropsPersona)
 	end
 	if def and def.dropsItem and rng:NextNumber() < 0.35 + s.luck then
-		-- grant if space else convert hint
+
 		if #s.items < math.max(s.itemSlots, 8) then
 			table.insert(s.items, def.dropsItem)
 			local it = Items.Get(def.dropsItem)
@@ -535,7 +528,7 @@ local function onEnemyKilled(player: Player, enemyId: string, _model: Model)
 		end)
 		return
 	end
-	-- stage unlock personas from stage def when miniboss dies
+
 	local stage = Stages.Get(s.stageId)
 	if stage and stage.miniboss == enemyId and stage.unlockPersona then
 		unlockPersona(player, stage.unlockPersona)
@@ -586,7 +579,7 @@ function GameService.FinishStage(player: Player)
 	if not stage or stage.isHub then
 		return
 	end
-	-- turtle gate
+
 	if stage.rescueTurtles > 0 and s.turtlesRescued < s.turtlesNeeded then
 		toast(player, "Rescue all turtles before leaving! (Never harm them.)")
 		return
@@ -595,18 +588,18 @@ function GameService.FinishStage(player: Player)
 		toast(player, "The Spillfather still blocks the exit.")
 		return
 	end
-	-- heal from Novelty Mug
+
 	for _, id in s.items do
 		local it = Items.Get(id)
 		if it and it.special == "stageHeal" then
 			s.hp = math.min(s.maxHp, s.hp + 20)
 		end
 	end
-	-- Gas station unlock golf cart
+
 	if stage.id == "GasStationLegends" then
 		unlockPersona(player, "GolfCartBandit")
 	end
-	-- Weapon unlocks along the arc
+
 	local weaponDrops = {
 		DaytonaHangover = "FlipFlopSlap",
 		BoardwalkChaos = "PoolNoodle",
@@ -683,13 +676,13 @@ function GameService.StartRun(player: Player)
 	if not s then
 		return
 	end
-	-- Only from hub (ProximityPrompt / E). Ignore duplicate triggers mid-run.
+
 	if not s.inHub or s.runActive then
 		return
 	end
 	s.inHub = false
-	s.runActive = true -- claim immediately so double E/prompt cannot re-enter
-	-- fresh run keeping meta deaths / unlocked? For roguelite: keep unlocks + sunburn + deaths, reset items/hp/stage
+	s.runActive = true
+
 	local deaths = s.deaths
 	local unlocked = s.unlockedPersonas
 	local rarities = s.personaRarity
@@ -706,7 +699,7 @@ function GameService.StartRun(player: Player)
 	s.itemSlots = itemSlots
 	s.unlockedPersonas.BeachBurnout = true
 	s.personas = { "BeachBurnout" }
-	-- if player has another unlocked, offer second slot filled with CrabKing if owned else first unlocked non-starter
+
 	for id in unlocked do
 		if id ~= "BeachBurnout" and #s.personas < 2 then
 			table.insert(s.personas, id)
@@ -756,14 +749,14 @@ function GameService.ApplyDamageToPlayer(player: Player, amount: number)
 	if CombatService.HasIFrames(player) then
 		return
 	end
-	-- Turtle shield absorb counter (server-owned)
+
 	amount = CombatService.ConsumeShieldAbsorb(player, amount)
 	if amount <= 0 then
 		toast(player, "Shell absorbed the hit!")
 		pushState(player)
 		return
 	end
-	-- absorb item (oil/sludge resist)
+
 	for _, id in s.items do
 		local it = Items.Get(id)
 		if it and it.special == "absorb" then
@@ -828,12 +821,11 @@ function GameService.DoAttack(player: Player)
 
 	local function applyHit(model: Model, dmg: number, kb: number, hv: boolean)
 		if hitEnemy(player, s, model, dmg, kb, hv) then
-			-- killed
+
 		end
 		hits += 1
 	end
 
-	-- Ally rescue pass (all weapon kinds)
 	for _, model in EnemyService.GetAlive() do
 		if model:GetAttribute("IsAlly") then
 			local root = model.PrimaryPart
@@ -844,7 +836,7 @@ function GameService.DoAttack(player: Player)
 	end
 
 	if wkind == "ranged" then
-		-- Fast lane projectile — distinct from melee InLaneMelee
+
 		CombatService.SpawnProjectile({
 			origin = origin,
 			facing = s.facing,
@@ -859,9 +851,9 @@ function GameService.DoAttack(player: Player)
 				applyHit(model, dmg, kb, hv)
 			end,
 		})
-		-- real connects fire hitConnect from EnemyService
+
 	elseif wkind == "thrown" then
-		-- Arcing gravity-ish projectile
+
 		CombatService.SpawnProjectile({
 			origin = origin,
 			facing = s.facing,
@@ -877,7 +869,7 @@ function GameService.DoAttack(player: Player)
 			end,
 		})
 	else
-		-- melee = lane InLaneMelee (current)
+
 		for _, model in EnemyService.GetAlive() do
 			if model:GetAttribute("IsAlly") then
 				continue
@@ -944,7 +936,7 @@ function GameService.DoSkill(player: Player)
 	local origin = hrp.Position
 
 	if persona.skillKind == "shield" then
-		-- Turtle: temporary damage absorb counter (not VFX-only / not only i-frames)
+
 		s.hp = math.min(s.maxHp, s.hp + 18)
 		CombatService.SetShieldAbsorb(player, Constants.SHIELD_ABSORB_AMOUNT)
 		if char then
@@ -953,7 +945,7 @@ function GameService.DoSkill(player: Player)
 				if char then
 					char:SetAttribute("ShieldAbsorbVFX", nil)
 				end
-				-- absorb may already be spent; clear remainder after window
+
 				if CombatService.GetShieldAbsorb(player) > 0 then
 					CombatService.ClearShieldAbsorb(player)
 				end
@@ -961,7 +953,7 @@ function GameService.DoSkill(player: Player)
 		end
 		toast(player, persona.skillName .. "! Shell sanctuary — absorb ready.")
 	elseif persona.skillKind == "summon" then
-		-- Snake: lingering hitbox ~2s (distinct from instant AOE)
+
 		CombatService.SpawnLingeringHitbox({
 			origin = origin,
 			facing = facing,
@@ -1003,7 +995,7 @@ function GameService.DoSkill(player: Player)
 			end
 		end
 	elseif persona.skillKind == "dash" then
-		-- Cart Bandit: armor frames via SetIFrames; CrabKing/others dash without full armor
+
 		local isCart = persona.id == "GolfCartBandit"
 		if isCart then
 			CombatService.SetIFrames(player, Constants.CART_DASH_IFRAME)
@@ -1052,7 +1044,7 @@ function GameService.DoDodge(player: Player, facingArg: number?)
 		s.facing = if facingArg >= 0 then 1 else -1
 	end
 	local char = player.Character
-	-- Client MovementController performs the dash + trail; server grants i-frames only
+
 	CombatService.SetIFrames(player, Constants.DODGE_IFRAME)
 	if char then
 		char:SetAttribute("IFrameVFX", true)
@@ -1084,7 +1076,7 @@ function GameService.DoSwap(player: Player)
 	CombatService.MarkSwap(player, Constants.SWAP_COOLDOWN)
 	s.activePersona = if s.activePersona == 1 then 2 else 1
 	applyCharacterSpeed(player)
-	-- swap-attack combo route: damage + brief i-frame + readable toast/VFX
+
 	local persona = activePersonaDef(s)
 	local char = player.Character
 	local hrp = char and char:FindFirstChild("HumanoidRootPart") :: BasePart?
@@ -1146,7 +1138,7 @@ function GameService.TickWaves(player: Player)
 			local room = math.max(0, maxH - EnemyService.CountHostile())
 			local toSpawn = Balance.WaveSpawnCap(stage.index, math.min(wave.count, math.max(1, room)))
 			for i = 1, toSpawn do
-				-- Phase 1: slightly wider spacing on teach stages so telegraphs read
+
 				local gap = if stage.index <= 3 then 10 + i * 6 else 0
 				local x = hrp.Position.X + 18 + gap + rng:NextNumber(0, if stage.index <= 3 then 8 else 12)
 				EnemyService.Spawn(wave.enemyId, x)
@@ -1171,14 +1163,14 @@ function GameService.TickWaves(player: Player)
 	if stage.boss and not s.bossSpawned and progress >= 0.55 then
 		s.bossSpawned = true
 		EnemyService.Spawn(stage.boss, math.min(stage.length - 25, hrp.Position.X + 28))
-		-- adds
+
 		EnemyService.Spawn("MutantAdd", hrp.Position.X + 20)
 		EnemyService.Spawn("MutantAdd", hrp.Position.X + 32)
 		EnemyService.Spawn("OilGator", hrp.Position.X + 36)
 		toast(player, "THE SPILLFATHER — GulfGulp's final headline!")
 		Remotes.Get("ShowTagline"):FireClient(player, Constants.TAGLINE_MUTANTS, "Captain Steve")
 	end
-	-- Phase 4 MidGate room system: enter zone → lock arena → spawn wave → clear → fanfare unlock
+
 	do
 		local world = Workspace:FindFirstChild("GameWorld")
 		local mid = world and world:FindFirstChild("MidGate")
@@ -1214,7 +1206,7 @@ function GameService.TickWaves(player: Player)
 					EnemyService.Spawn(pick.id, mid.Position.X - 6 - i * 5)
 				end
 			elseif s.midRoomState == "locked" and EnemyService.CountHostile() == 0 then
-				-- Phase 5 softlock hunt: once locked, 0 hostiles always unlocks (never stick locked)
+
 				s.midRoomState = "cleared"
 				mid:SetAttribute("Locked", false)
 				mid.CanCollide = false
@@ -1234,20 +1226,20 @@ function GameService.TickWaves(player: Player)
 			end
 		end
 	end
-	-- reach gate
+
 	if progress >= 0.92 and EnemyService.CountHostile() == 0 then
 		if stage.boss and not s.bossDefeated then
 			return
 		end
 		GameService.FinishStage(player)
 	elseif progress >= 0.95 and EnemyService.CountHostile() <= 1 and not stage.boss then
-		-- allow clear with stragglers almost done — wait until 0 hostiles mostly
+
 	end
-	-- soft clear: if past 0.88 and killed miniboss requirement
+
 	if progress >= 0.88 and not stage.boss and EnemyService.CountHostile() == 0 then
 		GameService.FinishStage(player)
 	end
-	-- force-clear assist: if miniboss required and spawned and dead, allow exit near gate
+
 	if stage.miniboss and s.minibossSpawned and progress >= 0.9 and EnemyService.CountHostile() == 0 then
 		GameService.FinishStage(player)
 	end
@@ -1267,7 +1259,7 @@ function GameService.InitPlayer(player: Player)
 	for _, id in profile.unlockedPersonas do
 		s0.unlockedPersonas[id] = true
 	end
-	-- equip second unlocked if any
+
 	for id in s0.unlockedPersonas do
 		if id ~= "BeachBurnout" and #s0.personas < 2 then
 			table.insert(s0.personas, id)
@@ -1279,14 +1271,14 @@ function GameService.InitPlayer(player: Player)
 	end
 	player.CharacterAdded:Connect(function(char)
 		local hrp = char:WaitForChild("HumanoidRootPart", 8) :: BasePart?
-		-- Client-authoritative 2.5D mover: ownership must be on the player or server overwrites velocity → rubber-band
+
 		if hrp then
 			pcall(function()
 				hrp:SetNetworkOwner(player)
 			end)
 		end
 		task.wait(0.3)
-		-- Re-assert after teleport / physics settle
+
 		if hrp and hrp.Parent then
 			pcall(function()
 				hrp:SetNetworkOwner(player)
@@ -1304,7 +1296,7 @@ function GameService.InitPlayer(player: Player)
 			local hum = char:FindFirstChildOfClass("Humanoid")
 			if hum then
 				hum.Died:Connect(function()
-					-- use our HP system primarily; if humanoid dies, treat as kill
+
 					GameService.KillPlayer(player)
 				end)
 			end
@@ -1319,8 +1311,6 @@ function GameService.GetState(player: Player): RunState?
 	return states[player]
 end
 
-
-
 local function talkCaptainSteve(player: Player)
 	local s = states[player]
 	if not s then
@@ -1333,7 +1323,7 @@ local function talkCaptainSteve(player: Player)
 	elseif s.deaths > 0 then
 		act = math.clamp(Balance.ActNumber(s.stageIndex), 1, 5)
 	end
-	-- Phase 1: prefer event-tied Act 1 lines when pending / recently earned
+
 	local line: string
 	if s.pendingSteveEvent then
 		line = Story.SteveEventLine(s.pendingSteveEvent) or Story.SteveLine(act, s.deaths)
@@ -1407,7 +1397,7 @@ function GameService.SetupRemotes()
 	end)
 
 	Remotes.Get("RescueTurtle").OnServerEvent:Connect(function(player)
-		-- Client assist: rescue nearest ally turtle within range
+
 		local char = player.Character
 		local hrp = char and char:FindFirstChild("HumanoidRootPart") :: BasePart?
 		if not hrp then
@@ -1437,15 +1427,15 @@ function GameService.SetupRemotes()
 		elseif beat == "attack" then
 			TutorialService.OnAttack(player, f)
 		elseif beat == "dodge" then
-			-- only credit dodge teach if they already heard attack tip
+
 			if f.attack then
 				TutorialService.OnDodgeDuringTele(player, f)
 			end
 		elseif beat == "nearColdOne" then
 			if f.dodgeTele and not f.coldOne then
-				-- gentle nudge once via existing coldOne path toast only if not taken
+
 				if not s.coldOneTaken then
-					-- OnDodge already tips Cold One; no extra spam
+
 				end
 			end
 		end
@@ -1492,7 +1482,7 @@ function GameService.SetupRemotes()
 			GameService.FinishRun(player)
 			return
 		end
-		-- draft
+
 		s.awaitingDraft = true
 		local dailyLuck = Balance.DailyLuckBonus()
 		local picks = Items.RollDraft(rng, s.luck + dailyLuck, Constants.DRAFT_CHOICES)
@@ -1546,7 +1536,7 @@ function GameService.SetupRemotes()
 		if not s.unlockedPersonas[personaId] then
 			return
 		end
-		-- can't smash if currently only equipped copy and needed — allow smash of unlocked non-equipped
+
 		local equipped = false
 		for _, id in s.personas do
 			if id == personaId then
@@ -1555,7 +1545,7 @@ function GameService.SetupRemotes()
 		end
 		if equipped then
 			toast(player, "Unequip/swap off that persona first (keep it off active slots).")
-			-- simplify: allow smash anyway but remove from slots
+
 			local newSlots = {}
 			for _, id in s.personas do
 				if id ~= personaId then
@@ -1625,7 +1615,6 @@ function GameService.SetupRemotes()
 		end
 	end)
 
-	-- pending damage from enemy AI
 	task.spawn(function()
 		while true do
 			task.wait(0.05)
@@ -1640,7 +1629,7 @@ function GameService.SetupRemotes()
 				end
 				GameService.TickWaves(player)
 				tryColdOnePickup(player)
-				-- hub interact proximity
+
 				local st = states[player]
 				if st and st.inHub then
 					local char = player.Character
@@ -1649,12 +1638,11 @@ function GameService.SetupRemotes()
 					if hrp and world then
 						local flame = world:FindFirstChild("Flame")
 						if flame and flame:IsA("BasePart") and (flame.Position - hrp.Position).Magnitude < 8 then
-							-- client prompts start; server also accepts RequestStartRun
+
 						end
 					end
 				end
 
-				-- Phase 6: hazards / soft-fall / turtle prompts → HazardService
 				local stH = states[player]
 				if stH then
 					local ctx = {

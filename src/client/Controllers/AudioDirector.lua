@@ -1,9 +1,4 @@
 --!strict
---[[ Phase 5 AudioDirector — SoundGroups + ducking + biome beds + PlaySound.
-	Master / SFX / Music / UI / Ambience under SoundService.
-	Ducking: UI stingers briefly lower Music + Ambience.
-]]
-
 local SoundService = game:GetService("SoundService")
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
@@ -13,6 +8,12 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local AudioCatalog = require(Shared:WaitForChild("AudioCatalog"))
 
 local AudioDirector = {}
+
+-- Policy: conversations = Tagline/Toast/Newspaper popups only. No dialogue VO/SFX.
+local DIALOGUE_SFX_BLOCK = {
+	SFX_SteveBeep = true,
+	SFX_Typewriter = true,
+}
 
 local groups: { [string]: SoundGroup } = {}
 local bedFolder: Folder? = nil
@@ -46,7 +47,6 @@ local function ensureGroups()
 				g.Volume = AudioCatalog.GROUP_VOLUME[name] or 0.8
 				g.Parent = SoundService
 			end
-			-- Sibling groups; ducking scales Music/Ambience volumes
 			groups[name] = g :: SoundGroup
 		end
 	end
@@ -70,6 +70,9 @@ end
 
 function AudioDirector.Play(name: string, opts: { volume: number?, pitch: number? }?)
 	ensureGroups()
+	if DIALOGUE_SFX_BLOCK[name] then
+		return
+	end
 	local id = AudioCatalog.SoundId(name)
 	if id == "" then
 		warn("[AudioDirector] empty SoundId for", name)
@@ -101,6 +104,9 @@ end
 
 --- Prefer StageSounds clone if present (spatial), else one-shot via Play
 function AudioDirector.PlayFromWorld(soundName: string)
+	if DIALOGUE_SFX_BLOCK[soundName] then
+		return
+	end
 	local world = Workspace:FindFirstChild("GameWorld")
 	local folder = world and world:FindFirstChild("StageSounds")
 	local src = folder and folder:FindFirstChild(soundName)
@@ -200,7 +206,6 @@ function AudioDirector.Start()
 			AudioDirector.SyncBiomeFromWorld()
 		end
 	end)
-	-- keep reference so Luau doesn't think unused
 	local _ = player
 end
 
