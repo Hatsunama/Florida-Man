@@ -1,7 +1,7 @@
 # AUDIT — Phase 3 Combat Depth (Skul-like swap mastery)
 
 **Date:** 2026-09-04 (America/New_York)  
-**Commit:** `d81346b`  
+**Commit:** `0f31859`  
 **Base HEAD before work:** `05f5a54`  
 **Scope:** CombatService ownership, weapon kinds, persona movesets, swap mastery, distinct skills, item specials, boss hyper armor, anti-spam docs. No Studio.
 
