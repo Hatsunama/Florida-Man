@@ -1,6 +1,7 @@
 # AUDIT — Phase 2 Art Pipeline (in-engine ceiling)
 
 **Date:** 2026-09-04 (America/New_York)  
+**Commit:** `b94009b`  
 **Base:** Phase 1 `97c7bec` / slice `729f1fd`  
 **Scope:** Pipeline docs + Part/SpecialMesh/Material/Animation **fallbacks** — **no invented MeshPart / Animation rbxassetids**
 
