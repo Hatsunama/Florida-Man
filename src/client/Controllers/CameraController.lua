@@ -5,6 +5,7 @@ local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Constants = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Constants"))
+local Settings = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Settings"))
 
 local CameraController = {}
 
@@ -35,6 +36,9 @@ end
 
 function CameraController.Shake(amount: number, duration: number?)
 	local player = Players.LocalPlayer
+	if Settings.IsReduceMotion(player) then
+		return
+	end
 	local enabled = player:GetAttribute("ShakeEnabled")
 	if enabled == false then
 		return
@@ -125,7 +129,10 @@ function CameraController.Start()
 
 		local land = char and char:GetAttribute("LandSquash")
 		local landBump = 0
-		if typeof(land) == "number" and os.clock() - land < 0.15 then
+		if not Settings.IsReduceMotion(Players.LocalPlayer)
+			and typeof(land) == "number"
+			and os.clock() - land < 0.15
+		then
 			landBump = -0.8
 		end
 

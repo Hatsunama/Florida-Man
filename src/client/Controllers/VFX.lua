@@ -3,7 +3,10 @@
 
 local Debris = game:GetService("Debris")
 local TweenService = game:GetService("TweenService")
-local Constants = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("Constants"))
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Constants = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Constants"))
+local Settings = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Settings"))
 
 local VFX = {}
 
@@ -236,6 +239,9 @@ function VFX.SwingSlash(hrp: BasePart, facing: number, combo: number?, vfxKind: 
 end
 
 function VFX.HitSpark(at: Vector3, heavy: boolean?)
+	if Settings.IsReduceMotion(Players.LocalPlayer) then
+		return
+	end
 	local p = Instance.new("Part")
 	p.Anchored = true
 	p.CanCollide = false
@@ -270,6 +276,9 @@ function VFX.HitSpark(at: Vector3, heavy: boolean?)
 end
 
 function VFX.SwapBurst(hrp: BasePart, color: Color3?)
+	if Settings.IsReduceMotion(Players.LocalPlayer) then
+		return
+	end
 	local col = color or Color3.fromRGB(255, 160, 40)
 	local ring = Instance.new("Part")
 	ring.Shape = Enum.PartType.Cylinder

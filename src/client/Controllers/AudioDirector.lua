@@ -6,6 +6,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local AudioCatalog = require(Shared:WaitForChild("AudioCatalog"))
+local Settings = require(Shared:WaitForChild("Settings"))
 
 local AudioDirector = {}
 
@@ -52,15 +53,55 @@ local function ensureGroups()
 	end
 end
 
+local muteMaster = false
+local muteSFX = false
+local muteAmbience = false
+
 local function applyDuck()
 	local music = groups.Music
 	local amb = groups.Ambience
 	if not music or not amb then
 		return
 	end
+	if muteMaster then
+		music.Volume = 0
+		amb.Volume = 0
+		return
+	end
 	local ducked = os.clock() < duckUntil
-	music.Volume = if ducked then (AudioCatalog.GROUP_VOLUME.Music * 0.35) else AudioCatalog.GROUP_VOLUME.Music
-	amb.Volume = if ducked then (AudioCatalog.GROUP_VOLUME.Ambience * 0.4) else AudioCatalog.GROUP_VOLUME.Ambience
+	local musicBase = AudioCatalog.GROUP_VOLUME.Music
+	local ambBase = if muteAmbience then 0 else AudioCatalog.GROUP_VOLUME.Ambience
+	music.Volume = if ducked then (musicBase * 0.35) else musicBase
+	amb.Volume = if ducked then (ambBase * 0.4) else ambBase
+end
+
+function AudioDirector.ApplyMute()
+	ensureGroups()
+	local player = Players.LocalPlayer
+	muteMaster = Settings.GetBool(player, "MuteMaster")
+	muteSFX = Settings.GetBool(player, "MuteSFX")
+	muteAmbience = Settings.GetBool(player, "MuteAmbience")
+	local master = groups.Master
+	if master then
+		master.Volume = if muteMaster then 0 else AudioCatalog.GROUP_VOLUME.Master
+	end
+	local sfx = groups.SFX
+	if sfx then
+		sfx.Volume = if (muteMaster or muteSFX) then 0 else AudioCatalog.GROUP_VOLUME.SFX
+	end
+	local ui = groups.UI
+	if ui then
+		ui.Volume = if (muteMaster or muteSFX) then 0 else AudioCatalog.GROUP_VOLUME.UI
+	end
+	local music = groups.Music
+	if music then
+		music.Volume = if muteMaster then 0 else AudioCatalog.GROUP_VOLUME.Music
+	end
+	local amb = groups.Ambience
+	if amb then
+		amb.Volume = if (muteMaster or muteAmbience) then 0 else AudioCatalog.GROUP_VOLUME.Ambience
+	end
+	applyDuck()
 end
 
 function AudioDirector.Duck(seconds: number?)
@@ -71,6 +112,16 @@ end
 function AudioDirector.Play(name: string, opts: { volume: number?, pitch: number? }?)
 	ensureGroups()
 	if DIALOGUE_SFX_BLOCK[name] then
+		return
+	end
+	if muteMaster then
+		return
+	end
+	local groupNameEarly = AudioCatalog.GroupName(name)
+	if muteSFX and (groupNameEarly == "SFX" or groupNameEarly == "UI") then
+		return
+	end
+	if muteAmbience and groupNameEarly == "Ambience" then
 		return
 	end
 	local id = AudioCatalog.SoundId(name)
@@ -197,6 +248,12 @@ function AudioDirector.Start()
 	end)
 	AudioDirector.StartBiomeBeds("hub")
 	local player = Players.LocalPlayer
+	AudioDirector.ApplyMute()
+	for _, key in { "MuteMaster", "MuteSFX", "MuteAmbience" } do
+		player:GetAttributeChangedSignal(key):Connect(function()
+			AudioDirector.ApplyMute()
+		end)
+	end
 	task.defer(function()
 		local world = Workspace:FindFirstChild("GameWorld") or Workspace:WaitForChild("GameWorld", 10)
 		if world then
@@ -206,7 +263,6 @@ function AudioDirector.Start()
 			AudioDirector.SyncBiomeFromWorld()
 		end
 	end)
-	local _ = player
 end
 
 return AudioDirector

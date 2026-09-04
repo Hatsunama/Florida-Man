@@ -27,6 +27,11 @@ export type MetaProfile = {
 	settings: {
 		ShakeEnabled: boolean,
 		ColorblindTelegraphs: boolean,
+		MuteMaster: boolean,
+		MuteSFX: boolean,
+		MuteAmbience: boolean,
+		ReduceMotion: boolean,
+		TextSpeed: string,
 	},
 }
 

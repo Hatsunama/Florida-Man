@@ -246,18 +246,27 @@ function GameService.SetupRemotes()
 	end)
 
 	Remotes.Get("SyncSettings").OnServerEvent:Connect(function(player, key, value)
-		if typeof(key) ~= "string" or typeof(value) ~= "boolean" then
+		if typeof(key) ~= "string" then
 			return
 		end
-		if key ~= "ShakeEnabled" and key ~= "ColorblindTelegraphs" then
+		if Settings.IsBoolKey(key) then
+			if typeof(value) ~= "boolean" then
+				return
+			end
+			MetaService.UpdateSettings(player, key, value)
+		elseif key == "TextSpeed" then
+			if typeof(value) ~= "string" or not Settings.IsValidTextSpeed(value) then
+				return
+			end
+			MetaService.UpdateSettings(player, key, value)
+		else
 			return
 		end
-		MetaService.UpdateSettings(player, key, value)
 		local st = RunContext.GetState(player)
 		if st then
 			MetaService.CaptureFromRun(player, st.deaths, st.sunburn, st.unlockedPersonas, st.stageIndex)
-			MetaService.Save(player)
 		end
+		MetaService.Save(player)
 	end)
 
 	task.spawn(function()

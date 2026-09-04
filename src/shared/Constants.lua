@@ -38,7 +38,7 @@ local Constants = {
 	SOFT_FALL_TOAST_MAX = 3,
 	COMBAT_REMOTE_RATE = { attack = 8, skill = 4, dodge = 5 }, -- token bucket refill / sec
 	COMBAT_REMOTE_BURST = { attack = 3, skill = 2, dodge = 2 },
-	META_SCHEMA_VERSION = 1,
+	META_SCHEMA_VERSION = 2,
 	KNOCKBACK_BASE = 7,
 	CAMERA_DEPTH = 32, -- side-scroll depth ~30–34
 	-- Phase 3 combat depth

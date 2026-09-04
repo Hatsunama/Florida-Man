@@ -9,6 +9,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Constants = require(Shared:WaitForChild("Constants"))
+local Settings = require(Shared:WaitForChild("Settings"))
 local Remotes = require(Shared:WaitForChild("Remotes"))
 local AnimController = require(script.Parent:WaitForChild("AnimController"))
 
@@ -188,6 +189,9 @@ function MovementController.SetEnabled(on: boolean)
 end
 
 function MovementController.Hitstop(duration: number?)
+	if Settings.IsReduceMotion(Players.LocalPlayer) then
+		return
+	end
 	local d = duration or Constants.HITSTOP
 	hitstopUntil = math.max(hitstopUntil, os.clock() + d)
 end

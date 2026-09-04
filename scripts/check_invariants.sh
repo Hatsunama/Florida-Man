@@ -89,4 +89,25 @@ check "OilResist attr" 'OilResist' src/server/RunContext.lua
 check "Ember dodge buff" 'EMBER_BUFF_DURATION' src/server/CombatFacade.lua
 check "Weapon drops table N3" 'ConspiracyShack' src/server/StageFlowService.lua
 
+# N4 options / a11y / dialogue UX
+check "META_SCHEMA_VERSION = 2" 'META_SCHEMA_VERSION = 2' src/shared/Constants.lua
+check "Meta store v2" 'FloridaMan_Meta_v2' src/server/MetaService.lua
+check "Meta legacy v1 migrate" 'FloridaMan_Meta_v1' src/server/MetaService.lua
+check "MuteMaster setting" 'MuteMaster' src/shared/Settings.lua
+check "MuteSFX setting" 'MuteSFX' src/shared/Settings.lua
+check "MuteAmbience setting" 'MuteAmbience' src/shared/Settings.lua
+check "ReduceMotion setting" 'ReduceMotion' src/shared/Settings.lua
+check "TextSpeed setting" 'TextSpeed' src/shared/Settings.lua
+check "AudioDirector ApplyMute" 'ApplyMute' src/client/Controllers/AudioDirector.lua
+check "Tagline text speed" 'TypewriterDelay' src/client/UI/Tagline.lua
+check "Tagline skip/dismiss" 'tap / click to skip' src/client/UI/Tagline.lua
+absent "Tagline no AudioDirector" 'AudioDirector' src/client/UI/Tagline.lua
+check "HUD Options panel" 'FM_Options' src/client/UI/HUD.lua
+check "Options ≥44px rows" '0, 48' src/client/UI/HUD.lua
+check "ReduceMotion hitstop" 'IsReduceMotion' src/client/Controllers/MovementController.lua
+check "ReduceMotion shake" 'IsReduceMotion' src/client/Controllers/CameraController.lua
+check "SyncSettings TextSpeed" 'TextSpeed' src/server/GameService.lua
+absent "Newspaper open sting" 'SFX_NewspaperSting' src/client/UI/Newspaper.lua
+
+
 exit $fail

@@ -59,10 +59,7 @@ function Newspaper.Show(payload: any)
 	TweenService:Create(dim, TweenInfo.new(0.14, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { BackgroundTransparency = 0.4 }):Play()
 	TweenService:Create(paper, TweenInfo.new(0.16, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { BackgroundTransparency = 0, Position = UDim2.new(0.5, -340, 0.5, -260) }):Play()
 	TweenService:Create(scale, TweenInfo.new(0.18, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = 1 }):Play()
-	pcall(function()
-		local AudioDirector = require(script.Parent.Parent.Controllers:WaitForChild("AudioDirector"))
-		AudioDirector.Play("SFX_NewspaperSting", { volume = 0.55 })
-	end)
+	-- Dialogue policy: popup text only; optional UI click on continue
 
 	local breaking = Instance.new("TextLabel")
 	breaking.Size = UDim2.new(0, 140, 0, 28)
@@ -197,6 +194,10 @@ function Newspaper.Show(payload: any)
 	btn.Parent = paper
 	corner(btn, 8)
 	btn.MouseButton1Click:Connect(function()
+		pcall(function()
+			local AudioDirector = require(script.Parent.Parent.Controllers:WaitForChild("AudioDirector"))
+			AudioDirector.Play("SFX_UIClick", { volume = 0.35 })
+		end)
 		gui:Destroy()
 		if InputController then
 			InputController.SetEnabled(true)

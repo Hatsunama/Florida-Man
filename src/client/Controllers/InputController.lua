@@ -30,6 +30,8 @@ local function uiBlocking(): boolean
 	return pg:FindFirstChild("FM_Newspaper") ~= nil
 		or pg:FindFirstChild("FM_Draft") ~= nil
 		or pg:FindFirstChild("FM_Steve") ~= nil
+		or pg:FindFirstChild("FM_Tagline") ~= nil
+		or pg:FindFirstChild("FM_Options") ~= nil
 		or pg:FindFirstChild("FM_Credits") ~= nil
 end
 

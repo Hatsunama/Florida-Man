@@ -14,7 +14,8 @@ local MetaService = {}
 
 export type MetaProfile = Types.MetaProfile
 
-local STORE_NAME = "FloridaMan_Meta_v1"
+local STORE_NAME = "FloridaMan_Meta_v2"
+local LEGACY_STORE_NAME = "FloridaMan_Meta_v1"
 local SCHEMA = Constants.META_SCHEMA_VERSION
 local memory: { [number]: MetaProfile } = {}
 local profiles: { [Player]: MetaProfile } = {}
@@ -23,8 +24,21 @@ local saving: { [Player]: boolean } = {}
 local loadWarned: { [number]: boolean } = {}
 local runCapturers: { [Player]: () -> () } = {}
 local store: any = nil
+local legacyStore: any = nil
 local storeOk = false
 local storeChecked = false
+
+local function defaultSettings()
+	return {
+		ShakeEnabled = true,
+		ColorblindTelegraphs = false,
+		MuteMaster = false,
+		MuteSFX = false,
+		MuteAmbience = false,
+		ReduceMotion = false,
+		TextSpeed = "normal",
+	}
+end
 
 local function defaultProfile(): MetaProfile
 	return {
@@ -33,15 +47,28 @@ local function defaultProfile(): MetaProfile
 		sunburn = 0,
 		unlockedPersonas = { "BeachBurnout" },
 		bestStageIndex = 0,
-		settings = {
-			ShakeEnabled = true,
-			ColorblindTelegraphs = false,
-		},
+		settings = defaultSettings(),
 	}
 end
 
 local function keyFor(userId: number): string
 	return "u_" .. tostring(userId)
+end
+
+local function sanitizeSettings(raw: any): typeof(defaultSettings())
+	local s = defaultSettings()
+	if typeof(raw) ~= "table" then
+		return s
+	end
+	for _, key in Settings.BOOL_KEYS do
+		if typeof(raw[key]) == "boolean" then
+			(s :: any)[key] = raw[key]
+		end
+	end
+	if typeof(raw.TextSpeed) == "string" and Settings.IsValidTextSpeed(raw.TextSpeed) then
+		s.TextSpeed = raw.TextSpeed
+	end
+	return s
 end
 
 local function sanitize(raw: any): MetaProfile
@@ -75,15 +102,8 @@ local function sanitize(raw: any): MetaProfile
 		end
 		p.unlockedPersonas = ids
 	end
-	if typeof(raw.settings) == "table" then
-		if typeof(raw.settings.ShakeEnabled) == "boolean" then
-			p.settings.ShakeEnabled = raw.settings.ShakeEnabled
-		end
-		if typeof(raw.settings.ColorblindTelegraphs) == "boolean" then
-			p.settings.ColorblindTelegraphs = raw.settings.ColorblindTelegraphs
-		end
-	end
-	-- migrate forward
+	p.settings = sanitizeSettings(raw.settings)
+	-- migrate forward to current schema
 	p.schemaVersion = SCHEMA
 	return p
 end
@@ -104,6 +124,12 @@ local function ensureStore()
 		storeOk = false
 		warn("[MetaService] DataStore unavailable — using memory fallback (", result, ")")
 	end
+	local okL, leg = pcall(function()
+		return DataStoreService:GetDataStore(LEGACY_STORE_NAME)
+	end)
+	if okL and leg then
+		legacyStore = leg
+	end
 end
 
 local function toastCloudOffline(player: Player)
@@ -119,6 +145,32 @@ local function toastCloudOffline(player: Player)
 			end)
 		end
 	end)
+end
+
+local function readCloud(uid: number): (boolean, any)
+	ensureStore()
+	if not (storeOk and store) then
+		return false, nil
+	end
+	local ok, data = pcall(function()
+		return store:GetAsync(keyFor(uid))
+	end)
+	if ok and data ~= nil then
+		return true, data
+	end
+	-- Schema v2 migrate: pull v1 payload when v2 empty
+	if legacyStore then
+		local okL, legacy = pcall(function()
+			return legacyStore:GetAsync(keyFor(uid))
+		end)
+		if okL and legacy ~= nil then
+			return true, legacy
+		end
+	end
+	if ok then
+		return true, nil
+	end
+	return false, data
 end
 
 function MetaService.IsUsingDataStore(): boolean
@@ -153,8 +205,11 @@ function MetaService.Get(player: Player): MetaProfile
 end
 
 function MetaService.ApplySettingsAttrs(player: Player, profile: MetaProfile)
-	Settings.SetBool(player, "ShakeEnabled", profile.settings.ShakeEnabled)
-	Settings.SetBool(player, "ColorblindTelegraphs", profile.settings.ColorblindTelegraphs)
+	local s = profile.settings
+	for _, key in Settings.BOOL_KEYS do
+		Settings.SetBool(player, key, (s :: any)[key] == true)
+	end
+	Settings.SetTextSpeed(player, s.TextSpeed or "normal")
 end
 
 function MetaService.Load(player: Player): MetaProfile
@@ -164,15 +219,14 @@ function MetaService.Load(player: Player): MetaProfile
 	local profile = defaultProfile()
 
 	if storeOk and store then
-		local ok, data = pcall(function()
-			return store:GetAsync(keyFor(uid))
-		end)
+		local ok, data = readCloud(uid)
 		if ok then
-			profile = sanitize(data)
+			if data ~= nil then
+				profile = sanitize(data)
+			end
 		else
 			warn("[MetaService] GetAsync failed — memory for", player.Name, data)
 			toastCloudOffline(player)
-			-- Never clobber a fresher in-session / memory profile on cloud read fail
 			if existing then
 				profile = existing
 			elseif memory[uid] then
@@ -188,7 +242,6 @@ function MetaService.Load(player: Player): MetaProfile
 		end
 	end
 
-	-- Prefer memory session if it looks fresher than cloud (higher stage / sunburn / deaths)
 	if memory[uid] then
 		local mem = sanitize(memory[uid])
 		if mem.bestStageIndex > profile.bestStageIndex
@@ -229,21 +282,39 @@ function MetaService.CaptureFromRun(
 		p.bestStageIndex = math.clamp(math.floor(stageIndex), 0, 20)
 	end
 
-	p.settings.ShakeEnabled = Settings.GetBool(player, "ShakeEnabled")
-	p.settings.ColorblindTelegraphs = Settings.GetBool(player, "ColorblindTelegraphs")
+	p.settings = Settings.Snapshot(player)
 	profiles[player] = p
 	dirty[player] = true
 	memory[player.UserId] = p
 end
 
-function MetaService.UpdateSettings(player: Player, key: string, value: boolean)
+function MetaService.UpdateSettings(player: Player, key: string, value: boolean | string)
 	local p = profiles[player] or defaultProfile()
-	if key == "ShakeEnabled" or key == "ColorblindTelegraphs" then
+	if Settings.IsBoolKey(key) and typeof(value) == "boolean" then
 		(p.settings :: any)[key] = value
 		Settings.SetBool(player, key, value)
 		profiles[player] = p
 		dirty[player] = true
+	elseif key == "TextSpeed" and typeof(value) == "string" and Settings.IsValidTextSpeed(value) then
+		p.settings.TextSpeed = value
+		Settings.SetTextSpeed(player, value)
+		profiles[player] = p
+		dirty[player] = true
 	end
+end
+
+local function settingsPayload(s: any): any
+	return {
+		ShakeEnabled = s.ShakeEnabled == true,
+		ColorblindTelegraphs = s.ColorblindTelegraphs == true,
+		MuteMaster = s.MuteMaster == true,
+		MuteSFX = s.MuteSFX == true,
+		MuteAmbience = s.MuteAmbience == true,
+		ReduceMotion = s.ReduceMotion == true,
+		TextSpeed = if typeof(s.TextSpeed) == "string" and Settings.IsValidTextSpeed(s.TextSpeed)
+			then s.TextSpeed
+			else "normal",
+	}
 end
 
 function MetaService.Save(player: Player, force: boolean?): boolean
@@ -260,8 +331,7 @@ function MetaService.Save(player: Player, force: boolean?): boolean
 
 	saving[player] = true
 	p.schemaVersion = SCHEMA
-	p.settings.ShakeEnabled = Settings.GetBool(player, "ShakeEnabled")
-	p.settings.ColorblindTelegraphs = Settings.GetBool(player, "ColorblindTelegraphs")
+	p.settings = Settings.Snapshot(player)
 	local uid = player.UserId
 	memory[uid] = p
 	ensureStore()
@@ -276,10 +346,7 @@ function MetaService.Save(player: Player, force: boolean?): boolean
 		sunburn = p.sunburn,
 		unlockedPersonas = p.unlockedPersonas,
 		bestStageIndex = p.bestStageIndex,
-		settings = {
-			ShakeEnabled = p.settings.ShakeEnabled,
-			ColorblindTelegraphs = p.settings.ColorblindTelegraphs,
-		},
+		settings = settingsPayload(p.settings),
 	}
 	local ok, err = pcall(function()
 		store:SetAsync(keyFor(uid), payload)
@@ -308,7 +375,6 @@ function MetaService.Unload(player: Player)
 	runCapturers[player] = nil
 end
 
--- MetaService owns PlayerRemoving persistence
 Players.PlayerRemoving:Connect(function(player)
 	MetaService.Unload(player)
 end)

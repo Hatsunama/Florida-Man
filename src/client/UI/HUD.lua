@@ -153,40 +153,156 @@ function HUD.Init()
 	skillCdLbl.Text = "Skill: Ready (K)"
 	skillCdLbl.Parent = gui
 
-	local function a11yBtn(text: string, x: number, key: string): TextButton
-		local b = Instance.new("TextButton")
-		b.Size = UDim2.new(0, 118, 0, 26)
-		b.Position = UDim2.new(1, x, 0, 12)
-		b.BackgroundColor3 = Color3.fromRGB(28, 32, 42)
-		b.Font = Enum.Font.GothamBold
-		b.TextSize = 12
-		b.TextColor3 = Color3.fromRGB(220, 230, 245)
-		b.AutoButtonColor = true
-		b.Parent = gui
-		corner(b, 6)
-		stroke(b, Color3.fromRGB(120, 140, 180), 1)
-		local function refresh()
-			local on = Settings.GetBool(Players.LocalPlayer, key)
-			b.Text = text .. (if on then ": ON" else ": OFF")
+	local function syncSetting(key: string, value: boolean | string)
+		pcall(function()
+			local Remotes = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Remotes"))
+			Remotes.Get("SyncSettings"):FireServer(key, value)
+		end)
+		pcall(function()
+			local AudioDirector = require(script.Parent.Parent.Controllers:WaitForChild("AudioDirector"))
+			AudioDirector.Play("SFX_UIClick", { volume = 0.3 })
+			if key == "MuteMaster" or key == "MuteSFX" or key == "MuteAmbience" then
+				AudioDirector.ApplyMute()
+			end
+		end)
+	end
+
+	local function openOptions()
+		local pg = Players.LocalPlayer:WaitForChild("PlayerGui")
+		local old = pg:FindFirstChild("FM_Options")
+		if old then
+			old:Destroy()
+			return
 		end
-		refresh()
-		b.MouseButton1Click:Connect(function()
-			local nextVal = Settings.Toggle(Players.LocalPlayer, key)
-			pcall(function()
-				local Remotes = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Remotes"))
-				Remotes.Get("SyncSettings"):FireServer(key, nextVal)
+		local opt = Instance.new("ScreenGui")
+		opt.Name = "FM_Options"
+		opt.IgnoreGuiInset = true
+		opt.DisplayOrder = 55
+		opt.ResetOnSpawn = false
+		opt.Parent = pg
+
+		local dim = Instance.new("TextButton")
+		dim.Size = UDim2.fromScale(1, 1)
+		dim.BackgroundColor3 = Color3.new(0, 0, 0)
+		dim.BackgroundTransparency = 0.45
+		dim.Text = ""
+		dim.AutoButtonColor = false
+		dim.Parent = opt
+		dim.MouseButton1Click:Connect(function()
+			opt:Destroy()
+		end)
+
+		local panel = Instance.new("Frame")
+		panel.Size = UDim2.new(0, 360, 0, 480)
+		panel.Position = UDim2.new(1, -380, 0, 56)
+		panel.BackgroundColor3 = Color3.fromRGB(22, 26, 36)
+		panel.Active = true
+		panel.Parent = opt
+		corner(panel, 12)
+		stroke(panel, Color3.fromRGB(255, 190, 80), 2)
+
+		local title = Instance.new("TextLabel")
+		title.Size = UDim2.new(1, -24, 0, 36)
+		title.Position = UDim2.new(0, 12, 0, 10)
+		title.BackgroundTransparency = 1
+		title.Font = Enum.Font.GothamBold
+		title.TextSize = 20
+		title.TextXAlignment = Enum.TextXAlignment.Left
+		title.TextColor3 = Color3.fromRGB(255, 220, 140)
+		title.Text = "Options / Accessibility"
+		title.Parent = panel
+
+		local list = Instance.new("Frame")
+		list.Size = UDim2.new(1, -24, 1, -70)
+		list.Position = UDim2.new(0, 12, 0, 52)
+		list.BackgroundTransparency = 1
+		list.Parent = panel
+		local layout = Instance.new("UIListLayout")
+		layout.Padding = UDim.new(0, 8)
+		layout.Parent = list
+
+		local function rowBtn(label: string, valueText: string, onClick: () -> ()): TextButton
+			local b = Instance.new("TextButton")
+			b.Size = UDim2.new(1, 0, 0, 48) -- ≥44px mobile hit target
+			b.BackgroundColor3 = Color3.fromRGB(34, 40, 54)
+			b.Font = Enum.Font.GothamBold
+			b.TextSize = 15
+			b.TextColor3 = Color3.fromRGB(230, 235, 245)
+			b.TextXAlignment = Enum.TextXAlignment.Left
+			b.AutoButtonColor = true
+			b.Text = "  " .. label .. "  ·  " .. valueText
+			b.Parent = list
+			corner(b, 8)
+			stroke(b, Color3.fromRGB(100, 120, 160), 1)
+			b.MouseButton1Click:Connect(onClick)
+			return b
+		end
+
+		local function boolRow(label: string, key: string)
+			local b: TextButton
+			local function refresh()
+				local on = Settings.GetBool(Players.LocalPlayer, key)
+				b.Text = "  " .. label .. "  ·  " .. (if on then "ON" else "OFF")
+			end
+			b = rowBtn(label, "…", function()
+				local nextVal = Settings.Toggle(Players.LocalPlayer, key)
+				syncSetting(key, nextVal)
+				refresh()
+				HUD.Toast(label .. (if nextVal then ": ON" else ": OFF"))
 			end)
 			refresh()
-			pcall(function()
-				local AudioDirector = require(script.Parent.Parent.Controllers:WaitForChild("AudioDirector"))
-				AudioDirector.Play("SFX_UIClick", { volume = 0.35 })
-			end)
-			HUD.Toast(b.Text)
+		end
+
+		boolRow("Screen shake", "ShakeEnabled")
+		boolRow("Colorblind telegraphs", "ColorblindTelegraphs")
+		boolRow("Mute master", "MuteMaster")
+		boolRow("Mute SFX", "MuteSFX")
+		boolRow("Mute ambience", "MuteAmbience")
+		boolRow("Reduce motion", "ReduceMotion")
+
+		local speedBtn: TextButton
+		local function refreshSpeed()
+			local sp = Settings.GetTextSpeed(Players.LocalPlayer)
+			speedBtn.Text = "  Tagline text speed  ·  " .. string.upper(sp)
+		end
+		speedBtn = rowBtn("Tagline text speed", "…", function()
+			local nextVal = Settings.CycleTextSpeed(Players.LocalPlayer)
+			syncSetting("TextSpeed", nextVal)
+			refreshSpeed()
+			HUD.Toast("Text speed: " .. nextVal)
 		end)
-		return b
+		refreshSpeed()
+
+		local close = Instance.new("TextButton")
+		close.Size = UDim2.new(1, 0, 0, 44)
+		close.BackgroundColor3 = Color3.fromRGB(70, 74, 88)
+		close.Font = Enum.Font.GothamBold
+		close.TextSize = 16
+		close.TextColor3 = Color3.new(1, 1, 1)
+		close.Text = "Close"
+		close.Parent = list
+		corner(close, 8)
+		close.MouseButton1Click:Connect(function()
+			opt:Destroy()
+		end)
 	end
-	a11yBtn("Shake", -260, "ShakeEnabled")
-	a11yBtn("CB Tele", -136, "ColorblindTelegraphs")
+
+	local optBtn = Instance.new("TextButton")
+	optBtn.Name = "FM_OptionsBtn"
+	optBtn.Size = UDim2.new(0, 118, 0, 44) -- ≥44px
+	optBtn.Position = UDim2.new(1, -136, 0, 10)
+	optBtn.BackgroundColor3 = Color3.fromRGB(28, 32, 42)
+	optBtn.Font = Enum.Font.GothamBold
+	optBtn.TextSize = 14
+	optBtn.TextColor3 = Color3.fromRGB(220, 230, 245)
+	optBtn.Text = "Options"
+	optBtn.AutoButtonColor = true
+	optBtn.Parent = gui
+	corner(optBtn, 8)
+	stroke(optBtn, Color3.fromRGB(120, 140, 180), 1)
+	optBtn.MouseButton1Click:Connect(function()
+		openOptions()
+	end)
 
 	local bossBar = Instance.new("Frame")
 	bossBar.Name = "BossBar"
