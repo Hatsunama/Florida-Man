@@ -10,6 +10,7 @@ local Enemies = require(Shared:WaitForChild("Enemies"))
 local Constants = require(Shared:WaitForChild("Constants"))
 local Remotes = require(Shared:WaitForChild("Remotes"))
 local Util = require(Shared:WaitForChild("Util"))
+local CombatService = require(script.Parent:WaitForChild("CombatService"))
 local Balance = require(Shared:WaitForChild("Balance"))
 local EnemyFactory = require(script.Parent:WaitForChild("EnemyFactory"))
 
@@ -507,7 +508,7 @@ function EnemyService._TelegraphAttack(model: Model, target: Player, behavior: s
 	local hrp = char and char:FindFirstChild("HumanoidRootPart") :: BasePart?
 	local hum = char and char:FindFirstChildOfClass("Humanoid")
 	if hrp and hum then
-		if char:GetAttribute("IFrame") then
+		if CombatService.HasIFrames(target) then
 			return
 		end
 		local hit = false

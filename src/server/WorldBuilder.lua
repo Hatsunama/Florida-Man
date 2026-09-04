@@ -916,10 +916,24 @@ function WorldBuilder.BuildStage(stageId: string, deaths: number?): Folder
 	local sounds = Instance.new("Folder")
 	sounds.Name = "StageSounds"
 	sounds.Parent = world
-	for _, name in { "SFX_Swing", "SFX_Hit", "SFX_CrabClick", "SFX_GatorHiss", "SFX_DraftSting", "SFX_BossIntro", "SFX_Footstep", "SFX_Splash", "SFX_Flame" } do
+	-- Phase 0 audio smoke: engine/default library IDs (audible placeholders)
+	local SOUND_IDS = {
+		SFX_Swing = "rbxasset://sounds/switch.wav",
+		SFX_Hit = "rbxasset://sounds/impact_water.mp3",
+		SFX_CrabClick = "rbxasset://sounds/switch.wav",
+		SFX_GatorHiss = "rbxasset://sounds/action_footsteps_plastic.mp3",
+		SFX_DraftSting = "rbxasset://sounds/electronicpingshort.wav",
+		SFX_BossIntro = "rbxasset://sounds/swoosh.wav",
+		SFX_Footstep = "rbxasset://sounds/action_footsteps_plastic.mp3",
+		SFX_Splash = "rbxasset://sounds/impact_water.mp3",
+		SFX_Flame = "rbxasset://sounds/swoosh.wav",
+		SFX_UIClick = "rbxasset://sounds/switch.wav",
+	}
+	for name, soundId in SOUND_IDS do
 		local s = Instance.new("Sound")
 		s.Name = name
-		s.Volume = 0.4
+		s.SoundId = soundId
+		s.Volume = 0.45
 		s.RollOffMaxDistance = 80
 		s.Parent = sounds
 	end

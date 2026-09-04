@@ -20,6 +20,7 @@ local Story = require(Shared:WaitForChild("Story"))
 
 local WorldBuilder = require(script.Parent:WaitForChild("WorldBuilder"))
 local EnemyService = require(script.Parent:WaitForChild("EnemyService"))
+local CombatService = require(script.Parent:WaitForChild("CombatService"))
 
 local GameService = {}
 
@@ -580,7 +581,7 @@ function GameService.ApplyDamageToPlayer(player: Player, amount: number)
 		return
 	end
 	local char = player.Character
-	if char and char:GetAttribute("IFrame") then
+	if CombatService.HasIFrames(player) then
 		return
 	end
 	-- absorb item
@@ -606,6 +607,10 @@ function GameService.DoAttack(player: Player)
 	if not s or not s.runActive or s.awaitingDraft then
 		return
 	end
+	if not CombatService.CanAttack(player) then
+		return
+	end
+	CombatService.MarkAttack(player)
 	local char = player.Character
 	local hrp = char and char:FindFirstChild("HumanoidRootPart") :: BasePart?
 	if not hrp then
@@ -655,7 +660,7 @@ function GameService.DoAttack(player: Player)
 			continue
 		end
 		local dx = root.Position.X - origin.X
-		if math.abs(dx) <= range and math.sign(dx + 0.001) == s.facing or math.abs(dx) < 4 then
+		if CombatService.InLaneMelee(origin.X, s.facing, root.Position.X, range) then
 			if math.abs(root.Position.Z - Constants.LANE_Z) < 6 then
 				EnemyService.ApplyDamage(model, base, player, knock * 0.45, heavy)
 				hits += 1
@@ -701,11 +706,12 @@ function GameService.DoSkill(player: Player)
 
 	if persona.skillKind == "shield" then
 		s.hp = math.min(s.maxHp, s.hp + 22)
+		CombatService.SetIFrames(player, 1.2)
 		if char then
-			char:SetAttribute("IFrame", true)
+			char:SetAttribute("IFrameVFX", true) -- client juice only; not trusted for damage
 			task.delay(1.2, function()
 				if char then
-					char:SetAttribute("IFrame", nil)
+					char:SetAttribute("IFrameVFX", nil)
 				end
 			end)
 		end
@@ -772,11 +778,12 @@ function GameService.DoDodge(player: Player, facingArg: number?)
 	end
 	local char = player.Character
 	-- Client MovementController performs the dash + trail; server grants i-frames only
+	CombatService.SetIFrames(player, Constants.DODGE_IFRAME)
 	if char then
-		char:SetAttribute("IFrame", true)
+		char:SetAttribute("IFrameVFX", true)
 		task.delay(Constants.DODGE_IFRAME, function()
 			if char then
-				char:SetAttribute("IFrame", nil)
+				char:SetAttribute("IFrameVFX", nil)
 			end
 		end)
 	end
@@ -806,10 +813,11 @@ function GameService.DoSwap(player: Player)
 	local char = player.Character
 	local hrp = char and char:FindFirstChild("HumanoidRootPart") :: BasePart?
 	if char then
-		char:SetAttribute("IFrame", true)
+		CombatService.SetIFrames(player, Constants.SWAP_IFRAME)
+		char:SetAttribute("IFrameVFX", true)
 		task.delay(Constants.SWAP_IFRAME, function()
 			if char then
-				char:SetAttribute("IFrame", nil)
+				char:SetAttribute("IFrameVFX", nil)
 			end
 		end)
 	end
@@ -1205,8 +1213,13 @@ function GameService.SetupRemotes()
 								if hk == "oilSlick" or hk == "sandSlow" or hk == "slushPuddle" or hk == "fryerOil" or hk == "redTide" then
 									stH.moveSpeed = math.min(stH.moveSpeed, 12)
 									charH:SetAttribute("MoveSpeed", stH.moveSpeed)
-									charH:SetAttribute("Hangover", true) -- reuse slow feel briefly
-								elseif hk == "fireCone" and not charH:GetAttribute("IFrame") then
+									charH:SetAttribute("OilSlow", true)
+									task.delay(1.2, function()
+										if charH then
+											charH:SetAttribute("OilSlow", nil)
+										end
+									end)
+								elseif hk == "fireCone" and not CombatService.HasIFrames(player) then
 									local last = charH:GetAttribute("LastHazardAt")
 									if typeof(last) ~= "number" or os.clock() - last > 0.8 then
 										charH:SetAttribute("LastHazardAt", os.clock())

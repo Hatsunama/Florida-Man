@@ -233,7 +233,7 @@ function MovementController.RequestDodge()
 		facing = if dir >= 0 then 1 else -1
 	end
 	dodgeUntil = os.clock() + Constants.DODGE_COOLDOWN
-	char:SetAttribute("IFrame", true)
+	char:SetAttribute("IFrameVFX", true)
 	spawnDodgeTrail(hrp)
 	if alignOri then
 		alignOri.CFrame = faceCFrame(facing)
@@ -243,7 +243,7 @@ function MovementController.RequestDodge()
 	velX = dir * DODGE_SPEED * 0.55
 	task.delay(Constants.DODGE_IFRAME, function()
 		if char then
-			char:SetAttribute("IFrame", nil)
+			char:SetAttribute("IFrameVFX", nil)
 		end
 	end)
 	Remotes.Get("RequestDodge"):FireServer(facing)
