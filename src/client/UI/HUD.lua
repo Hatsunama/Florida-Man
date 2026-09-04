@@ -19,7 +19,11 @@ local p1: Frame
 local p2: Frame
 local itemBar: Frame
 local controlsLbl: TextLabel
+local swapCdLbl: TextLabel
+local skillCdLbl: TextLabel
 local state = nil
+local lastServerNow = 0
+local lastLocalAt = 0
 
 local function corner(parent: Instance, r: number?)
 	local c = Instance.new("UICorner")
@@ -107,6 +111,28 @@ function HUD.Init()
 	weaponLbl.TextColor3 = Color3.fromRGB(180, 220, 255)
 	weaponLbl.Text = "Weapon: Bare Hands"
 	weaponLbl.Parent = gui
+
+	swapCdLbl = Instance.new("TextLabel")
+	swapCdLbl.Size = UDim2.new(0, 200, 0, 22)
+	swapCdLbl.Position = UDim2.new(0, 310, 1, -88)
+	swapCdLbl.BackgroundTransparency = 1
+	swapCdLbl.Font = Enum.Font.GothamBold
+	swapCdLbl.TextSize = 16
+	swapCdLbl.TextXAlignment = Enum.TextXAlignment.Left
+	swapCdLbl.TextColor3 = Color3.fromRGB(255, 200, 100)
+	swapCdLbl.Text = "Swap: Ready (Q)"
+	swapCdLbl.Parent = gui
+
+	skillCdLbl = Instance.new("TextLabel")
+	skillCdLbl.Size = UDim2.new(0, 200, 0, 22)
+	skillCdLbl.Position = UDim2.new(0, 310, 1, -66)
+	skillCdLbl.BackgroundTransparency = 1
+	skillCdLbl.Font = Enum.Font.GothamBold
+	skillCdLbl.TextSize = 16
+	skillCdLbl.TextXAlignment = Enum.TextXAlignment.Left
+	skillCdLbl.TextColor3 = Color3.fromRGB(160, 220, 255)
+	skillCdLbl.Text = "Skill: Ready (K)"
+	skillCdLbl.Parent = gui
 
 	local bossBar = Instance.new("Frame")
 	bossBar.Name = "BossBar"
@@ -310,11 +336,39 @@ local function updatePersonaFrame(frame: Frame, personaId: string?, active: bool
 	end
 end
 
+function HUD.RefreshCds()
+	if not state or not swapCdLbl then
+		return
+	end
+	local nowApprox = lastServerNow + (os.clock() - lastLocalAt)
+	local swapLeft = math.max(0, (state.swapReadyAt or 0) - nowApprox)
+	local skillLeft = math.max(0, (state.skillReadyAt or 0) - nowApprox)
+	if swapLeft <= 0.05 then
+		swapCdLbl.Text = "Swap: Ready (Q)"
+		swapCdLbl.TextColor3 = Color3.fromRGB(255, 220, 120)
+	else
+		swapCdLbl.Text = string.format("Swap CD: %.1fs", swapLeft)
+		swapCdLbl.TextColor3 = Color3.fromRGB(180, 140, 80)
+	end
+	if skillLeft <= 0.05 then
+		skillCdLbl.Text = "Skill: Ready (K)"
+		skillCdLbl.TextColor3 = Color3.fromRGB(160, 220, 255)
+	else
+		skillCdLbl.Text = string.format("Skill CD: %.1fs", skillLeft)
+		skillCdLbl.TextColor3 = Color3.fromRGB(100, 140, 180)
+	end
+end
+
 function HUD.Update(s: any)
 	state = s
 	if not s then
 		return
 	end
+	if typeof(s.serverNow) == "number" then
+		lastServerNow = s.serverNow
+		lastLocalAt = os.clock()
+	end
+	HUD.RefreshCds()
 	local pct = if s.maxHp > 0 then s.hp / s.maxHp else 0
 	hpFill.Size = UDim2.fromScale(math.clamp(pct, 0, 1), 1)
 	hpFill.BackgroundColor3 = if pct > 0.5 then Color3.fromRGB(40, 200, 90) elseif pct > 0.25 then Color3.fromRGB(230, 180, 50) else Color3.fromRGB(220, 60, 60)
@@ -322,7 +376,8 @@ function HUD.Update(s: any)
 	sunburnLbl.Text = string.format("☀️ Sunburn: %d", s.sunburn or 0)
 	if weaponLbl then
 		local w = Weapons.Get(s.weaponId or "BareHands")
-		weaponLbl.Text = "Weapon: " .. (if w then w.name else tostring(s.weaponId))
+		local kind = if w then w.kind else "?"
+		weaponLbl.Text = "Weapon: " .. (if w then w.name else tostring(s.weaponId)) .. " [" .. kind .. "]"
 	end
 
 	local stage = Stages.Get(s.stageId)
@@ -366,5 +421,12 @@ function HUD.Update(s: any)
 		itemText.Text ..= "  |  " .. table.concat(setBits, ", ")
 	end
 end
+
+task.spawn(function()
+	while gui and gui.Parent do
+		HUD.RefreshCds()
+		task.wait(0.1)
+	end
+end)
 
 return HUD

@@ -170,12 +170,15 @@ Remotes.Get("CombatEvent").OnClientEvent:Connect(function(ev)
 		if typeof(ev.color) == "table" and ev.color[1] then
 			col = Color3.new(ev.color[1], ev.color[2], ev.color[3])
 		end
+		if ev.punish then
+			col = Color3.fromRGB(255, 80, 60)
+		end
 		if typeof(ev.personaId) == "string" then
 			AnimController.SetPersona(ev.personaId)
 		end
 		VFX.SwapBurst(hrp, col)
-		CameraController.Shake(0.35, 0.16)
-		MovementController.Hitstop(0.04)
+		CameraController.Shake(if ev.punish then 0.55 else 0.35, if ev.punish then 0.22 else 0.16)
+		MovementController.Hitstop(if ev.punish then 0.06 else 0.04)
 	elseif ev.kind == "hit" then
 		HUD.Toast("Ouch! -" .. tostring(ev.damage))
 		CameraController.Shake(0.65, 0.25)

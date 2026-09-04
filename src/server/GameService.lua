@@ -56,6 +56,7 @@ export type RunState = {
 	runActive: boolean,
 	combo: number,
 	lastAttackAt: number,
+	lastHurtAt: number, -- for swap-within-2s punish bonus
 	skillReadyAt: number,
 	swapReadyAt: number,
 	dodgeReadyAt: number,
@@ -100,6 +101,7 @@ local function pushState(player: Player)
 		skillReadyAt = s.skillReadyAt,
 		swapReadyAt = s.swapReadyAt,
 		dodgeReadyAt = s.dodgeReadyAt,
+		serverNow = os.clock(),
 		awaitingDraft = s.awaitingDraft,
 		awaitingNewspaper = s.awaitingNewspaper,
 		bossDefeated = s.bossDefeated,
@@ -162,6 +164,47 @@ local function computeStats(s: RunState)
 	end
 end
 
+
+local function hasItemSpecial(s: RunState, special: string): boolean
+	for _, id in s.items do
+		local it = Items.Get(id)
+		if it and it.special == special then
+			return true
+		end
+	end
+	return false
+end
+
+local function hasHeroicLifesteal(s: RunState): boolean
+	local counts = Items.CountInscriptions(s.items)
+	return (counts.HEROIC or 0) >= Constants.INSCRIPTION_SET_SIZE
+end
+
+local function applyOnHitSpecials(player: Player, s: RunState, model: Model, baseDamage: number): number
+	local dmg = baseDamage
+	-- paperCut: crit-ish bonus
+	if hasItemSpecial(s, "paperCut") and rng:NextNumber() < (0.18 + s.luck * 0.25) then
+		dmg *= 1.45
+		toast(player, "Paper cut crit!")
+	end
+	-- radio: vs Oil Gators
+	if hasItemSpecial(s, "radio") and model:GetAttribute("EnemyId") == "OilGator" then
+		dmg *= 1.35
+	end
+	-- antiCorp already in computeStats; badge too
+	-- lifesteal from HEROIC set (3 inscriptions)
+	if hasHeroicLifesteal(s) then
+		local heal = math.max(2, math.floor(dmg * 0.06))
+		s.hp = math.min(s.maxHp, s.hp + heal)
+	end
+	return dmg
+end
+
+local function hitEnemy(player: Player, s: RunState, model: Model, amount: number, knock: number, heavy: boolean): boolean
+	local dmg = applyOnHitSpecials(player, s, model, amount)
+	return EnemyService.ApplyDamage(model, dmg, player, knock, heavy)
+end
+
 local function newRunState(deaths: number): RunState
 	return {
 		stageId = "Hub",
@@ -194,6 +237,7 @@ local function newRunState(deaths: number): RunState
 		runActive = false,
 		combo = 0,
 		lastAttackAt = 0,
+		lastHurtAt = 0,
 		skillReadyAt = 0,
 		swapReadyAt = 0,
 		dodgeReadyAt = 0,
@@ -233,6 +277,7 @@ local function applyPersonaLook(player: Player)
 	if weapon then
 		char:SetAttribute("WeaponVfx", weapon.vfx)
 		char:SetAttribute("WeaponId", weapon.id)
+		char:SetAttribute("WeaponKind", weapon.kind)
 	end
 	-- BodyColors tint (R6/R15)
 	local bc = char:FindFirstChildOfClass("BodyColors")
@@ -285,6 +330,7 @@ local function applyCharacterSpeed(player: Player)
 	if char then
 		char:SetAttribute("MoveSpeed", base)
 		char:SetAttribute("Hangover", os.clock() < s.hangoverUntil)
+		char:SetAttribute("AggroPull", hasItemSpecial(s, "aggro"))
 	end
 	applyPersonaLook(player)
 end
@@ -436,6 +482,11 @@ local function onEnemyKilled(player: Player, enemyId: string, _model: Model)
 	local s = states[player]
 	if not s then
 		return
+	end
+	-- sunburnFind item special: bonus meta currency on kills
+	if hasItemSpecial(s, "sunburnFind") then
+		local gain = 1 + (if rng:NextNumber() < (0.12 + s.luck) then 2 else 0)
+		s.sunburn += gain
 	end
 	local def = Enemies.Get(enemyId)
 	if def and def.dropsPersona then
@@ -634,6 +685,8 @@ function GameService.KillPlayer(player: Player)
 	if not s then
 		return
 	end
+	CombatService.ClearIFrames(player)
+	CombatService.ClearShieldAbsorb(player)
 	s.deaths += 1
 	s.hp = 0
 	s.runActive = false
@@ -660,17 +713,24 @@ function GameService.ApplyDamageToPlayer(player: Player, amount: number)
 	if not s or not s.runActive then
 		return
 	end
-	local char = player.Character
 	if CombatService.HasIFrames(player) then
 		return
 	end
-	-- absorb item
+	-- Turtle shield absorb counter (server-owned)
+	amount = CombatService.ConsumeShieldAbsorb(player, amount)
+	if amount <= 0 then
+		toast(player, "Shell absorbed the hit!")
+		pushState(player)
+		return
+	end
+	-- absorb item (oil/sludge resist)
 	for _, id in s.items do
 		local it = Items.Get(id)
 		if it and it.special == "absorb" then
 			amount = math.floor(amount * 0.75)
 		end
 	end
+	s.lastHurtAt = os.clock()
 	s.hp = math.max(0, s.hp - amount)
 	pushState(player)
 	if s.hp <= 0 then
@@ -690,7 +750,6 @@ function GameService.DoAttack(player: Player)
 	if not CombatService.CanAttack(player) then
 		return
 	end
-	CombatService.MarkAttack(player)
 	local char = player.Character
 	local hrp = char and char:FindFirstChild("HumanoidRootPart") :: BasePart?
 	if not hrp then
@@ -707,57 +766,112 @@ function GameService.DoAttack(player: Player)
 	s.combo = (s.combo % 3) + 1
 	s.lastAttackAt = now
 	s.facing = if hrp.CFrame.LookVector.X >= 0 then 1 else -1
-	-- also use move direction
 	local move = hrp.AssemblyLinearVelocity
 	if math.abs(move.X) > 1 then
 		s.facing = if move.X >= 0 then 1 else -1
 	end
 
 	local weapon = Weapons.Get(s.weaponId) or Weapons.GetStarter()
-	local base = (persona.attackDamage + (weapon.damage - 10) * 0.65) * s.damageMult
+	local moveHit = CombatService.GetMovesetHit(persona.id, s.combo)
+	CombatService.MarkAttack(player, moveHit.recovery / math.max(0.55, persona.attackSpeed * (weapon.speed or 1)))
+
+	local base = (persona.attackDamage + (weapon.damage - 10) * 0.65) * s.damageMult * moveHit.dmgMul
 	local rarity = s.personaRarity[persona.id] or "Common"
 	base *= Balance.RarityMult(rarity)
-	if s.combo == 3 then
-		base *= 1.35
-	end
 
-	local range = (weapon.range or Constants.ATTACK_RANGE) + (if s.combo == 3 then 2 else 0)
-	local knock = (weapon.knockback or Constants.KNOCKBACK_BASE) * (if s.combo == 3 then 1.35 else 1)
+	local range = (weapon.range or Constants.ATTACK_RANGE) * moveHit.rangeMul
+	local knock = (weapon.knockback or Constants.KNOCKBACK_BASE) * moveHit.knockMul
 	local origin = hrp.Position
 	local hits = 0
 	local heavy = s.combo == 3
+	local wkind = weapon.kind or "melee"
+
+	local function applyHit(model: Model, dmg: number, kb: number, hv: boolean)
+		if hitEnemy(player, s, model, dmg, kb, hv) then
+			-- killed
+		end
+		hits += 1
+	end
+
+	-- Ally rescue pass (all weapon kinds)
 	for _, model in EnemyService.GetAlive() do
 		if model:GetAttribute("IsAlly") then
-			-- rescue if close
 			local root = model.PrimaryPart
 			if root and (root.Position - origin).Magnitude < 10 then
 				EnemyService.TryRescue(player, model)
 			end
-			continue
 		end
-		local root = model.PrimaryPart
-		if not root then
-			continue
-		end
-		local dx = root.Position.X - origin.X
-		if CombatService.InLaneMelee(origin.X, s.facing, root.Position.X, range) then
-			if math.abs(root.Position.Z - Constants.LANE_Z) < 6 then
-				EnemyService.ApplyDamage(model, base, player, knock * 0.45, heavy)
-				hits += 1
+	end
+
+	if wkind == "ranged" then
+		-- Fast lane projectile — distinct from melee InLaneMelee
+		CombatService.SpawnProjectile({
+			origin = origin,
+			facing = s.facing,
+			range = range,
+			damage = base,
+			knockback = knock * 0.35,
+			heavy = heavy,
+			kind = "ranged",
+			vfx = weapon.vfx,
+			attacker = player,
+			onHit = function(model, dmg, kb, hv)
+				applyHit(model, dmg, kb, hv)
+			end,
+		})
+		-- real connects fire hitConnect from EnemyService
+	elseif wkind == "thrown" then
+		-- Arcing gravity-ish projectile
+		CombatService.SpawnProjectile({
+			origin = origin,
+			facing = s.facing,
+			range = range,
+			damage = base * 1.05,
+			knockback = knock * 0.4,
+			heavy = heavy,
+			kind = "thrown",
+			vfx = weapon.vfx,
+			attacker = player,
+			onHit = function(model, dmg, kb, hv)
+				applyHit(model, dmg, kb, hv)
+			end,
+		})
+	else
+		-- melee = lane InLaneMelee (current)
+		for _, model in EnemyService.GetAlive() do
+			if model:GetAttribute("IsAlly") then
+				continue
+			end
+			local root = model.PrimaryPart
+			if not root then
+				continue
+			end
+			if CombatService.InLaneMelee(origin.X, s.facing, root.Position.X, range) then
+				if math.abs(root.Position.Z - Constants.LANE_Z) < 6 then
+					applyHit(model, base, knock * 0.45, heavy)
+				end
 			end
 		end
 	end
-	-- Cold One is walkover pickup (see tick loop) — not attack-gated
-	-- Shake only on connect (hitConnect from EnemyService); empty swing = no nausea
+
+	if char then
+		char:SetAttribute("WeaponVfx", weapon.vfx)
+		char:SetAttribute("WeaponKind", wkind)
+	end
+	pushState(player)
 	Remotes.Get("CombatEvent"):FireClient(player, {
 		kind = "attack",
 		combo = s.combo,
 		facing = s.facing,
 		weapon = s.weaponId,
+		weaponKind = wkind,
+		weaponVfx = weapon.vfx,
 		hit = hits > 0,
 		heavy = heavy,
+		moveLabel = moveHit.label,
 	})
-	Remotes.Get("PlaySound"):FireClient(player, if hits > 0 then "SFX_Hit" else "SFX_Swing")
+	local sfx = if (wkind == "melee" and hits > 0) then "SFX_Hit" else "SFX_Swing"
+	Remotes.Get("PlaySound"):FireClient(player, sfx)
 	if s.stageIndex == 1 then
 		TutorialService.OnAttack(player, s.tutorial)
 	end
@@ -769,7 +883,7 @@ function GameService.DoSkill(player: Player)
 		return
 	end
 	local now = os.clock()
-	if now < s.skillReadyAt then
+	if now < s.skillReadyAt or not CombatService.CanSkill(player) then
 		return
 	end
 	local persona = activePersonaDef(s)
@@ -777,7 +891,9 @@ function GameService.DoSkill(player: Player)
 		return
 	end
 	local rarity = s.personaRarity[persona.id] or "Common"
-	s.skillReadyAt = now + persona.skillCooldown * Balance.SkillCooldownMult(rarity)
+	local cd = persona.skillCooldown * Balance.SkillCooldownMult(rarity)
+	s.skillReadyAt = now + cd
+	CombatService.MarkSkill(player, cd)
 	local char = player.Character
 	local hrp = char and char:FindFirstChild("HumanoidRootPart") :: BasePart?
 	if not hrp then
@@ -788,17 +904,39 @@ function GameService.DoSkill(player: Player)
 	local origin = hrp.Position
 
 	if persona.skillKind == "shield" then
-		s.hp = math.min(s.maxHp, s.hp + 22)
-		CombatService.SetIFrames(player, 1.2)
+		-- Turtle: temporary damage absorb counter (not VFX-only / not only i-frames)
+		s.hp = math.min(s.maxHp, s.hp + 18)
+		CombatService.SetShieldAbsorb(player, Constants.SHIELD_ABSORB_AMOUNT)
 		if char then
-			char:SetAttribute("IFrameVFX", true) -- client juice only; not trusted for damage
-			task.delay(1.2, function()
+			char:SetAttribute("ShieldAbsorbVFX", true)
+			task.delay(3.5, function()
 				if char then
-					char:SetAttribute("IFrameVFX", nil)
+					char:SetAttribute("ShieldAbsorbVFX", nil)
+				end
+				-- absorb may already be spent; clear remainder after window
+				if CombatService.GetShieldAbsorb(player) > 0 then
+					CombatService.ClearShieldAbsorb(player)
 				end
 			end)
 		end
-		toast(player, persona.skillName .. "! Shell up.")
+		toast(player, persona.skillName .. "! Shell sanctuary — absorb ready.")
+	elseif persona.skillKind == "summon" then
+		-- Snake: lingering hitbox ~2s (distinct from instant AOE)
+		CombatService.SpawnLingeringHitbox({
+			origin = origin,
+			facing = facing,
+			duration = Constants.SUMMON_LINGER,
+			radius = 7,
+			damage = dmg * 0.45,
+			knockback = Constants.KNOCKBACK_BASE * 0.35,
+			tick = Constants.SUMMON_TICK,
+			attacker = player,
+			onHit = function(model, amount, knock, heavy)
+				hitEnemy(player, s, model, amount, knock, heavy)
+			end,
+			color = Color3.fromRGB(120, 255, 140),
+		})
+		toast(player, persona.skillName .. "! Coil lingers.")
 	elseif persona.skillKind == "beam" or persona.skillKind == "wave" then
 		for _, model in EnemyService.GetAlive() do
 			if model:GetAttribute("IsAlly") then
@@ -811,28 +949,42 @@ function GameService.DoSkill(player: Player)
 			local dx = root.Position.X - origin.X
 			if dx * facing >= 0 and math.abs(dx) < 28 then
 				local mult = if persona.id == "LizardBreath" and (model:GetAttribute("EnemyId") == "OilGator") then 1.4 else 1
-				EnemyService.ApplyDamage(model, dmg * mult, player, Constants.KNOCKBACK_BASE * 0.6, true)
+				hitEnemy(player, s, model, dmg * mult, Constants.KNOCKBACK_BASE * 0.6, true)
 			end
 		end
-	elseif persona.skillKind == "aoe" or persona.skillKind == "summon" then
+	elseif persona.skillKind == "aoe" then
 		for _, model in EnemyService.GetAlive() do
 			if model:GetAttribute("IsAlly") then
 				continue
 			end
 			local root = model.PrimaryPart
 			if root and (root.Position - origin).Magnitude < 18 then
-				EnemyService.ApplyDamage(model, dmg, player, Constants.KNOCKBACK_BASE * 0.5, true)
+				hitEnemy(player, s, model, dmg, Constants.KNOCKBACK_BASE * 0.5, true)
 			end
 		end
 	elseif persona.skillKind == "dash" then
-		hrp.CFrame = hrp.CFrame + Vector3.new(facing * 14, 0, 0)
+		-- Cart Bandit: armor frames via SetIFrames; CrabKing/others dash without full armor
+		local isCart = persona.id == "GolfCartBandit"
+		if isCart then
+			CombatService.SetIFrames(player, Constants.CART_DASH_IFRAME)
+			if char then
+				char:SetAttribute("IFrameVFX", true)
+				task.delay(Constants.CART_DASH_IFRAME, function()
+					if char then
+						char:SetAttribute("IFrameVFX", nil)
+					end
+				end)
+			end
+			toast(player, persona.skillName .. "! Armor frames — full send.")
+		end
+		hrp.CFrame = hrp.CFrame + Vector3.new(facing * (if isCart then 16 else 14), 0, 0)
 		for _, model in EnemyService.GetAlive() do
 			if model:GetAttribute("IsAlly") then
 				continue
 			end
 			local root = model.PrimaryPart
 			if root and math.abs(root.Position.X - hrp.Position.X) < 12 then
-				EnemyService.ApplyDamage(model, dmg, player, Constants.KNOCKBACK_BASE * 0.55, true)
+				hitEnemy(player, s, model, dmg, Constants.KNOCKBACK_BASE * 0.55, true)
 			end
 		end
 	end
@@ -885,13 +1037,14 @@ function GameService.DoSwap(player: Player)
 		return
 	end
 	local now = os.clock()
-	if now < s.swapReadyAt then
+	if now < s.swapReadyAt or not CombatService.CanSwap(player) then
 		return
 	end
 	s.swapReadyAt = now + Constants.SWAP_COOLDOWN
+	CombatService.MarkSwap(player, Constants.SWAP_COOLDOWN)
 	s.activePersona = if s.activePersona == 1 then 2 else 1
 	applyCharacterSpeed(player)
-	-- swap attack is a real combo piece: damage + brief i-frame/armor + VFX
+	-- swap-attack combo route: damage + brief i-frame + readable toast/VFX
 	local persona = activePersonaDef(s)
 	local char = player.Character
 	local hrp = char and char:FindFirstChild("HumanoidRootPart") :: BasePart?
@@ -904,19 +1057,25 @@ function GameService.DoSwap(player: Player)
 			end
 		end)
 	end
+	local punish = (s.lastHurtAt > 0) and ((now - s.lastHurtAt) <= Constants.SWAP_PUNISH_WINDOW)
 	if persona and hrp then
 		local rarity = s.personaRarity[persona.id] or "Common"
-		local dmg = persona.attackDamage * s.damageMult * Constants.SWAP_ATTACK_DAMAGE_MULT * Balance.RarityMult(rarity)
+		local mult = Constants.SWAP_ATTACK_DAMAGE_MULT * (if punish then Constants.SWAP_PUNISH_BONUS else 1)
+		local dmg = persona.attackDamage * s.damageMult * mult * Balance.RarityMult(rarity)
 		for _, model in EnemyService.GetAlive() do
 			if model:GetAttribute("IsAlly") then
 				continue
 			end
 			local root = model.PrimaryPart
 			if root and (root.Position - hrp.Position).Magnitude < 14 then
-				EnemyService.ApplyDamage(model, dmg, player, Constants.KNOCKBACK_BASE * 0.7, true)
+				hitEnemy(player, s, model, dmg, Constants.KNOCKBACK_BASE * 0.75, true)
 			end
 		end
-		toast(player, "Swap! " .. persona.name .. " — tempo shift!")
+		if punish then
+			toast(player, "SWAP PUNISH! " .. persona.name .. " — hit back harder!")
+		else
+			toast(player, "Swap attack! " .. persona.name .. " — risk the CD, reap the tempo!")
+		end
 	end
 	pushState(player)
 	Remotes.Get("CombatEvent"):FireClient(player, {
@@ -924,6 +1083,7 @@ function GameService.DoSwap(player: Player)
 		active = s.activePersona,
 		personaId = if persona then persona.id else nil,
 		color = if persona then { persona.color.R, persona.color.G, persona.color.B } else nil,
+		punish = punish,
 	})
 end
 

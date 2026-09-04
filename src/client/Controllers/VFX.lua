@@ -92,6 +92,54 @@ function VFX.SwingSlash(hrp: BasePart, facing: number, combo: number?, vfxKind: 
 	local kind = vfxKind or "swing"
 	local origin = hrp.Position + Vector3.new(facing * 3.2, 1.0, 0)
 
+	-- Ranged catalog VFX (flat spark trail — pairs with server lane projectile)
+	if kind == "foam" or kind == "balloon" or kind == "hose" or kind == "net" or kind == "firework" then
+		local streak = Instance.new("Part")
+		streak.Name = "RangedArc"
+		streak.Anchored = true
+		streak.CanCollide = false
+		streak.Material = Enum.Material.Neon
+		streak.Color = if kind == "firework" then Color3.fromRGB(255, 80, 160)
+			elseif kind == "foam" then Color3.fromRGB(220, 240, 255)
+			elseif kind == "hose" then Color3.fromRGB(90, 70, 40)
+			elseif kind == "net" then Color3.fromRGB(180, 220, 160)
+			else Color3.fromRGB(80, 160, 255)
+		streak.Size = Vector3.new(12 + c * 2, 0.25, 0.4)
+		streak.CFrame = CFrame.new(hrp.Position + Vector3.new(facing * 8, 1.2, 0))
+		streak.Transparency = 0.05
+		streak.Parent = workspace
+		TweenService:Create(streak, TweenInfo.new(0.2), {
+			Transparency = 1,
+			CFrame = streak.CFrame * CFrame.new(facing * 10, 0, 0),
+		}):Play()
+		Debris:AddItem(streak, 0.25)
+		emitBurst(origin, ColorSequence.new(streak.Color), 14, NumberRange.new(8, 16))
+		return
+	end
+	-- Thrown catalog VFX (arcing preview — pairs with server gravity projectile)
+	if kind == "dart" or kind == "cone" or kind == "lasso" or kind == "disc" or kind == "rocket" then
+		local streak = Instance.new("Part")
+		streak.Name = "ThrownArc"
+		streak.Anchored = true
+		streak.CanCollide = false
+		streak.Material = Enum.Material.Neon
+		streak.Color = if kind == "rocket" then Color3.fromRGB(255, 100, 60)
+			elseif kind == "dart" then Color3.fromRGB(180, 255, 120)
+			elseif kind == "cone" then Color3.fromRGB(255, 140, 40)
+			else Color3.fromRGB(200, 220, 255)
+		streak.Size = Vector3.new(8 + c, 0.35, 0.5)
+		streak.CFrame = CFrame.new(hrp.Position + Vector3.new(facing * 5, 2.0, 0))
+			* CFrame.Angles(0, 0, facing * math.rad(-28))
+		streak.Transparency = 0.05
+		streak.Parent = workspace
+		TweenService:Create(streak, TweenInfo.new(0.28), {
+			Transparency = 1,
+			CFrame = streak.CFrame * CFrame.new(facing * 8, -2.5, 0) * CFrame.Angles(0, 0, facing * math.rad(40)),
+		}):Play()
+		Debris:AddItem(streak, 0.32)
+		emitBurst(origin + Vector3.new(0, 1.5, 0), ColorSequence.new(streak.Color), 12)
+		return
+	end
 	if kind == "punch" then
 		-- Short fist burst
 		local fist = Instance.new("Part")

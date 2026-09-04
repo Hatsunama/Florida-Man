@@ -7,7 +7,7 @@ local Constants = {
 	DODGE_COOLDOWN = 0.72,
 	DODGE_DISTANCE = 18,
 	SWAP_COOLDOWN = 1.15,
-	SWAP_ATTACK_DAMAGE_MULT = 1.45,
+	SWAP_ATTACK_DAMAGE_MULT = 1.55, -- Phase 3: clearer swap-attack reward
 	SWAP_IFRAME = 0.28, -- brief armor during swap-attack
 	BASE_HP = 100,
 	ATTACK_RANGE = 10,
@@ -35,5 +35,16 @@ local Constants = {
 	HANGOVER_DURATION = 999, -- cleared by Cold One pickup (stage 1 only)
 	KNOCKBACK_BASE = 7,
 	CAMERA_DEPTH = 32, -- side-scroll depth ~30–34
+	-- Phase 3 combat depth
+	HYPER_ARMOR_DURATION = 0.6, -- boss phase-flip flinch skip
+	SWAP_PUNISH_WINDOW = 2.0, -- swap within 2s of taking a hit
+	SWAP_PUNISH_BONUS = 1.28, -- bonus damage mult on punish swap-attack
+	SHIELD_ABSORB_AMOUNT = 48, -- Turtle Paladin damage counter
+	SUMMON_LINGER = 2.0, -- Snake Charmer coil duration
+	SUMMON_TICK = 0.35,
+	PROJECTILE_SPEED_RANGED = 78,
+	PROJECTILE_SPEED_THROWN = 44,
+	CART_DASH_IFRAME = 0.55, -- Golf Cart Bandit skill armor frames
 }
+
 return Constants

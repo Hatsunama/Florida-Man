@@ -102,8 +102,13 @@ function EnemyService.ApplyDamage(model: Model, amount: number, attacker: Player
 	if not hum or hum.Health <= 0 then
 		return false
 	end
-	-- Flinch: brief AI pause so every hit reads
-	model:SetAttribute("FlinchUntil", os.clock() + Constants.FLINCH_TIME)
+	-- Hyper armor during boss phase transition: skip flinch (still take damage)
+	local hyperUntil = model:GetAttribute("HyperArmorUntil")
+	local hyper = typeof(hyperUntil) == "number" and os.clock() < hyperUntil
+	if not hyper then
+		-- Flinch: brief AI pause so every hit reads
+		model:SetAttribute("FlinchUntil", os.clock() + Constants.FLINCH_TIME)
+	end
 	hum.Health = math.max(0, hum.Health - amount)
 	updateNameplate(model)
 	EnemyFactory.HitFlash(model)
@@ -119,21 +124,14 @@ function EnemyService.ApplyDamage(model: Model, amount: number, attacker: Player
 			heavy = heavy == true,
 			hitstop = if heavy then Constants.HITSTOP_HEAVY else Constants.HITSTOP,
 		})
-		-- knockback along lane only + slight lift for readability
-		local kb = knockback or 4
-		if attacker and attacker.Character then
-			local hrp = attacker.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
-			if hrp then
-				local dir = if root.Position.X >= hrp.Position.X then 1 else -1
-				local lift = if heavy then 0.6 else 0.25
-				local np = root.Position + Vector3.new(dir * kb, lift, 0)
-				np = Vector3.new(np.X, math.max(root.Position.Y, np.Y), Constants.LANE_Z)
-				model:PivotTo(CFrame.new(np) * (root.CFrame - root.Position))
-			end
+		-- Knockback owned by CombatService (ALV impulse preferred; PivotTo for Anchored kits)
+		local kb = knockback or 0
+		if kb > 0 and not hyper then
+			CombatService.ApplyKnockback(model, attacker, kb, heavy)
 		end
 	end
 
-	-- Boss phase transitions (Spillfather / minibosses)
+	-- Boss phase transitions (Spillfather / minibosses) + brief hyper armor
 	if model:GetAttribute("IsBoss") or model:GetAttribute("IsMiniboss") then
 		local maxHp = model:GetAttribute("MaxHp") :: number?
 		if maxHp and maxHp > 0 then
@@ -141,9 +139,11 @@ function EnemyService.ApplyDamage(model: Model, amount: number, attacker: Player
 			local phase = (model:GetAttribute("BossPhase") :: number?) or 1
 			if pct <= 0.66 and phase < 2 then
 				model:SetAttribute("BossPhase", 2)
+				model:SetAttribute("HyperArmorUntil", os.clock() + Constants.HYPER_ARMOR_DURATION)
 				Remotes.Get("CombatEvent"):FireAllClients({ kind = "shake", amount = 1.0 })
 			elseif pct <= 0.33 and phase < 3 then
 				model:SetAttribute("BossPhase", 3)
+				model:SetAttribute("HyperArmorUntil", os.clock() + Constants.HYPER_ARMOR_DURATION)
 				Remotes.Get("CombatEvent"):FireAllClients({ kind = "shake", amount = 1.2 })
 			end
 		end
@@ -272,6 +272,10 @@ function EnemyService.StartAI()
 				local hrp = char and char:FindFirstChild("HumanoidRootPart") :: BasePart?
 				if hrp then
 					local d = (hrp.Position - root.Position).Magnitude
+					-- Live Bait (aggro): enemies treat you as closer / more interesting
+					if char:GetAttribute("AggroPull") == true then
+						d *= 0.72
+					end
 					if d < nearestDist then
 						nearestDist = d
 						nearest = plr
