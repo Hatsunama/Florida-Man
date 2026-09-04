@@ -139,6 +139,20 @@ Remotes.Get("CombatEvent").OnClientEvent:Connect(function(ev)
 		CameraController.Shake(ev.amount or 0.3, 0.14)
 		return
 	end
+	if ev.kind == "arenaLock" then
+		if typeof(ev.pos) == "Vector3" then
+			CameraController.LockArena(ev.pos)
+		end
+		HUD.Toast("ROOM LOCKED")
+		return
+	end
+	if ev.kind == "arenaUnlock" then
+		if typeof(ev.pos) == "Vector3" then
+			CameraController.UnlockArena(ev.pos)
+		end
+		HUD.Toast("★ ROOM CLEAR ★")
+		return
+	end
 	if ev.kind == "hitConnect" then
 		-- Every connect: hitstop + spark + shake (never on empty swings)
 		MovementController.Hitstop(ev.hitstop)

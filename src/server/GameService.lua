@@ -69,6 +69,8 @@ export type RunState = {
 	tutorial: any,
 	steveEvents: { [string]: boolean },
 	pendingSteveEvent: string?,
+	midRoomState: string, -- idle | locked | cleared
+	lastActShown: number,
 }
 
 local states: { [Player]: RunState } = {}
@@ -250,6 +252,8 @@ local function newRunState(deaths: number): RunState
 		tutorial = TutorialService.NewFlags(),
 		steveEvents = {},
 		pendingSteveEvent = nil,
+		midRoomState = "idle",
+		lastActShown = 0,
 	}
 end
 
@@ -402,6 +406,7 @@ function GameService.LoadStage(player: Player, stageId: string)
 	s.turtlesRescued = 0
 	s.turtlesNeeded = 0
 	s.coldOneTaken = false
+	s.midRoomState = "idle"
 	EnemyService.Clear()
 	EnemyService.SetStageContext(stage.index)
 	WorldBuilder.BuildStage(stageId, s.deaths)
@@ -434,11 +439,14 @@ function GameService.LoadStage(player: Player, stageId: string)
 	Remotes.Get("StageLoaded"):FireClient(player, stageId, stage.name)
 	pushState(player)
 
-	-- Act opener once when crossing into a new act
+	-- Act opener + Steve vignette when crossing into a new act
 	local act = Balance.ActNumber(stage.index)
-	if stage.index == 1 or stage.index == 6 or stage.index == 11 or stage.index == 13 or stage.index == 20 then
-		task.delay(0.4, function()
+	local actChanged = (act ~= s.lastActShown) and stage.index >= 1
+	if actChanged then
+		s.lastActShown = act
+		task.delay(0.35, function()
 			toast(player, Story.ActOpener(act))
+			Remotes.Get("ShowTagline"):FireClient(player, Story.SteveLine(act, s.deaths), "Captain Steve")
 		end)
 	end
 	local beat = stage.storyBeat
@@ -451,7 +459,8 @@ function GameService.LoadStage(player: Player, stageId: string)
 		task.delay(2.5, function()
 			Remotes.Get("ShowTagline"):FireClient(player, Constants.TAGLINE_MUTANTS, "Captain Steve")
 		end)
-	elseif stage.steveAct and stage.steveAct >= 2 then
+	elseif (not actChanged) and stage.steveAct and stage.steveAct >= 2 then
+		-- Non-transition stages still get a Steve line (avoid double with act vignette)
 		task.delay(3.0, function()
 			Remotes.Get("ShowTagline"):FireClient(player, Story.SteveLine(stage.steveAct, s.deaths), "Captain Steve")
 		end)
@@ -524,20 +533,30 @@ local function onEnemyKilled(player: Player, enemyId: string, _model: Model)
 	pushState(player)
 end
 
-local function onTurtleRescued(player: Player, _model: Model)
+local function onTurtleRescued(player: Player, model: Model)
 	local s = states[player]
 	if not s then
 		return
 	end
 	s.turtlesRescued += 1
 	s.hp = math.min(s.maxHp, s.hp + 8)
-	toast(player, string.format("Turtle rescued! (%d/%d)", s.turtlesRescued, s.turtlesNeeded))
+	toast(player, string.format("Turtle rescued! (%d/%d) — Press E near turtles.", s.turtlesRescued, s.turtlesNeeded))
+	local root = model and model.PrimaryPart
+	local pos = if root then root.Position else Vector3.new(0, 4, Constants.LANE_Z)
+	Remotes.Get("CombatEvent"):FireClient(player, {
+		kind = "focus",
+		pos = pos,
+		duration = 0.4,
+		amount = 0.35,
+	})
 	if s.turtlesRescued >= s.turtlesNeeded and s.turtlesNeeded > 0 then
 		unlockPersona(player, "TurtlePaladin")
 		local stage = Stages.Get(s.stageId)
 		if stage and stage.unlockPersona then
 			unlockPersona(player, stage.unlockPersona)
 		end
+		toast(player, "Nest secure — turtles first. Gate unlocks when you clear the beach.")
+		Remotes.Get("ShowTagline"):FireClient(player, "Rescue is the mission. GulfGulp's 'cleanup' was the cover.", "Captain Steve")
 	end
 	pushState(player)
 end
@@ -604,11 +623,15 @@ function GameService.FinishStage(player: Player)
 	s.runActive = false
 	EnemyService.Clear()
 	pushState(player)
+	local actNum = Balance.ActNumber(stage.index)
 	Remotes.Get("ShowNewspaper"):FireClient(player, {
 		headline = stage.headline,
 		blurb = stage.blurb,
 		storyBeat = stage.storyBeat,
 		actName = Balance.TierName(stage.index),
+		actNumber = actNum,
+		panels = Story.NewspaperPanels(actNum),
+		steveLine = Story.SteveLine(actNum, s.deaths),
 		stageName = stage.name,
 		nextName = if nextStage then nextStage.name else "Sunrise Credits",
 		isFinale = nextStage == nil,
@@ -1138,21 +1161,59 @@ function GameService.TickWaves(player: Player)
 		toast(player, "THE SPILLFATHER — GulfGulp's final headline!")
 		Remotes.Get("ShowTagline"):FireClient(player, Constants.TAGLINE_MUTANTS, "Captain Steve")
 	end
-	-- Mid-stage room beat: clear pocket → open MidGate (side-scroll door)
-	if progress >= 0.42 and progress < 0.72 and EnemyService.CountHostile() == 0 then
-		local world = workspace:FindFirstChild("GameWorld")
+	-- Phase 4 MidGate room system: enter zone → lock arena → spawn wave → clear → fanfare unlock
+	do
+		local world = Workspace:FindFirstChild("GameWorld")
 		local mid = world and world:FindFirstChild("MidGate")
-		if mid and mid:IsA("BasePart") and mid:GetAttribute("Locked") then
-			mid:SetAttribute("Locked", false)
-			mid.CanCollide = false
-			mid.Transparency = 0.85
-			toast(player, "Path open — keep moving →")
-			Remotes.Get("CombatEvent"):FireClient(player, {
-				kind = "focus",
-				pos = mid.Position,
-				duration = 0.36,
-				amount = 0.3,
-			})
+		local zone = world and world:FindFirstChild("MidRoomZone")
+		local barrier = world and world:FindFirstChild("MidRoomBarrier")
+		if mid and mid:IsA("BasePart") and zone and zone:IsA("BasePart") and hrp then
+			local inZone = (hrp.Position - zone.Position).Magnitude < 10
+			if s.midRoomState == "idle" and inZone and mid:GetAttribute("Locked") then
+				s.midRoomState = "locked"
+				if barrier and barrier:IsA("BasePart") then
+					barrier.CanCollide = true
+					barrier.Transparency = 0.4
+				end
+				toast(player, "ROOM LOCKED — clear the wave!")
+				Remotes.Get("CombatEvent"):FireClient(player, {
+					kind = "arenaLock",
+					pos = mid.Position,
+					duration = 0.4,
+					amount = 0.4,
+				})
+				local roomWave = {
+					{ id = "BeachCrab", n = 2 },
+					{ id = "AngryTourist", n = 2 },
+					{ id = "Cottonmouth", n = 2 },
+					{ id = "GulfGulpGrunt", n = 2 },
+					{ id = "OilGator", n = 1 },
+				}
+				local pick = roomWave[math.clamp(math.ceil(stage.index / 4), 1, #roomWave)]
+				local maxH = Balance.MaxHostiles(stage.index)
+				local room = math.max(0, maxH - EnemyService.CountHostile())
+				local toSpawn = math.max(1, math.min(pick.n, math.max(1, room)))
+				for i = 1, toSpawn do
+					EnemyService.Spawn(pick.id, mid.Position.X - 6 - i * 5)
+				end
+			elseif s.midRoomState == "locked" and EnemyService.CountHostile() == 0 then
+				s.midRoomState = "cleared"
+				mid:SetAttribute("Locked", false)
+				mid.CanCollide = false
+				mid.Transparency = 0.85
+				if barrier and barrier:IsA("BasePart") then
+					barrier.CanCollide = false
+					barrier.Transparency = 1
+				end
+				toast(player, "★ ROOM CLEAR — path open! ★")
+				Remotes.Get("CombatEvent"):FireClient(player, {
+					kind = "arenaUnlock",
+					pos = mid.Position,
+					duration = 0.42,
+					amount = 0.45,
+				})
+				Remotes.Get("PlaySound"):FireClient(player, "SFX_DraftSting")
+			end
 		end
 	end
 	-- reach gate
@@ -1300,6 +1361,29 @@ function GameService.SetupRemotes()
 			GameService.StartRun(player)
 		elseif action == "TalkCaptainSteve" then
 			talkCaptainSteve(player)
+		elseif action == "RescueTurtle" then
+			local model = prompt:FindFirstAncestorOfClass("Model")
+			if model and model:GetAttribute("IsAlly") then
+				EnemyService.TryRescue(player, model)
+			end
+		end
+	end)
+
+	Remotes.Get("RescueTurtle").OnServerEvent:Connect(function(player)
+		-- Client assist: rescue nearest ally turtle within range
+		local char = player.Character
+		local hrp = char and char:FindFirstChild("HumanoidRootPart") :: BasePart?
+		if not hrp then
+			return
+		end
+		for _, model in EnemyService.GetAlive() do
+			if model:GetAttribute("IsAlly") and not model:GetAttribute("Rescued") then
+				local root = model.PrimaryPart
+				if root and (root.Position - hrp.Position).Magnitude < 12 then
+					EnemyService.TryRescue(player, model)
+					break
+				end
+			end
 		end
 	end)
 
@@ -1514,50 +1598,126 @@ function GameService.SetupRemotes()
 					end
 				end
 
-				-- Hazard contact (cartoon damage / slow)
+				-- Hazard contact (set-piece verbs: timed fryer, water slow, conveyor, pipe)
 				local worldH = Workspace:FindFirstChild("GameWorld")
 				local charH = player.Character
 				local hrpH = charH and charH:FindFirstChild("HumanoidRootPart") :: BasePart?
 				local stH = states[player]
 				if worldH and hrpH and stH and stH.runActive then
-					for _, child in worldH:GetChildren() do
-						if child:IsA("BasePart") and child:GetAttribute("Hazard") then
-							local hk = child:GetAttribute("Hazard")
-							if (child.Position - hrpH.Position).Magnitude < 5 then
-								if hk == "oilSlick" or hk == "sandSlow" or hk == "slushPuddle" or hk == "fryerOil" or hk == "redTide" then
-									stH.moveSpeed = math.min(stH.moveSpeed, 12)
-									charH:SetAttribute("MoveSpeed", stH.moveSpeed)
-									charH:SetAttribute("OilSlow", true)
-									task.delay(1.2, function()
-										if charH then
-											charH:SetAttribute("OilSlow", nil)
-										end
-									end)
-								elseif hk == "fireCone" and not CombatService.HasIFrames(player) then
-									local last = charH:GetAttribute("LastHazardAt")
-									if typeof(last) ~= "number" or os.clock() - last > 0.8 then
-										charH:SetAttribute("LastHazardAt", os.clock())
-										GameService.ApplyDamageToPlayer(player, 4)
-									end
-								elseif hk == "windPush" then
-									local dir = (child:GetAttribute("WindDir") :: number?) or -1
-									hrpH.AssemblyLinearVelocity = Vector3.new(dir * 18, hrpH.AssemblyLinearVelocity.Y, 0)
-								elseif hk == "canalWater" and child:GetAttribute("JumpPad") then
-									-- visual only; jump pads are Neon parts with JumpPad
+					local function tickTimedHazard(part: BasePart): boolean
+						local period = part:GetAttribute("HazardPeriod")
+						if typeof(period) ~= "number" or period <= 0 then
+							return true -- always active
+						end
+						local duty = (part:GetAttribute("HazardDuty") :: number?) or 0.5
+						local phase = (os.clock() % period) / period
+						local active = phase < duty
+						part:SetAttribute("HazardActive", active)
+						if active then
+							part.Transparency = math.min(part.Transparency, 0.25)
+						else
+							part.Transparency = math.max(part.Transparency, 0.65)
+						end
+						return active
+					end
+					local function scanHazards(container: Instance)
+						for _, child in container:GetChildren() do
+							if child:IsA("Folder") then
+								scanHazards(child)
+								continue
+							end
+							if not child:IsA("BasePart") then
+								continue
+							end
+							-- Moving lab samples
+							if child:GetAttribute("ConveyorMove") then
+								local ox = (child:GetAttribute("ConveyorOriginX") :: number?) or child.Position.X
+								local amp = (child:GetAttribute("ConveyorAmp") :: number?) or 6
+								local spd = (child:GetAttribute("ConveyorSpeed") :: number?) or 1.2
+								local nx = ox + math.sin(os.clock() * spd) * amp
+								child.CFrame = CFrame.new(nx, child.Position.Y, Constants.LANE_Z)
+							end
+							if child:GetAttribute("Checkpoint") == true then
+								if math.abs(child.Position.X - hrpH.Position.X) < 4 then
+									stH.checkpointX = math.max(stH.checkpointX, child.Position.X)
 								end
 							end
-						elseif child:IsA("BasePart") and child:GetAttribute("JumpPad") then
-							if math.abs(child.Position.X - hrpH.Position.X) < 3 and hrpH.Position.Y < child.Position.Y + 3 then
-								local v = hrpH.AssemblyLinearVelocity
-								if v.Y < 10 then
-									hrpH.AssemblyLinearVelocity = Vector3.new(v.X, 52, 0)
+							local hk = child:GetAttribute("Hazard")
+							if typeof(hk) == "string" then
+								local active = tickTimedHazard(child)
+								local reach = if hk == "conveyor" then 6 elseif hk == "pipeSpray" then 4.5 else 5
+								if (child.Position - hrpH.Position).Magnitude < reach then
+									if hk == "canalWater" or child:GetAttribute("WaterSlow") then
+										local slow = (child:GetAttribute("SlowAmount") :: number?) or 7
+										stH.moveSpeed = math.min(stH.moveSpeed, slow)
+										charH:SetAttribute("MoveSpeed", stH.moveSpeed)
+										charH:SetAttribute("OilSlow", true)
+										task.delay(0.9, function()
+											if charH then
+												charH:SetAttribute("OilSlow", nil)
+											end
+										end)
+									elseif hk == "oilSlick" or hk == "sandSlow" or hk == "redTide" then
+										stH.moveSpeed = math.min(stH.moveSpeed, 12)
+										charH:SetAttribute("MoveSpeed", stH.moveSpeed)
+										charH:SetAttribute("OilSlow", true)
+										task.delay(1.2, function()
+											if charH then
+												charH:SetAttribute("OilSlow", nil)
+											end
+										end)
+									elseif (hk == "fryerOil" or hk == "slushPuddle" or hk == "pipeSpray" or hk == "slickRing" or hk == "movingSample") and active then
+										-- Timed / phase hazards: damage when HOT (jump rhythm)
+										if not CombatService.HasIFrames(player) and hrpH.Position.Y < child.Position.Y + 3.5 then
+											local last = charH:GetAttribute("LastHazardAt")
+											local dmg = (child:GetAttribute("HazardDamage") :: number?) or 5
+											if typeof(last) ~= "number" or os.clock() - last > 0.75 then
+												charH:SetAttribute("LastHazardAt", os.clock())
+												GameService.ApplyDamageToPlayer(player, dmg)
+												local dy = child:GetAttribute("DisplaceY")
+												if typeof(dy) == "number" then
+													hrpH.AssemblyLinearVelocity = Vector3.new(hrpH.AssemblyLinearVelocity.X, dy, 0)
+												end
+											end
+										end
+									elseif hk == "conveyor" then
+										local push = (child:GetAttribute("ConveyorPush") :: number?) or 18
+										local v = hrpH.AssemblyLinearVelocity
+										hrpH.AssemblyLinearVelocity = Vector3.new(v.X + push * 0.08, v.Y, 0)
+										if not CombatService.HasIFrames(player) then
+											local last = charH:GetAttribute("LastHazardAt")
+											local dmg = (child:GetAttribute("HazardDamage") :: number?) or 4
+											if typeof(last) ~= "number" or os.clock() - last > 0.9 then
+												charH:SetAttribute("LastHazardAt", os.clock())
+												GameService.ApplyDamageToPlayer(player, dmg)
+											end
+										end
+									elseif hk == "fireCone" and not CombatService.HasIFrames(player) then
+										local last = charH:GetAttribute("LastHazardAt")
+										if typeof(last) ~= "number" or os.clock() - last > 0.8 then
+											charH:SetAttribute("LastHazardAt", os.clock())
+											GameService.ApplyDamageToPlayer(player, 4)
+										end
+									elseif hk == "windPush" then
+										local dir = (child:GetAttribute("WindDir") :: number?) or -1
+										hrpH.AssemblyLinearVelocity = Vector3.new(dir * 18, hrpH.AssemblyLinearVelocity.Y, 0)
+									end
+								end
+							elseif child:GetAttribute("JumpPad") then
+								if math.abs(child.Position.X - hrpH.Position.X) < 3 and hrpH.Position.Y < child.Position.Y + 3 then
+									local v = hrpH.AssemblyLinearVelocity
+									local boost = (child:GetAttribute("PadBoost") :: number?) or 52
+									if v.Y < 10 then
+										hrpH.AssemblyLinearVelocity = Vector3.new(v.X, boost, 0)
+									end
 								end
 							end
 						end
 					end
+					scanHazards(worldH)
 				end
 
-				-- Phase 1: checkpoint progress + soft fall respawn on slice stages 1–3
+				-- Phase 4: soft checkpoint respawn for ALL combat stages (SafetyFloor removed)
 				local char = player.Character
 				local hrp = char and char:FindFirstChild("HumanoidRootPart") :: BasePart?
 				local st2 = states[player]
@@ -1566,13 +1726,11 @@ function GameService.SetupRemotes()
 					if math.abs(p.Z - Constants.LANE_Z) > 2.5 then
 						hrp.CFrame = CFrame.new(p.X, p.Y, Constants.LANE_Z)
 					end
-					-- advance checkpoint along run (slice stakes)
-					if st2.runActive and st2.stageIndex >= 1 and st2.stageIndex <= 3 then
+					if st2.runActive and st2.stageIndex >= 1 then
 						local stg = Stages.Get(st2.stageId)
 						if stg and p.X > st2.checkpointX + 8 then
 							st2.checkpointX = math.max(st2.checkpointX, math.min(p.X, stg.length - 15))
 						end
-						-- fell off (no SafetyFloor on 1–3)
 						if p.Y < -6 then
 							local lastFall = char:GetAttribute("LastSoftFallAt")
 							if typeof(lastFall) ~= "number" or os.clock() - lastFall > 1.2 then
@@ -1580,8 +1738,9 @@ function GameService.SetupRemotes()
 								local cx = st2.checkpointX or Constants.SPAWN_X
 								hrp.CFrame = CFrame.new(cx, 5, Constants.LANE_Z)
 								hrp.AssemblyLinearVelocity = Vector3.zero
-								toast(player, "Whoops — soft checkpoint. Stakes, not a void death.")
+								toast(player, "Soft checkpoint — back on the lane.")
 								Remotes.Get("CombatEvent"):FireClient(player, { kind = "shake", amount = 0.4 })
+								Remotes.Get("PlaySound"):FireClient(player, "SFX_Splash")
 							end
 						end
 					end

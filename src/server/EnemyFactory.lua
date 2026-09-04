@@ -1111,7 +1111,7 @@ function EnemyFactory.Build(def: any, position: Vector3): Model
 	local nameLbl = Instance.new("TextLabel")
 	nameLbl.Size = UDim2.new(1, 0, 0.55, 0)
 	nameLbl.BackgroundTransparency = 1
-	nameLbl.Text = def.name
+	nameLbl.Text = if def.isAlly then (def.name .. " · Press E") else def.name
 	nameLbl.TextColor3 = if def.isAlly then Color3.fromRGB(120, 255, 180) else Color3.fromRGB(255, 220, 200)
 	nameLbl.TextScaled = true
 	nameLbl.Font = Enum.Font.GothamBold
@@ -1121,7 +1121,7 @@ function EnemyFactory.Build(def: any, position: Vector3): Model
 	hpLbl.Size = UDim2.new(1, 0, 0.45, 0)
 	hpLbl.Position = UDim2.new(0, 0, 0.55, 0)
 	hpLbl.BackgroundTransparency = 1
-	hpLbl.Text = string.format("%d / %d", def.hp, def.hp)
+	hpLbl.Text = if def.isAlly then "Rescue (never harm)" else string.format("%d / %d", def.hp, def.hp)
 	hpLbl.TextColor3 = Color3.fromRGB(200, 255, 200)
 	hpLbl.TextScaled = true
 	hpLbl.Font = Enum.Font.Gotham

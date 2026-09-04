@@ -44,8 +44,8 @@ function Newspaper.Show(payload: any)
 	dim.Parent = gui
 
 	local paper = Instance.new("Frame")
-	paper.Size = UDim2.new(0, 680, 0, 460)
-	paper.Position = UDim2.new(0.5, -340, 0.5, -200)
+	paper.Size = UDim2.new(0, 680, 0, 520)
+	paper.Position = UDim2.new(0.5, -340, 0.5, -250)
 	paper.BackgroundColor3 = Color3.fromRGB(235, 225, 200)
 	paper.BackgroundTransparency = 1
 	paper.Active = true
@@ -57,7 +57,7 @@ function Newspaper.Show(payload: any)
 	scale.Parent = paper
 	-- Snappy open: fade + scale punch
 	TweenService:Create(dim, TweenInfo.new(0.14, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { BackgroundTransparency = 0.4 }):Play()
-	TweenService:Create(paper, TweenInfo.new(0.16, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { BackgroundTransparency = 0, Position = UDim2.new(0.5, -340, 0.5, -230) }):Play()
+	TweenService:Create(paper, TweenInfo.new(0.16, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { BackgroundTransparency = 0, Position = UDim2.new(0.5, -340, 0.5, -260) }):Play()
 	TweenService:Create(scale, TweenInfo.new(0.18, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = 1 }):Play()
 
 	local breaking = Instance.new("TextLabel")
@@ -103,27 +103,79 @@ function Newspaper.Show(payload: any)
 	head.Parent = paper
 
 	local beat = Instance.new("TextLabel")
-	beat.Size = UDim2.new(1, -40, 0, 50)
-	beat.Position = UDim2.new(0, 20, 0, 170)
+	beat.Size = UDim2.new(1, -40, 0, 40)
+	beat.Position = UDim2.new(0, 20, 0, 160)
 	beat.BackgroundTransparency = 1
 	beat.Font = Enum.Font.GothamMedium
 	beat.TextWrapped = true
-	beat.TextSize = 16
+	beat.TextSize = 15
 	beat.TextColor3 = Color3.fromRGB(100, 40, 40)
 	beat.TextXAlignment = Enum.TextXAlignment.Left
 	beat.Text = payload.storyBeat or ""
 	beat.Parent = paper
 
+	-- Phase 4: act art panels (colored Frames + beat text from Story.lua)
+	local panels = payload.panels
+	if typeof(panels) == "table" then
+		for i, panel in panels do
+			if i > 3 then
+				break
+			end
+			local c = panel.color or { 80, 120, 160 }
+			local frame = Instance.new("Frame")
+			frame.Size = UDim2.new(0, 200, 0, 88)
+			frame.Position = UDim2.new(0, 20 + (i - 1) * 212, 0, 205)
+			frame.BackgroundColor3 = Color3.fromRGB(c[1] or 80, c[2] or 120, c[3] or 160)
+			frame.BorderSizePixel = 0
+			frame.Parent = paper
+			corner(frame, 6)
+			local pt = Instance.new("TextLabel")
+			pt.Size = UDim2.new(1, -12, 0, 22)
+			pt.Position = UDim2.new(0, 6, 0, 6)
+			pt.BackgroundTransparency = 1
+			pt.Font = Enum.Font.GothamBold
+			pt.TextSize = 14
+			pt.TextColor3 = Color3.new(1, 1, 1)
+			pt.TextXAlignment = Enum.TextXAlignment.Left
+			pt.Text = tostring(panel.title or ("PANEL " .. tostring(i)))
+			pt.Parent = frame
+			local pb = Instance.new("TextLabel")
+			pb.Size = UDim2.new(1, -12, 0, 52)
+			pb.Position = UDim2.new(0, 6, 0, 30)
+			pb.BackgroundTransparency = 1
+			pb.Font = Enum.Font.Gotham
+			pb.TextSize = 12
+			pb.TextWrapped = true
+			pb.TextColor3 = Color3.fromRGB(245, 245, 245)
+			pb.TextXAlignment = Enum.TextXAlignment.Left
+			pb.TextYAlignment = Enum.TextYAlignment.Top
+			pb.Text = tostring(panel.text or "")
+			pb.Parent = frame
+		end
+	end
+
+	local steve = Instance.new("TextLabel")
+	steve.Size = UDim2.new(1, -40, 0, 28)
+	steve.Position = UDim2.new(0, 20, 0, 302)
+	steve.BackgroundTransparency = 1
+	steve.Font = Enum.Font.GothamMedium
+	steve.TextSize = 13
+	steve.TextColor3 = Color3.fromRGB(60, 80, 40)
+	steve.TextXAlignment = Enum.TextXAlignment.Left
+	steve.TextTruncate = Enum.TextTruncate.AtEnd
+	steve.Text = if payload.steveLine then ('Steve: "' .. tostring(payload.steveLine) .. '"') else ""
+	steve.Parent = paper
+
 	local blurb = Instance.new("TextLabel")
-	blurb.Size = UDim2.new(1, -40, 0, 80)
-	blurb.Position = UDim2.new(0, 20, 0, 230)
+	blurb.Size = UDim2.new(1, -40, 0, 56)
+	blurb.Position = UDim2.new(0, 20, 0, 332)
 	blurb.BackgroundTransparency = 1
 	blurb.Font = Enum.Font.Gotham
 	blurb.TextWrapped = true
-	blurb.TextSize = 17
+	blurb.TextSize = 15
 	blurb.TextColor3 = Color3.fromRGB(50, 50, 50)
 	blurb.TextXAlignment = Enum.TextXAlignment.Left
-	blurb.Text = (payload.blurb or "") .. "\n\nCleared: " .. tostring(payload.stageName) .. " → Next: " .. tostring(payload.nextName)
+	blurb.Text = (payload.blurb or "") .. "\nCleared: " .. tostring(payload.stageName) .. " → Next: " .. tostring(payload.nextName)
 	blurb.Parent = paper
 
 	local btn = Instance.new("TextButton")

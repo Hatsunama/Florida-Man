@@ -123,6 +123,41 @@ Story.ACT1_EVENTS = {
 	afterColdOneHub = "Kid, you got the Cold One back. Bonfire's proud. The swamp won't be.",
 }
 
+
+-- Comic / newspaper interstitial art panels (colored Frames + beat text)
+Story.NEWSPAPER_PANELS = {
+	[1] = {
+		{ title = "COLD ONE", text = "Comedy first. Reclaim the Florida Dew.", color = { 70, 160, 220 } },
+		{ title = "COLLAR BEEP", text = "Radio collars under tourist coolers. Unease begins.", color = { 255, 140, 40 } },
+		{ title = "DRIVE-THRU", text = "A gator refuses to supersize. The logo has teeth.", color = { 255, 80, 40 } },
+	},
+	[2] = {
+		{ title = "SWAMP", text = "It IS Florida… Anything is possible in the swamp.", color = { 80, 160, 60 } },
+		{ title = "NOT WILD", text = "Animals aren't the enemy. Someone sold them as security.", color = { 40, 100, 50 } },
+		{ title = "GULFGULP", text = "'Wildlife enhancement' = crime with a PR budget.", color = { 120, 80, 40 } },
+	},
+	[3] = {
+		{ title = "RED TIDE", text = "Their cleanup is a cover. Nests get oiled on purpose.", color = { 180, 40, 70 } },
+		{ title = "RESCUE", text = "Turtles are allies. Always. You rescue them or you don't leave.", color = { 100, 255, 180 } },
+		{ title = "SHELL UP", text = "Justice smells like salt and sunscreen.", color = { 255, 200, 100 } },
+	},
+	[4] = {
+		{ title = "LAB FILE", text = "Engineered gators to guard spills. Read that again.", color = { 80, 220, 120 } },
+		{ title = "PIPES", text = "Every corridor is a confession.", color = { 90, 90, 110 } },
+		{ title = "BADGE", text = "AUTHORIZED — pelican testimony says otherwise.", color = { 255, 180, 40 } },
+	},
+	[5] = {
+		{ title = "BARGE", text = "Real gaps. Soft checkpoints. Keep the nests.", color = { 60, 90, 120 } },
+		{ title = "SPILLFATHER", text = "Middle management with a sludge mech. Refuse the bargain.", color = { 255, 140, 20 } },
+		{ title = "SUNRISE", text = "For the turtles. For the swamp that gets to stay wild.", color = { 255, 220, 120 } },
+	},
+}
+
+function Story.NewspaperPanels(act: number): { any }
+	local a = math.clamp(act, 1, 5)
+	return Story.NEWSPAPER_PANELS[a] or Story.NEWSPAPER_PANELS[1]
+end
+
 function Story.SteveEventLine(eventId: string): string?
 	return Story.ACT1_EVENTS[eventId]
 end

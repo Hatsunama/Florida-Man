@@ -72,6 +72,24 @@ function EnemyService.SpawnTurtle(x: number): Model?
 	local model = EnemyService.Spawn("RescueTurtle", x)
 	if model then
 		model:SetAttribute("Rescued", false)
+		local root = model.PrimaryPart
+		if root then
+			local pp = Instance.new("ProximityPrompt")
+			pp.ActionText = "Rescue"
+			pp.ObjectText = "Baby Turtle"
+			pp.KeyboardKeyCode = Enum.KeyCode.E
+			pp.HoldDuration = 0
+			pp.ClickablePrompt = true
+			pp.RequiresLineOfSight = false
+			pp.MaxActivationDistance = 10
+			pp:SetAttribute("FM_Action", "RescueTurtle")
+			pp.Parent = root
+			local bb = root:FindFirstChildOfClass("BillboardGui")
+			if not bb then
+				-- nameplate already exists from factory; add rescue hint via attribute
+			end
+			root:SetAttribute("RescueHint", "Press E · Rescue")
+		end
 	end
 	return model
 end
@@ -141,10 +159,12 @@ function EnemyService.ApplyDamage(model: Model, amount: number, attacker: Player
 				model:SetAttribute("BossPhase", 2)
 				model:SetAttribute("HyperArmorUntil", os.clock() + Constants.HYPER_ARMOR_DURATION)
 				Remotes.Get("CombatEvent"):FireAllClients({ kind = "shake", amount = 1.0 })
+				EnemyService.UpdateSpillfatherSlickRing(2)
 			elseif pct <= 0.33 and phase < 3 then
 				model:SetAttribute("BossPhase", 3)
 				model:SetAttribute("HyperArmorUntil", os.clock() + Constants.HYPER_ARMOR_DURATION)
 				Remotes.Get("CombatEvent"):FireAllClients({ kind = "shake", amount = 1.2 })
+				EnemyService.UpdateSpillfatherSlickRing(3)
 			end
 		end
 	end
@@ -178,14 +198,17 @@ function EnemyService.TryRescue(player: Player, model: Model): boolean
 	end
 	model:SetAttribute("Rescued", true)
 	local root = model.PrimaryPart
-	if root then
-		EnemyFactory.DeathPoof(root.Position, Color3.fromRGB(255, 120, 160))
-	end
+	local pos = if root then root.Position else Vector3.new(0, 4, Constants.LANE_Z)
+	EnemyFactory.DeathPoof(pos, Color3.fromRGB(255, 120, 160))
+	-- stash pos for cinematic Focus after Destroy
+	model:SetAttribute("RescuePosX", pos.X)
+	model:SetAttribute("RescuePosY", pos.Y)
+	model:SetAttribute("RescuePosZ", pos.Z)
 	EnemyService._alive[model] = nil
-	model:Destroy()
 	if EnemyService._onTurtleRescued then
 		EnemyService._onTurtleRescued(player, model)
 	end
+	model:Destroy()
 	return true
 end
 

@@ -38,11 +38,31 @@ function CameraController.Shake(amount: number, duration: number?)
 	shakeUntil = os.clock() + (duration or 0.2)
 end
 
+local arenaLockPos: Vector3? = nil
+local arenaLocked = false
+
 --- Brief framing nudge toward a world point (MidGate / miniboss). ≤0.4s Scriptable cut feel.
 function CameraController.Focus(worldPos: Vector3, duration: number?)
 	focusTarget = worldPos
 	focusUntil = os.clock() + math.clamp(duration or 0.35, 0.15, 0.45)
 	CameraController.Shake(0.25, 0.12)
+end
+
+--- MidGate room: pin camera bias to arena while wave is active
+function CameraController.LockArena(worldPos: Vector3)
+	arenaLockPos = worldPos
+	arenaLocked = true
+	CameraController.Focus(worldPos, 0.42)
+	CameraController.Shake(0.35, 0.16)
+end
+
+function CameraController.UnlockArena(worldPos: Vector3?)
+	arenaLocked = false
+	arenaLockPos = nil
+	if worldPos then
+		CameraController.Focus(worldPos, 0.42)
+	end
+	CameraController.Shake(0.3, 0.14)
 end
 
 function CameraController.Start()
@@ -76,6 +96,11 @@ function CameraController.Start()
 
 		local focusX = hrp.Position.X
 		local focusY = hrp.Position.Y
+		if arenaLocked and arenaLockPos then
+			-- Soft lock: blend player with arena center so room reads as an arena
+			focusX = focusX * 0.35 + arenaLockPos.X * 0.65
+			focusY = focusY * 0.5 + (arenaLockPos.Y + 2) * 0.5
+		end
 		if focusTarget and os.clock() < focusUntil then
 			local alpha = math.clamp((focusUntil - os.clock()) / 0.35, 0, 1)
 			-- ease toward event then back (alpha high at start of window remaining? use elapsed blend)

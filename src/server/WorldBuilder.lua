@@ -261,10 +261,43 @@ local function makeHazard(world: Folder, kind: string, x: number, laneZ: number,
 		h.Color = Color3.fromRGB(25, 30, 25)
 		h.Material = Enum.Material.Mud
 		h.Size = Vector3.new(9, 0.25, 5)
+		if kind == "slushPuddle" then
+			-- Act1 Gas: timed sticky windows (jump rhythm / wait for cool)
+			h:SetAttribute("HazardPeriod", 3.2)
+			h:SetAttribute("HazardDuty", 0.55)
+			h:SetAttribute("HazardDamage", 3)
+			label(h, "SLUSH — JUMP WHEN HOT", Color3.fromRGB(180, 255, 255), 2)
+		end
 	elseif kind == "fryerOil" then
 		h.Color = Color3.fromRGB(180, 120, 30)
 		h.Material = Enum.Material.Glass
 		h.Transparency = 0.4
+		-- Act1 Boardwalk: timed fryer oil — standing during HOT window damages; jump over or wait
+		h:SetAttribute("HazardPeriod", 2.6)
+		h:SetAttribute("HazardDuty", 0.48)
+		h:SetAttribute("HazardDamage", 5)
+		h:SetAttribute("JumpRhythm", true)
+		label(h, "FRYER OIL — JUMP WHEN HOT", Color3.fromRGB(255, 220, 80), 2)
+	elseif kind == "conveyor" then
+		h.Color = Color3.fromRGB(70, 75, 90)
+		h.Material = Enum.Material.Metal
+		h.Size = Vector3.new(14, 0.6, 5)
+		h.CFrame = CFrame.new(x, 0.4, laneZ)
+		h.Transparency = 0.15
+		h:SetAttribute("ConveyorPush", 22)
+		h:SetAttribute("HazardDamage", 4)
+		label(h, "CONVEYOR", Color3.fromRGB(255, 180, 80), 2)
+	elseif kind == "pipeSpray" then
+		h.Color = Color3.fromRGB(80, 200, 120)
+		h.Material = Enum.Material.Neon
+		h.Size = Vector3.new(5, 4, 5)
+		h.CFrame = CFrame.new(x, 2.5, laneZ)
+		h.Transparency = 0.45
+		h:SetAttribute("HazardPeriod", 2.4)
+		h:SetAttribute("HazardDuty", 0.4)
+		h:SetAttribute("HazardDamage", 6)
+		h:SetAttribute("DisplaceY", 28)
+		label(h, "PIPE BURST", Color3.fromRGB(120, 255, 160), 3)
 	elseif kind == "fireCone" then
 		h.Color = Color3.fromRGB(255, 100, 20)
 		h.Material = Enum.Material.Neon
@@ -298,7 +331,9 @@ local function makeHazard(world: Folder, kind: string, x: number, laneZ: number,
 		h.Material = Enum.Material.Glass
 		h.Size = Vector3.new(12, 0.4, 8)
 		h.Transparency = 0.45
-		h:SetAttribute("JumpPad", true)
+		h:SetAttribute("WaterSlow", true)
+		h:SetAttribute("SlowAmount", 7)
+		label(h, "DEEP WATER — USE PADS", Color3.fromRGB(120, 220, 255), 2)
 	elseif kind == "windPush" then
 		h.Color = Color3.fromRGB(180, 220, 255)
 		h.Material = Enum.Material.ForceField
@@ -350,8 +385,13 @@ function WorldBuilder._SetPiece(world: Folder, stage: any, laneZ: number, length
 		pl.Color = Color3.fromRGB(255, 200, 100)
 		pl.Parent = light
 	elseif sp == "fryerOil" then
-		for i = 1, 3 do
-			makeHazard(world, "fryerOil", 40 + i * 45, laneZ, stage.accentColor)
+		for i = 1, 4 do
+			makeHazard(world, "fryerOil", 35 + i * 42, laneZ, stage.accentColor)
+			-- Safe landing ledge above every other slick (jump rhythm)
+			if i % 2 == 0 then
+				part({ Name = "FryerLedge", Parent = world, Size = Vector3.new(6, 0.7, 5),
+					CFrame = CFrame.new(35 + i * 42, 3.2, laneZ), Color = Color3.fromRGB(160, 100, 40), Material = Enum.Material.Wood })
+			end
 		end
 		part({ Name = "Fryer", Parent = world, Size = Vector3.new(4, 3, 3),
 			CFrame = CFrame.new(mid, 2, laneZ - 6), Color = Color3.fromRGB(60, 60, 70), Material = Enum.Material.Metal, CanCollide = false })
@@ -363,6 +403,10 @@ function WorldBuilder._SetPiece(world: Folder, stage: any, laneZ: number, length
 		for i = 1, 4 do
 			part({ Name = "Pump", Parent = world, Size = Vector3.new(2.2, 5, 2.2),
 				CFrame = CFrame.new(mid - 15 + i * 10, 2.5, laneZ - 5), Color = Color3.fromRGB(200, 40, 40), Material = Enum.Material.Metal, CanCollide = false })
+		end
+		-- Act1 Gas: timed fryer / sticky windows between pumps
+		for i = 1, 3 do
+			makeHazard(world, "fryerOil", mid - 20 + i * 18, laneZ, stage.accentColor)
 		end
 		local neon = part({ Name = "OpenSign", Parent = world, Size = Vector3.new(10, 3, 0.5),
 			CFrame = CFrame.new(mid, 12, laneZ - 7), Color = Color3.fromRGB(255, 60, 100), Material = Enum.Material.Neon, CanCollide = false })
@@ -399,12 +443,15 @@ function WorldBuilder._SetPiece(world: Folder, stage: any, laneZ: number, length
 		pl.Range = 36
 		pl.Parent = spot
 	elseif sp == "canalPads" then
-		for i = 1, 4 do
-			local x = 30 + i * 45
+		-- Pad chain: deep water slows hard; pads are the only fast path (Act2 verb)
+		for i = 1, 5 do
+			local x = 25 + i * 42
 			makeHazard(world, "canalWater", x, laneZ, stage.accentColor)
-			part({ Name = "JumpPad", Parent = world, Size = Vector3.new(5, 0.6, 5),
-				CFrame = CFrame.new(x + 8, 0.4, laneZ), Color = Color3.fromRGB(80, 220, 180), Material = Enum.Material.Neon })
-				:SetAttribute("JumpPad", true)
+			local pad = part({ Name = "JumpPad", Parent = world, Size = Vector3.new(5, 0.7, 5),
+				CFrame = CFrame.new(x + 10, 0.45, laneZ), Color = Color3.fromRGB(80, 220, 180), Material = Enum.Material.Neon })
+			pad:SetAttribute("JumpPad", true)
+			pad:SetAttribute("PadBoost", 58)
+			label(pad, "PAD " .. tostring(i), Color3.fromRGB(200, 255, 220), 2)
 		end
 	elseif sp == "cypressCanopy" then
 		for i = 1, 6 do
@@ -454,12 +501,22 @@ function WorldBuilder._SetPiece(world: Folder, stage: any, laneZ: number, length
 			CFrame = CFrame.new(36, 12, laneZ - 4), Color = Color3.fromRGB(20, 40, 80), Material = Enum.Material.Metal, CanCollide = false })
 		label(sign, "GulfGulp Energy™ — AUTHORIZED ONLY", Color3.fromRGB(255, 180, 40))
 	elseif sp == "labConveyor" then
-		for i = 1, 6 do
-			local x = 40 + i * 30
-			part({ Name = "Belt", Parent = world, Size = Vector3.new(20, 0.8, 4),
-				CFrame = CFrame.new(x, 3, laneZ - 5), Color = Color3.fromRGB(60, 60, 70), Material = Enum.Material.Metal, CanCollide = false })
-			part({ Name = "Sample", Parent = world, Size = Vector3.new(2, 2, 2),
-				CFrame = CFrame.new(x, 4.5, laneZ - 5), Color = Color3.fromRGB(80, 220, 120), Material = Enum.Material.Neon, CanCollide = false })
+		for i = 1, 5 do
+			local x = 40 + i * 36
+			makeHazard(world, "conveyor", x, laneZ, stage.accentColor)
+			part({ Name = "Belt", Parent = world, Size = Vector3.new(18, 0.8, 4),
+				CFrame = CFrame.new(x, 3.2, laneZ - 5), Color = Color3.fromRGB(60, 60, 70), Material = Enum.Material.Metal, CanCollide = false })
+			local sample = part({ Name = "Sample", Parent = world, Size = Vector3.new(2.2, 2.2, 2.2),
+				CFrame = CFrame.new(x, 1.4, laneZ), Color = Color3.fromRGB(80, 220, 120), Material = Enum.Material.Neon, CanCollide = false })
+			sample:SetAttribute("Hazard", "movingSample")
+			sample:SetAttribute("HazardDamage", 5)
+			sample:SetAttribute("ConveyorMove", true)
+			sample:SetAttribute("ConveyorOriginX", x)
+			sample:SetAttribute("ConveyorAmp", 8)
+			sample:SetAttribute("ConveyorSpeed", 1.4 + i * 0.15)
+		end
+		for i = 1, 3 do
+			makeHazard(world, "pipeSpray", 55 + i * 55, laneZ, stage.accentColor)
 		end
 		local file = part({ Name = "LabFile", Parent = world, Size = Vector3.new(8, 5, 0.4),
 			CFrame = CFrame.new(mid, 8, laneZ - 10), Color = Color3.fromRGB(240, 240, 230), CanCollide = false })
@@ -472,6 +529,9 @@ function WorldBuilder._SetPiece(world: Folder, stage: any, laneZ: number, length
 				CFrame = CFrame.new(x, y, laneZ - 4), Color = Color3.fromRGB(90, 90, 100), Material = Enum.Material.Metal, CanCollide = false })
 			part({ Name = "PipePlatform", Parent = world, Size = Vector3.new(8, 1, 5),
 				CFrame = CFrame.new(x + 5, y - 1.5, laneZ), Color = Color3.fromRGB(70, 75, 85), Material = Enum.Material.Metal })
+			if i % 2 == 1 then
+				makeHazard(world, "pipeSpray", x + 2, laneZ, stage.accentColor)
+			end
 		end
 		-- miniboss arena
 		part({ Name = "ArenaFloor", Parent = world, Size = Vector3.new(34, 0.4, 14),
@@ -489,14 +549,18 @@ function WorldBuilder._SetPiece(world: Folder, stage: any, laneZ: number, length
 		part({ Name = "Crane", Parent = world, Size = Vector3.new(2, 18, 2),
 			CFrame = CFrame.new(mid + 20, 10, laneZ - 6), Color = Color3.fromRGB(255, 160, 40), Material = Enum.Material.Metal, CanCollide = false })
 	elseif sp == "bargeGaps" then
-		-- segmented decks with gaps
+		-- Act5: real gaps between decks — soft checkpoint respawn handles falls
 		for i = 1, 5 do
-			local x = 25 + i * 42
-			part({ Name = "Deck", Parent = world, Size = Vector3.new(28, 1.2, 10),
+			local x = 20 + i * 48
+			part({ Name = "Deck", Parent = world, Size = Vector3.new(26, 1.2, 10),
 				CFrame = CFrame.new(x, 0.8, laneZ), Color = Color3.fromRGB(60, 75, 90), Material = Enum.Material.Metal })
-			-- water in gap (visual)
-			part({ Name = "GapWater", Parent = world, Size = Vector3.new(10, 0.3, 10),
-				CFrame = CFrame.new(x + 19, 0.2, laneZ), Color = Color3.fromRGB(30, 80, 110), Material = Enum.Material.Glass, CanCollide = false, Transparency = 0.4 })
+			local gap = part({ Name = "GapWater", Parent = world, Size = Vector3.new(14, 0.3, 12),
+				CFrame = CFrame.new(x + 20, -0.4, laneZ), Color = Color3.fromRGB(30, 80, 110), Material = Enum.Material.Glass, CanCollide = false, Transparency = 0.4 })
+			gap:SetAttribute("GapMarker", true)
+			local cp = part({ Name = "CheckpointPad", Parent = world, Size = Vector3.new(4, 0.4, 4),
+				CFrame = CFrame.new(x + 8, 1.5, laneZ), Color = Color3.fromRGB(80, 220, 160), Material = Enum.Material.Neon, CanCollide = false })
+			cp:SetAttribute("Checkpoint", true)
+			label(cp, "CKPT", Color3.fromRGB(180, 255, 200), 2)
 		end
 	elseif sp == "platformApproach" then
 		part({ Name = "Walkway", Parent = world, Size = Vector3.new(length * 0.6, 1, 8),
@@ -529,6 +593,31 @@ function WorldBuilder._SetPiece(world: Folder, stage: any, laneZ: number, length
 		pl.Range = 55
 		pl.Color = Color3.fromRGB(255, 150, 40)
 		pl.Parent = spot
+		-- Phase-driven slick ring (resized by EnemyService on BossPhase 2/3)
+		local ringFolder = Instance.new("Folder")
+		ringFolder.Name = "SpillfatherSlickRing"
+		ringFolder.Parent = world
+		ringFolder:SetAttribute("ArenaX", arenaX)
+		ringFolder:SetAttribute("LaneZ", laneZ)
+		ringFolder:SetAttribute("Phase", 1)
+		for i = 1, 8 do
+			local ang = (i / 8) * math.pi * 2
+			local rx = arenaX + math.cos(ang) * 14
+			local slick = part({
+				Name = "SlickRingSeg",
+				Parent = ringFolder,
+				Size = Vector3.new(7, 0.35, 4),
+				CFrame = CFrame.new(rx, 0.35, laneZ),
+				Color = Color3.fromRGB(25, 35, 20),
+				Material = Enum.Material.Mud,
+				CanCollide = false,
+				Transparency = 0.85, -- invisible until phase 2
+			})
+			slick:SetAttribute("Hazard", "slickRing")
+			slick:SetAttribute("HazardDamage", 7)
+			slick:SetAttribute("RingIndex", i)
+			slick:SetAttribute("RingAngle", ang)
+		end
 		for i = 1, 3 do
 			local nest = part({ Name = "FinalNest", Parent = world, Size = Vector3.new(3.5, 0.7, 3.5),
 				CFrame = CFrame.new(40 + i * 25, 0.5, laneZ + 4), Color = Color3.fromRGB(140, 110, 60), Material = Enum.Material.Sand, CanCollide = false })
@@ -538,8 +627,13 @@ function WorldBuilder._SetPiece(world: Folder, stage: any, laneZ: number, length
 
 	-- Generic hazards from stage.hazards list (scattered)
 	local hazards = stage.hazards or {}
+	local skip = { windPush = true, canalWater = true, fryerOil = true, conveyor = true, pipeSpray = true }
+	-- fryerOil / canal / conveyor owned by set pieces when present
+	if sp ~= "fryerOil" then
+		skip.fryerOil = nil
+	end
 	for i, hk in hazards do
-		if hk ~= "windPush" and hk ~= "canalWater" then -- those placed by set pieces
+		if not skip[hk] then
 			local x = length * (0.2 + 0.15 * i)
 			makeHazard(world, hk, x, laneZ, stage.accentColor)
 		end
@@ -869,20 +963,7 @@ function WorldBuilder._BuildGround(world: Folder, stage: any, laneZ: number, len
 			cursor += thisLen
 		end
 	end
-	-- Phase 1: stages 1–3 omit SafetyFloor (soft checkpoint respawn in GameService).
-	-- Later stages keep a recovery pad so void falls are not rage-quits.
-	local idx = stage.index or 0
-	if idx < 1 or idx > 3 then
-		part({
-			Name = "SafetyFloor",
-			Parent = world,
-			Size = Vector3.new(length + 80, 1, 40),
-			CFrame = CFrame.new(length / 2, -8, laneZ),
-			Color = Color3.fromRGB(15, 15, 20),
-			Material = Enum.Material.SmoothPlastic,
-			Transparency = 0.5,
-		})
-	end
+	-- Phase 4: SafetyFloor removed globally — soft checkpoint respawn in GameService for all stages with gaps.
 end
 
 function WorldBuilder._MidRoomGate(world: Folder, stage: any, laneZ: number, length: number)
@@ -901,8 +982,40 @@ function WorldBuilder._MidRoomGate(world: Folder, stage: any, laneZ: number, len
 		Transparency = 0.35,
 	})
 	gate:SetAttribute("Locked", true)
-	label(gate, "CLEAR THE POCKET", stage.accentColor, 6)
-	-- framing posts
+	label(gate, "CLEAR THE ROOM", stage.accentColor, 6)
+	-- Enter zone: triggers room lock + wave (GameService)
+	local zone = part({
+		Name = "MidRoomZone",
+		Parent = world,
+		Size = Vector3.new(14, 10, 14),
+		CFrame = CFrame.new(x - 10, 5, laneZ),
+		Transparency = 1,
+		CanCollide = false,
+	})
+	zone:SetAttribute("MidRoomTrigger", true)
+	-- Left barrier engaged when room locks (blocks retreat)
+	local barrier = part({
+		Name = "MidRoomBarrier",
+		Parent = world,
+		Size = Vector3.new(2, 12, 14),
+		CFrame = CFrame.new(x - 18, 6, laneZ),
+		Color = stage.accentColor,
+		Material = Enum.Material.ForceField,
+		CanCollide = false,
+		Transparency = 1,
+	})
+	barrier:SetAttribute("RoomBarrier", true)
+	-- Arena floor framing
+	part({
+		Name = "RoomArenaFloor",
+		Parent = world,
+		Size = Vector3.new(28, 0.35, 14),
+		CFrame = CFrame.new(x - 6, 0.2, laneZ),
+		Color = stage.groundColor:Lerp(stage.accentColor, 0.2),
+		Material = Enum.Material.Neon,
+		CanCollide = false,
+		Transparency = 0.7,
+	})
 	for _, side in { -1, 1 } do
 		part({
 			Name = "GatePost",
@@ -914,6 +1027,91 @@ function WorldBuilder._MidRoomGate(world: Folder, stage: any, laneZ: number, len
 			CanCollide = false,
 		})
 	end
+end
+
+--- Ambient biome particles (light but present)
+function WorldBuilder._Ambient(world: Folder, stage: any, laneZ: number, length: number)
+	local biome = stage.biome or "beach"
+	local anchor = part({
+		Name = "AmbientAnchor",
+		Parent = world,
+		Size = Vector3.new(1, 1, 1),
+		CFrame = CFrame.new(length * 0.45, 6, laneZ),
+		Transparency = 1,
+		CanCollide = false,
+		CastShadow = false,
+	})
+	local att = Instance.new("Attachment")
+	att.Parent = anchor
+	local pe = Instance.new("ParticleEmitter")
+	pe.Name = "BiomeAmbient"
+	pe.LockedToPart = false
+	pe.SpreadAngle = Vector2.new(40, 40)
+	pe.Acceleration = Vector3.new(0, -1, 0)
+	pe.LightEmission = 0.2
+	pe.Parent = att
+	if biome == "swamp" then
+		-- bugs
+		pe.Color = ColorSequence.new(Color3.fromRGB(40, 80, 30), Color3.fromRGB(120, 200, 60))
+		pe.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.15), NumberSequenceKeypoint.new(1, 0.05) })
+		pe.Lifetime = NumberRange.new(1.2, 2.2)
+		pe.Rate = 14
+		pe.Speed = NumberRange.new(1, 3)
+		pe.RotSpeed = NumberRange.new(-90, 90)
+	elseif biome == "facility" then
+		-- sparks
+		pe.Color = ColorSequence.new(Color3.fromRGB(255, 200, 80), Color3.fromRGB(255, 80, 20))
+		pe.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.25), NumberSequenceKeypoint.new(1, 0) })
+		pe.Lifetime = NumberRange.new(0.25, 0.55)
+		pe.Rate = 10
+		pe.Speed = NumberRange.new(3, 8)
+		pe.Acceleration = Vector3.new(0, -12, 0)
+		pe.LightEmission = 0.7
+	elseif biome == "offshore" then
+		-- spray
+		pe.Color = ColorSequence.new(Color3.fromRGB(180, 220, 255), Color3.fromRGB(220, 240, 255))
+		pe.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.4), NumberSequenceKeypoint.new(1, 0.05) })
+		pe.Lifetime = NumberRange.new(0.6, 1.1)
+		pe.Rate = 16
+		pe.Speed = NumberRange.new(2, 6)
+		pe.Acceleration = Vector3.new(0, -4, 0)
+	elseif biome == "beach" or biome == "town" then
+		-- spray / sand grit / neon dust
+		if biome == "beach" then
+			pe.Color = ColorSequence.new(Color3.fromRGB(220, 240, 255), Color3.fromRGB(255, 255, 255))
+			pe.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.35), NumberSequenceKeypoint.new(1, 0.05) })
+			pe.Lifetime = NumberRange.new(0.7, 1.3)
+			pe.Rate = 12
+			pe.Speed = NumberRange.new(1.5, 4)
+		else
+			pe.Color = ColorSequence.new(Color3.fromRGB(255, 180, 60), Color3.fromRGB(255, 80, 120))
+			pe.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.2), NumberSequenceKeypoint.new(1, 0) })
+			pe.Lifetime = NumberRange.new(0.4, 0.8)
+			pe.Rate = 8
+			pe.Speed = NumberRange.new(1, 3)
+			pe.LightEmission = 0.5
+		end
+	else
+		pe.Rate = 6
+		pe.Lifetime = NumberRange.new(0.5, 1)
+		pe.Size = NumberSequence.new(0.2)
+		pe.Color = ColorSequence.new(stage.accentColor)
+	end
+	-- Second emitter mid-stage for coverage
+	local anchor2 = part({
+		Name = "AmbientAnchor2",
+		Parent = world,
+		Size = Vector3.new(1, 1, 1),
+		CFrame = CFrame.new(length * 0.72, 5, laneZ - 2),
+		Transparency = 1,
+		CanCollide = false,
+		CastShadow = false,
+	})
+	local att2 = Instance.new("Attachment")
+	att2.Parent = anchor2
+	local pe2 = pe:Clone()
+	pe2.Rate = math.max(4, math.floor(pe.Rate * 0.7))
+	pe2.Parent = att2
 end
 
 function WorldBuilder.BuildStage(stageId: string, deaths: number?): Folder
@@ -972,6 +1170,7 @@ function WorldBuilder.BuildStage(stageId: string, deaths: number?): Folder
 		WorldBuilder._SetPiece(world, stage, laneZ, length)
 		WorldBuilder._Platforms(world, stage, laneZ, length)
 		WorldBuilder._MidRoomGate(world, stage, laneZ, length)
+		WorldBuilder._Ambient(world, stage, laneZ, length)
 	end
 
 	if stage.coldOnePickup then
