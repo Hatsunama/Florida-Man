@@ -86,7 +86,7 @@ check "hoaCone damage tick" 'hk == "hoaCone"' src/server/HazardService.lua
 check "HOA_CONE_DAMAGE" 'HOA_CONE_DAMAGE' src/shared/Constants.lua
 check "GREASY oilResist set" 'oilResist' src/shared/Items.lua
 check "OilResist attr" 'OilResist' src/server/RunContext.lua
-check "Ember dodge buff" 'EMBER_BUFF_DURATION' src/server/CombatFacade.lua
+check "Ember dodge buff" 'EMBER_BUFF_DURATION' src/server/SwapService.lua
 check "Weapon drops table N3" 'ConspiracyShack' src/server/StageFlowService.lua
 
 # N4 options / a11y / dialogue UX
@@ -132,5 +132,32 @@ check "Turtle escort AI" 'EscortEnabled' src/server/EnemyService.lua
 check "Late denser telegraphs" 'stageIdx >= 17' src/server/EnemyService.lua
 absent "SafetyFloor regression" 'SafetyFloor' src/
 
+# N6 combat facade depth
+check "AttackService module" 'AttackService' src/server/AttackService.lua
+check "SkillService module" 'SkillService' src/server/SkillService.lua
+check "SwapService module" 'SwapService' src/server/SwapService.lua
+check "Facade delegates DoAttack" 'AttackService.DoAttack' src/server/CombatFacade.lua
+check "Facade delegates DoSkill" 'SkillService.DoSkill' src/server/CombatFacade.lua
+check "Facade delegates DoSwap" 'SwapService.DoSwap' src/server/CombatFacade.lua
+check "Moveset cancelAfter" 'cancelAfter' src/server/CombatService.lua
+check "Types MovesetHit cancel" 'cancelAfter' src/shared/Types.lua
+check "attackReadyAt StateUpdate" 'attackReadyAt' src/server/RunContext.lua
+check "Client SyncAttackReady" 'SyncAttackReady' src/client/Controllers/InputController.lua
+check "HUD FlashCancel" 'FlashCancel' src/client/UI/HUD.lua
+check "HUD FlashPunish" 'FlashPunish' src/client/UI/HUD.lua
+check "FOAM_FIRE_MULT" 'FOAM_FIRE_MULT' src/shared/Constants.lua
+check "Foam fire secondary" 'FOAM_FIRE_MULT' src/server/AttackService.lua
+check "Net RootedUntil" 'RootedUntil' src/server/AttackService.lua
+check "Enemy RootedUntil gate" 'RootedUntil' src/server/EnemyService.lua
+check "THROW_ARC_HEIGHT" 'THROW_ARC_HEIGHT' src/server/CombatService.lua
+check "GameService remotes only attack" 'CombatFacade.DoAttack' src/server/GameService.lua
+absent "No DoAttack body in GameService" 'function GameService.DoAttack' src/server/GameService.lua
+CF_LINES=$(wc -l < "$ROOT/src/server/CombatFacade.lua")
+if [ "$CF_LINES" -le 300 ]; then
+  echo "OK  CombatFacade <=300 ($CF_LINES)"
+else
+  echo "FAIL CombatFacade <=300 ($CF_LINES)"
+  fail=1
+fi
 
 exit $fail

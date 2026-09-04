@@ -451,6 +451,12 @@ function EnemyService.StartAI()
 				continue
 			end
 
+			local rootedUntil = model:GetAttribute("RootedUntil")
+			if typeof(rootedUntil) == "number" and os.clock() < rootedUntil then
+				EnemyFactory.Animate(model, dt, false, false)
+				continue
+			end
+
 			local nearest: Player? = nil
 			local nearestDist = 1e9
 			local targetPos = root.Position

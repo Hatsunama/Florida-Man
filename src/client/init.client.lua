@@ -50,6 +50,7 @@ Remotes.Get("StateUpdate").OnClientEvent:Connect(function(state)
 	HUD.Update(state)
 	CaptainSteveUI.SetState(state)
 	if state then
+		InputController.SyncAttackReady(state.attackReadyAt, state.serverNow, nil)
 		InputController.SetWeaponState(state.weaponId, state.unlockedWeapons)
 		if typeof(state.personas) == "table" and typeof(state.activePersona) == "number" then
 			local pid = state.personas[state.activePersona]
@@ -162,14 +163,19 @@ Remotes.Get("CombatEvent").OnClientEvent:Connect(function(ev)
 		CameraController.Shake(ev.amount or 0.4, if ev.heavy then 0.22 else 0.14)
 		return
 	end
+	if ev.kind == "cancelWindow" then
+		HUD.FlashCancel(tostring(ev.label or "cancel"))
+		return
+	end
+	if ev.kind == "attack" then
+		InputController.SyncAttackReady(ev.attackReadyAt, ev.serverNow, ev.recovery)
+	end
 	if not hrp then
 		return
 	end
 	if ev.kind == "attack" then
-		-- Slash VFX is immediate on client input; server echo only locks facing
 		local facing = ev.facing or MovementController.GetFacing()
 		MovementController.LockFacing(facing, 0.25)
-		-- No shake on empty swing — juice only on hitConnect
 	elseif ev.kind == "skill" then
 		local facing = ev.facing or MovementController.GetFacing()
 		AnimController.PlaySkill()
@@ -186,6 +192,7 @@ Remotes.Get("CombatEvent").OnClientEvent:Connect(function(ev)
 		end
 		if ev.punish then
 			col = Color3.fromRGB(255, 80, 60)
+			HUD.FlashPunish()
 		end
 		if typeof(ev.personaId) == "string" then
 			AnimController.SetPersona(ev.personaId)

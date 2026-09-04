@@ -22,6 +22,8 @@ local itemBar: Frame
 local controlsLbl: TextLabel
 local swapCdLbl: TextLabel
 local skillCdLbl: TextLabel
+local cancelFlashLbl: TextLabel
+local punishFlash: Frame
 local state = nil
 local lastServerNow = 0
 local lastLocalAt = 0
@@ -448,14 +450,71 @@ function HUD.Init()
 	toastLbl.Visible = false
 	toastLbl.Parent = gui
 	corner(toastLbl, 8)
+
+	cancelFlashLbl = Instance.new("TextLabel")
+	cancelFlashLbl.Size = UDim2.new(0, 220, 0, 28)
+	cancelFlashLbl.Position = UDim2.new(0.5, -110, 0.72, 0)
+	cancelFlashLbl.BackgroundColor3 = Color3.fromRGB(20, 40, 55)
+	cancelFlashLbl.BackgroundTransparency = 0.2
+	cancelFlashLbl.Font = Enum.Font.GothamBold
+	cancelFlashLbl.TextSize = 18
+	cancelFlashLbl.TextColor3 = Color3.fromRGB(120, 255, 220)
+	cancelFlashLbl.Text = "CANCEL"
+	cancelFlashLbl.Visible = false
+	cancelFlashLbl.Parent = gui
+	corner(cancelFlashLbl, 6)
+	stroke(cancelFlashLbl, Color3.fromRGB(80, 220, 200), 2)
+
+	punishFlash = Instance.new("Frame")
+	punishFlash.Size = UDim2.fromScale(1, 1)
+	punishFlash.BackgroundColor3 = Color3.fromRGB(255, 40, 40)
+	punishFlash.BackgroundTransparency = 1
+	punishFlash.BorderSizePixel = 0
+	punishFlash.Visible = false
+	punishFlash.ZIndex = 0
+	punishFlash.Parent = gui
 end
 
 function HUD.Toast(text: string)
 	toastLbl.Text = text
 	toastLbl.Visible = true
+	-- Swap punish toast: red readable cue (still popup text, no Tagline/VO)
+	if string.find(text, "SWAP PUNISH", 1, true) then
+		toastLbl.TextColor3 = Color3.fromRGB(255, 120, 100)
+	else
+		toastLbl.TextColor3 = Color3.fromRGB(255, 240, 180)
+	end
 	task.delay(3.2, function()
 		if toastLbl.Text == text then
 			toastLbl.Visible = false
+			toastLbl.TextColor3 = Color3.fromRGB(255, 240, 180)
+		end
+	end)
+end
+
+function HUD.FlashCancel(label: string)
+	if not cancelFlashLbl then
+		return
+	end
+	cancelFlashLbl.Text = "CANCEL · " .. string.upper(label)
+	cancelFlashLbl.Visible = true
+	task.delay(0.35, function()
+		if cancelFlashLbl then
+			cancelFlashLbl.Visible = false
+		end
+	end)
+end
+
+function HUD.FlashPunish()
+	if not punishFlash then
+		return
+	end
+	punishFlash.Visible = true
+	punishFlash.BackgroundTransparency = 0.72
+	task.delay(0.18, function()
+		if punishFlash then
+			punishFlash.BackgroundTransparency = 1
+			punishFlash.Visible = false
 		end
 	end)
 end
@@ -511,6 +570,13 @@ function HUD.RefreshCds()
 	local nowApprox = lastServerNow + (os.clock() - lastLocalAt)
 	local swapLeft = math.max(0, (state.swapReadyAt or 0) - nowApprox)
 	local skillLeft = math.max(0, (state.skillReadyAt or 0) - nowApprox)
+	local atkReady = state.attackReadyAt or 0
+	local cancelOpen = state.cancelOpenAt or 0
+	local inCancel = nowApprox >= cancelOpen and nowApprox < atkReady and atkReady > 0
+	if cancelFlashLbl and inCancel and not cancelFlashLbl.Visible then
+		-- soft idle cue while cancel window open (CombatEvent also flashes once)
+		cancelFlashLbl.TextTransparency = 0.35
+	end
 	if swapLeft <= 0.05 then
 		swapCdLbl.Text = "Swap: Ready (Q)"
 		swapCdLbl.TextColor3 = Color3.fromRGB(255, 220, 120)

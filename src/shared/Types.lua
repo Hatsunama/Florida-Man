@@ -85,4 +85,19 @@ export type RunState = {
 	lastActShown: number,
 }
 
+
+-- N6: moveset cancel windows (server CombatService owns runtime tables)
+-- cancelAfter = seconds after swing start when dodge/skill cancel opens
+-- recovery = full swing lock before next attack connect
+export type MovesetHit = {
+	recovery: number,
+	rangeMul: number,
+	knockMul: number,
+	dmgMul: number,
+	cancelAfter: number,
+	label: string,
+}
+
+export type WeaponSecondary = "foam" | "net" | "none"
+
 return nil

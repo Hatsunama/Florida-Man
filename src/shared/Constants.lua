@@ -63,6 +63,12 @@ local Constants = {
 	TURTLE_ESCORT_SPEED = 9,
 	WIND_OPPOSE_MULT = 0.52, -- Act5 cut upward vel while in wind
 	WIND_PUSH_SPEED = 22,
+	-- N6 combat depth
+	FOAM_FIRE_MULT = 1.45, -- foam extinguisher vs firearc enemies
+	NET_ROOT_DURATION = 1.15, -- net gun brief root
+	THROW_ARC_HEIGHT = 7.5, -- Lawn Dart / thrown lob (Roman Candle stays flat)
+	CANCEL_WINDOW_FLASH = 0.35, -- HUD cancel cue duration
 }
+
 
 return Constants

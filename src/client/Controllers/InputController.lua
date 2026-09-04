@@ -113,7 +113,19 @@ local comboHint = 0
 local lastSwingAt = 0
 local attackBufferedUntil = 0
 local attackReadyAt = 0
-local ATTACK_RECOVERY = 0.2
+local ATTACK_RECOVERY = 0.22 -- fallback until StateUpdate / CombatEvent syncs server recovery
+
+function InputController.SyncAttackReady(serverReadyAt: number?, serverNow: number?, recovery: number?)
+	local localNow = os.clock()
+	if typeof(serverReadyAt) == "number" and typeof(serverNow) == "number" then
+		local remaining = (serverReadyAt :: number) - (serverNow :: number)
+		attackReadyAt = localNow + math.max(0, remaining)
+		return
+	end
+	if typeof(recovery) == "number" then
+		attackReadyAt = localNow + math.max(0, recovery :: number)
+	end
+end
 
 local function doSwingFire()
 	if uiBlocking() then

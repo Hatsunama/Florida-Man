@@ -13,6 +13,7 @@ local Types = require(Shared:WaitForChild("Types"))
 
 local TutorialService = require(script.Parent:WaitForChild("TutorialService"))
 local MetaService = require(script.Parent:WaitForChild("MetaService"))
+local CombatService = require(script.Parent:WaitForChild("CombatService"))
 
 local RunContext = {}
 
@@ -69,6 +70,8 @@ function RunContext.PushState(player: Player)
 		skillReadyAt = s.skillReadyAt,
 		swapReadyAt = s.swapReadyAt,
 		dodgeReadyAt = s.dodgeReadyAt,
+		attackReadyAt = CombatService.GetAttackReadyAt(player),
+		cancelOpenAt = CombatService.GetCancelOpenAt(player),
 		serverNow = os.clock(),
 		awaitingDraft = s.awaitingDraft,
 		awaitingNewspaper = s.awaitingNewspaper,

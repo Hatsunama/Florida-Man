@@ -15,11 +15,13 @@ export type MovesetHit = {
 	rangeMul: number,
 	knockMul: number,
 	dmgMul: number,
+	cancelAfter: number,
 	label: string,
 }
 
 local iframesUntil: { [Player]: number } = {}
 local attackReadyAt: { [Player]: number } = {}
+local cancelOpenAt: { [Player]: number } = {}
 local skillReadyAt: { [Player]: number } = {}
 local swapReadyAt: { [Player]: number } = {}
 local shieldAbsorb: { [Player]: number } = {}
@@ -29,51 +31,51 @@ local POINT_BLANK = 2.5
 
 local MOVESETS: { [string]: { MovesetHit } } = {
 	BeachBurnout = {
-		{ recovery = 0.16, rangeMul = 1.00, knockMul = 0.95, dmgMul = 0.95, label = "jab" },
-		{ recovery = 0.18, rangeMul = 1.08, knockMul = 1.05, dmgMul = 1.05, label = "cross" },
-		{ recovery = 0.26, rangeMul = 1.22, knockMul = 1.35, dmgMul = 1.38, label = "shuffle" },
+		{ recovery = 0.16, rangeMul = 1.00, knockMul = 0.95, dmgMul = 0.95, cancelAfter = 0.08, label = "jab" },
+		{ recovery = 0.18, rangeMul = 1.08, knockMul = 1.05, dmgMul = 1.05, cancelAfter = 0.09, label = "cross" },
+		{ recovery = 0.26, rangeMul = 1.22, knockMul = 1.35, dmgMul = 1.38, cancelAfter = 0.13, label = "shuffle" },
 	},
 	CrabKing = {
-		{ recovery = 0.22, rangeMul = 0.92, knockMul = 1.25, dmgMul = 1.12, label = "pinch" },
-		{ recovery = 0.24, rangeMul = 1.00, knockMul = 1.40, dmgMul = 1.18, label = "sideways" },
-		{ recovery = 0.34, rangeMul = 1.18, knockMul = 1.85, dmgMul = 1.55, label = "royal" },
+		{ recovery = 0.22, rangeMul = 0.92, knockMul = 1.25, dmgMul = 1.12, cancelAfter = 0.11, label = "pinch" },
+		{ recovery = 0.24, rangeMul = 1.00, knockMul = 1.40, dmgMul = 1.18, cancelAfter = 0.12, label = "sideways" },
+		{ recovery = 0.34, rangeMul = 1.18, knockMul = 1.85, dmgMul = 1.55, cancelAfter = 0.17, label = "royal" },
 	},
 	GatorHauler = {
-		{ recovery = 0.24, rangeMul = 0.95, knockMul = 1.30, dmgMul = 1.15, label = "clamp" },
-		{ recovery = 0.26, rangeMul = 1.05, knockMul = 1.45, dmgMul = 1.22, label = "drag" },
-		{ recovery = 0.36, rangeMul = 1.20, knockMul = 1.90, dmgMul = 1.50, label = "slam" },
+		{ recovery = 0.24, rangeMul = 0.95, knockMul = 1.30, dmgMul = 1.15, cancelAfter = 0.12, label = "clamp" },
+		{ recovery = 0.26, rangeMul = 1.05, knockMul = 1.45, dmgMul = 1.22, cancelAfter = 0.13, label = "drag" },
+		{ recovery = 0.36, rangeMul = 1.20, knockMul = 1.90, dmgMul = 1.50, cancelAfter = 0.18, label = "slam" },
 	},
 	SnakeCharmer = {
-		{ recovery = 0.14, rangeMul = 1.05, knockMul = 0.85, dmgMul = 0.90, label = "flick" },
-		{ recovery = 0.16, rangeMul = 1.12, knockMul = 0.95, dmgMul = 1.00, label = "coil" },
-		{ recovery = 0.22, rangeMul = 1.28, knockMul = 1.15, dmgMul = 1.28, label = "strike" },
+		{ recovery = 0.14, rangeMul = 1.05, knockMul = 0.85, dmgMul = 0.90, cancelAfter = 0.07, label = "flick" },
+		{ recovery = 0.16, rangeMul = 1.12, knockMul = 0.95, dmgMul = 1.00, cancelAfter = 0.08, label = "coil" },
+		{ recovery = 0.22, rangeMul = 1.28, knockMul = 1.15, dmgMul = 1.28, cancelAfter = 0.11, label = "strike" },
 	},
 	GolfCartBandit = {
-		{ recovery = 0.12, rangeMul = 0.95, knockMul = 1.10, dmgMul = 0.88, label = "tap" },
-		{ recovery = 0.14, rangeMul = 1.00, knockMul = 1.20, dmgMul = 0.95, label = "scrape" },
-		{ recovery = 0.20, rangeMul = 1.15, knockMul = 1.55, dmgMul = 1.25, label = "bumper" },
+		{ recovery = 0.12, rangeMul = 0.95, knockMul = 1.10, dmgMul = 0.88, cancelAfter = 0.06, label = "tap" },
+		{ recovery = 0.14, rangeMul = 1.00, knockMul = 1.20, dmgMul = 0.95, cancelAfter = 0.07, label = "scrape" },
+		{ recovery = 0.20, rangeMul = 1.15, knockMul = 1.55, dmgMul = 1.25, cancelAfter = 0.1, label = "bumper" },
 	},
 	FireworksEnthusiast = {
-		{ recovery = 0.18, rangeMul = 1.00, knockMul = 0.90, dmgMul = 1.00, label = "spark" },
-		{ recovery = 0.20, rangeMul = 1.10, knockMul = 1.00, dmgMul = 1.10, label = "roman" },
-		{ recovery = 0.30, rangeMul = 1.25, knockMul = 1.40, dmgMul = 1.42, label = "finale" },
+		{ recovery = 0.18, rangeMul = 1.00, knockMul = 0.90, dmgMul = 1.00, cancelAfter = 0.09, label = "spark" },
+		{ recovery = 0.20, rangeMul = 1.10, knockMul = 1.00, dmgMul = 1.10, cancelAfter = 0.1, label = "roman" },
+		{ recovery = 0.30, rangeMul = 1.25, knockMul = 1.40, dmgMul = 1.42, cancelAfter = 0.15, label = "finale" },
 	},
 	LizardBreath = {
-		{ recovery = 0.20, rangeMul = 1.05, knockMul = 1.00, dmgMul = 1.08, label = "hiss" },
-		{ recovery = 0.22, rangeMul = 1.12, knockMul = 1.10, dmgMul = 1.15, label = "exhale" },
-		{ recovery = 0.32, rangeMul = 1.30, knockMul = 1.35, dmgMul = 1.45, label = "burn" },
+		{ recovery = 0.20, rangeMul = 1.05, knockMul = 1.00, dmgMul = 1.08, cancelAfter = 0.1, label = "hiss" },
+		{ recovery = 0.22, rangeMul = 1.12, knockMul = 1.10, dmgMul = 1.15, cancelAfter = 0.11, label = "exhale" },
+		{ recovery = 0.32, rangeMul = 1.30, knockMul = 1.35, dmgMul = 1.45, cancelAfter = 0.16, label = "burn" },
 	},
 	TurtlePaladin = {
-		{ recovery = 0.20, rangeMul = 0.95, knockMul = 1.15, dmgMul = 1.05, label = "shell" },
-		{ recovery = 0.22, rangeMul = 1.00, knockMul = 1.25, dmgMul = 1.12, label = "smite" },
-		{ recovery = 0.30, rangeMul = 1.15, knockMul = 1.50, dmgMul = 1.40, label = "sanctuary" },
+		{ recovery = 0.20, rangeMul = 0.95, knockMul = 1.15, dmgMul = 1.05, cancelAfter = 0.1, label = "shell" },
+		{ recovery = 0.22, rangeMul = 1.00, knockMul = 1.25, dmgMul = 1.12, cancelAfter = 0.11, label = "smite" },
+		{ recovery = 0.30, rangeMul = 1.15, knockMul = 1.50, dmgMul = 1.40, cancelAfter = 0.15, label = "sanctuary" },
 	},
 }
 
 local DEFAULT_MOVESET: { MovesetHit } = {
-	{ recovery = 0.20, rangeMul = 1.0, knockMul = 1.0, dmgMul = 1.0, label = "hit1" },
-	{ recovery = 0.22, rangeMul = 1.05, knockMul = 1.1, dmgMul = 1.1, label = "hit2" },
-	{ recovery = 0.28, rangeMul = 1.2, knockMul = 1.35, dmgMul = 1.35, label = "hit3" },
+	{ recovery = 0.20, rangeMul = 1.0, knockMul = 1.0, dmgMul = 1.0, cancelAfter = 0.1, label = "hit1" },
+	{ recovery = 0.22, rangeMul = 1.05, knockMul = 1.1, dmgMul = 1.1, cancelAfter = 0.11, label = "hit2" },
+	{ recovery = 0.28, rangeMul = 1.2, knockMul = 1.35, dmgMul = 1.35, cancelAfter = 0.14, label = "hit3" },
 }
 
 function CombatService.SetIFrames(player: Player, duration: number)
@@ -131,8 +133,33 @@ function CombatService.CanAttack(player: Player): boolean
 	return true
 end
 
-function CombatService.MarkAttack(player: Player, recovery: number?)
-	attackReadyAt[player] = os.clock() + (recovery or ATTACK_RECOVERY)
+function CombatService.MarkAttack(player: Player, recovery: number?, cancelAfter: number?)
+	local now = os.clock()
+	local rec = recovery or ATTACK_RECOVERY
+	attackReadyAt[player] = now + rec
+	local ca = cancelAfter
+	if typeof(ca) ~= "number" then
+		ca = math.min(rec * 0.5, math.max(0.06, rec - 0.04))
+	end
+	cancelOpenAt[player] = now + math.clamp(ca :: number, 0.05, rec)
+end
+
+function CombatService.GetAttackReadyAt(player: Player): number
+	return attackReadyAt[player] or 0
+end
+
+function CombatService.GetCancelOpenAt(player: Player): number
+	return cancelOpenAt[player] or 0
+end
+
+function CombatService.InCancelWindow(player: Player): boolean
+	local now = os.clock()
+	local ready = attackReadyAt[player]
+	local open = cancelOpenAt[player]
+	if not ready or not open then
+		return false
+	end
+	return now >= open and now < ready
 end
 
 function CombatService.CanSkill(player: Player): boolean
@@ -303,9 +330,12 @@ function CombatService.SpawnProjectile(opts: ProjectileOpts)
 		local x = x0 + facing * traveled
 		local y = y0
 		if kind == "thrown" then
-
 			local u = math.clamp(traveled / maxDist, 0, 1)
-			y = y0 + math.sin(u * math.pi) * 6 - u * u * 2.5
+			local arc = Constants.THROW_ARC_HEIGHT
+			if opts.vfx == "dart" then
+				arc = Constants.THROW_ARC_HEIGHT * 1.15
+			end
+			y = y0 + math.sin(u * math.pi) * arc - u * u * 2.8
 		end
 		part.CFrame = CFrame.new(x, y, Constants.LANE_Z)
 
@@ -409,6 +439,7 @@ end
 Players.PlayerRemoving:Connect(function(player)
 	iframesUntil[player] = nil
 	attackReadyAt[player] = nil
+	cancelOpenAt[player] = nil
 	skillReadyAt[player] = nil
 	swapReadyAt[player] = nil
 	shieldAbsorb[player] = nil
