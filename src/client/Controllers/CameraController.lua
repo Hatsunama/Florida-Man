@@ -17,7 +17,7 @@ local shakeUntil = 0
 local deadzoneX = 3.5
 local followBiasX = 6
 local height = 9
-local depth = 32
+local depth = Constants.CAMERA_DEPTH or 32
 local STIFFNESS = 48
 local DAMPING = 15
 

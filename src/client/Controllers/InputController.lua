@@ -40,8 +40,10 @@ end
 local comboHint = 0
 local lastSwingAt = 0
 local attackBufferedUntil = 0
+local attackReadyAt = 0
+local ATTACK_RECOVERY = 0.2
 
-local function localSwing()
+local function doSwingFire()
 	local mov = InputController._movement
 	local facing = 1
 	if mov then
@@ -54,11 +56,30 @@ local function localSwing()
 	end
 	comboHint = (comboHint % 3) + 1
 	lastSwingAt = now
+	attackReadyAt = now + ATTACK_RECOVERY
 	local player = Players.LocalPlayer
 	local char = player.Character
 	local hrp = char and char:FindFirstChild("HumanoidRootPart") :: BasePart?
 	if hrp then
 		VFX.SwingSlash(hrp, facing, comboHint)
+	end
+	fire("RequestAttack")
+end
+
+local function tryAttack()
+	local now = os.clock()
+	if now >= attackReadyAt then
+		doSwingFire()
+	else
+		-- Buffer: fire as soon as recovery ends (Skul-like)
+		attackBufferedUntil = now + 0.12
+		task.delay(attackReadyAt - now, function()
+			if os.clock() <= attackBufferedUntil + 0.02 and os.clock() >= attackReadyAt - 0.01 then
+				if InputController._enabled then
+					doSwingFire()
+				end
+			end
+		end)
 	end
 end
 
@@ -81,10 +102,7 @@ function InputController.Start()
 		local k = input.KeyCode
 		local t = input.UserInputType
 		if t == Enum.UserInputType.MouseButton1 or k == Enum.KeyCode.J then
-			-- 100ms attack buffer feel: always fire, local slash immediate
-			attackBufferedUntil = os.clock() + 0.1
-			localSwing()
-			fire("RequestAttack")
+			tryAttack()
 		elseif k == Enum.KeyCode.K then
 			fire("RequestSkill")
 		elseif k == Enum.KeyCode.Q then
@@ -100,8 +118,7 @@ function InputController.Start()
 
 	ContextActionService:BindAction("FM_Attack", function(_, state)
 		if state == Enum.UserInputState.Begin and InputController._enabled then
-			localSwing()
-			fire("RequestAttack")
+			tryAttack()
 		end
 	end, false, Enum.KeyCode.ButtonX, Enum.KeyCode.ButtonR2)
 

@@ -66,7 +66,7 @@ local list: { StageDef } = {
 		miniboss = "CrabKingBoss", boss = nil, unlockPersona = "CrabKing", rescueTurtles = 0,
 		showMutantTagline = false, isHub = false, coldOnePickup = true, hangover = true,
 		propTheme = "beach", biome = "beach", setPiece = "collapsingPier", hazards = { "sandSlow" },
-		lighting = "dawnGold", storyBeat = "The joke starts here. The truth waits in the swamp.",
+		lighting = "dawnGold", storyBeat = "Comedy first: reclaim the Cold One. The collar beeps come later.",
 		scalingTier = 1, goalLabel = "PIER LIGHT →", steveAct = 1, platformLedges = 0,
 	},
 	{
@@ -160,7 +160,7 @@ local list: { StageDef } = {
 		showMutantTagline = false, isHub = false, coldOnePickup = false, hangover = false,
 		propTheme = "drive", biome = "swamp", setPiece = "canalPads", hazards = { "canalWater" },
 		lighting = "swampGreen", storyBeat = "Snakes first. Mutants next. Steve is watching.",
-		scalingTier = 2, goalLabel = "LOCK GATE →", steveAct = 2, platformLedges = 2,
+		scalingTier = 2, goalLabel = "LOCK GATE →", steveAct = 2, platformLedges = 3,
 	},
 	{
 		id = "SwampShift", index = 7, name = "The Swamp Shift",
@@ -179,7 +179,7 @@ local list: { StageDef } = {
 		miniboss = nil, boss = nil, unlockPersona = "LizardBreath", rescueTurtles = 0,
 		showMutantTagline = true, isHub = false, coldOnePickup = false, hangover = false,
 		propTheme = "swamp", biome = "swamp", setPiece = "cypressCanopy", hazards = { "oilSlick", "fireCone" },
-		lighting = "greenBlack", storyBeat = "Steve says the line. You realize the animals are victims.",
+		lighting = "greenBlack", storyBeat = "Steve says the line once. Then you see the collars — animals aren't the enemy.",
 		scalingTier = 2, goalLabel = "CYPRESS PASS →", steveAct = 2, platformLedges = 2,
 	},
 	{
@@ -334,7 +334,7 @@ local list: { StageDef } = {
 		showMutantTagline = false, isHub = false, coldOnePickup = false, hangover = false,
 		propTheme = "rig", biome = "facility", setPiece = "pipeMaze", hazards = { "oilSlick", "fireCone" },
 		lighting = "industrialOrange", storyBeat = "Middle management of doom blocks the docks.",
-		scalingTier = 4, goalLabel = "VALVE LOCK →", steveAct = 4, platformLedges = 2,
+		scalingTier = 4, goalLabel = "VALVE LOCK →", steveAct = 4, platformLedges = 3,
 	},
 	{
 		id = "LoadingDock", index = 16, name = "Loading Dock Riot",
@@ -372,7 +372,7 @@ local list: { StageDef } = {
 		showMutantTagline = false, isHub = false, coldOnePickup = false, hangover = false,
 		propTheme = "rig", biome = "offshore", setPiece = "bargeGaps", hazards = { "canalWater", "oilSlick" },
 		lighting = "offshoreWind", storyBeat = "Jump the gaps. The platform is a silhouette ahead.",
-		scalingTier = 4, goalLabel = "FAR DECK →", steveAct = 4, platformLedges = 2,
+		scalingTier = 4, goalLabel = "FAR DECK →", steveAct = 4, platformLedges = 3,
 	},
 	{
 		id = "OilPlatformApproach", index = 18, name = "Oil Platform Approach",
@@ -431,7 +431,7 @@ local list: { StageDef } = {
 		miniboss = nil, boss = "Spillfather", unlockPersona = "FireworksEnthusiast", rescueTurtles = 3,
 		showMutantTagline = true, isHub = false, coldOnePickup = false, hangover = false,
 		propTheme = "rig", biome = "offshore", setPiece = "spillfatherArena", hazards = { "oilSlick", "fireCone" },
-		lighting = "finaleRig", storyBeat = "Save the remaining turtles. End the bargain. Watch the sun try.",
+		lighting = "finaleRig", storyBeat = "Refuse the bargain. Save the nests. Earn the sunrise.",
 		scalingTier = 5, goalLabel = "SUNRISE →", steveAct = 5, platformLedges = 1,
 	},
 }

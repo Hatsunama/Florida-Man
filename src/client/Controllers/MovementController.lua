@@ -29,6 +29,7 @@ local jumpHeld = false
 local jumping = false
 local attackLockUntil = 0
 local dodgeUntil = 0
+local hitstopUntil = 0 -- set via Hitstop()
 local hangoverMult = 1
 local baseSpeed = 18
 local enabled = true
@@ -197,6 +198,11 @@ function MovementController.SetEnabled(on: boolean)
 	enabled = on
 end
 
+function MovementController.Hitstop(duration: number?)
+	local d = duration or Constants.HITSTOP
+	hitstopUntil = math.max(hitstopUntil, os.clock() + d)
+end
+
 function MovementController.GetFacing(): number
 	return facing
 end
@@ -299,6 +305,27 @@ function MovementController.Start()
 			return
 		end
 
+		-- Hitstop: brief freeze on connect (Skul juice) — keep facing/lane movers alive
+		if os.clock() < hitstopUntil then
+			local v = hrp.AssemblyLinearVelocity
+			hrp.AssemblyLinearVelocity = Vector3.new(0, v.Y * 0.35, 0)
+			velX = 0
+			if alignPos then
+				alignPos.Position = Vector3.new(hrp.Position.X, hrp.Position.Y, Constants.LANE_Z)
+			end
+			if alignOri then
+				alignOri.CFrame = faceCFrame(facing)
+			end
+			return
+		end
+
+		-- Karen slow aura from attribute
+		local slowUntil = char:GetAttribute("SlowUntil")
+		local slowMult = 1
+		if typeof(slowUntil) == "number" and os.clock() < slowUntil then
+			slowMult = 0.55
+		end
+
 		-- Ensure movers exist (respawn / edge cases)
 		if not alignPos or not alignOri or not rootAttachment or rootAttachment.Parent ~= hrp then
 			setupMovers(hrp)
@@ -340,7 +367,7 @@ function MovementController.Start()
 			doJump(hrp, hum)
 		end
 
-		local maxSpd = math.min(MAX_SPEED, baseSpeed) * hangoverMult
+		local maxSpd = math.min(MAX_SPEED, baseSpeed) * hangoverMult * slowMult
 		local accel = if grounded then ACCEL else AIR_ACCEL
 		local inDodge = os.clock() < dodgeUntil - Constants.DODGE_COOLDOWN + DODGE_DUR
 

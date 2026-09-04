@@ -698,6 +698,120 @@ function WorldBuilder._BuildHub(world: Folder, stage: any, laneZ: number, deaths
 	label(board, headline, Color3.fromRGB(255, 220, 120), 0)
 end
 
+function WorldBuilder._BuildGround(world: Folder, stage: any, laneZ: number, length: number, groundMat: Enum.Material)
+	local biome = stage.biome or "beach"
+	local idx = stage.index or 0
+	-- Early stages: continuous slab with subtle height steps (teach footing)
+	-- Mid/late: real gaps + raised shelves so jump matters
+	local segs = if idx <= 3 then 3 elseif idx <= 8 then 5 elseif idx <= 14 then 6 else 7
+	local gapChance = if idx <= 4 then 0 elseif idx <= 10 then 0.35 else 0.55
+	local cursor = -10
+	local segLen = (length + 30) / segs
+	local rng = Random.new((#stage.id) * 31 + idx * 97)
+	for i = 1, segs do
+		local isGap = (i > 1 and i < segs and idx >= 5 and rng:NextNumber() < gapChance and (biome == "swamp" or biome == "offshore" or biome == "facility" or stage.setPiece == "bargeGaps" or stage.setPiece == "canalPads" or stage.setPiece == "pipeMaze"))
+		local hOff = 0
+		if biome == "swamp" then
+			hOff = (i % 3) * 0.35
+		elseif biome == "facility" or biome == "offshore" then
+			hOff = (i % 2) * 0.6
+		elseif biome == "town" then
+			hOff = if i % 4 == 0 then 0.4 else 0
+		elseif biome == "beach" then
+			hOff = math.sin(i * 1.2) * 0.25
+		end
+		local thisLen = segLen * (0.85 + rng:NextNumber() * 0.25)
+		if isGap then
+			-- visual water/void under gap (no collide) + small landing lip after
+			local gapW = math.clamp(6 + idx * 0.25, 6, 12)
+			part({
+				Name = "GapHazard",
+				Parent = world,
+				Size = Vector3.new(gapW, 0.4, 16),
+				CFrame = CFrame.new(cursor + gapW / 2, -0.5 + hOff, laneZ),
+				Color = if biome == "offshore" or biome == "swamp" then Color3.fromRGB(30, 70, 90) else Color3.fromRGB(20, 20, 25),
+				Material = Enum.Material.Glass,
+				CanCollide = false,
+				Transparency = 0.45,
+			})
+			cursor += gapW
+			-- landing platform
+			part({
+				Name = "GroundSeg",
+				Parent = world,
+				Size = Vector3.new(thisLen * 0.55, 2, 28),
+				CFrame = CFrame.new(cursor + thisLen * 0.275, -1 + hOff + 0.5, laneZ),
+				Color = stage.groundColor:Lerp(stage.accentColor, 0.08),
+				Material = groundMat,
+			})
+			cursor += thisLen * 0.55
+		else
+			local y = -1 + hOff
+			-- Raised shelf mid-lane for mid/late (jump up)
+			if idx >= 6 and i == math.floor(segs / 2) then
+				part({
+					Name = "GroundShelf",
+					Parent = world,
+					Size = Vector3.new(thisLen * 0.7, 2, 18),
+					CFrame = CFrame.new(cursor + thisLen * 0.35, y + 2.2, laneZ),
+					Color = stage.groundColor:Lerp(Color3.new(0, 0, 0), 0.1),
+					Material = groundMat,
+				})
+			end
+			part({
+				Name = "Ground",
+				Parent = world,
+				Size = Vector3.new(thisLen, 2, 28),
+				CFrame = CFrame.new(cursor + thisLen / 2, y, laneZ),
+				Color = stage.groundColor,
+				Material = groundMat,
+			})
+			cursor += thisLen
+		end
+	end
+	-- Safety floor under everything so players who fall can recover (soft kill zone feel avoided)
+	part({
+		Name = "SafetyFloor",
+		Parent = world,
+		Size = Vector3.new(length + 80, 1, 40),
+		CFrame = CFrame.new(length / 2, -8, laneZ),
+		Color = Color3.fromRGB(15, 15, 20),
+		Material = Enum.Material.SmoothPlastic,
+		Transparency = 0.5,
+	})
+end
+
+function WorldBuilder._MidRoomGate(world: Folder, stage: any, laneZ: number, length: number)
+	if (stage.index or 0) < 3 then
+		return
+	end
+	local x = length * 0.48
+	local gate = part({
+		Name = "MidGate",
+		Parent = world,
+		Size = Vector3.new(2.5, 10, 12),
+		CFrame = CFrame.new(x, 5, laneZ),
+		Color = stage.accentColor,
+		Material = Enum.Material.ForceField,
+		CanCollide = true,
+		Transparency = 0.35,
+	})
+	gate:SetAttribute("Locked", true)
+	label(gate, "CLEAR THE POCKET", stage.accentColor, 6)
+	-- framing posts
+	for _, side in { -1, 1 } do
+		part({
+			Name = "GatePost",
+			Parent = world,
+			Size = Vector3.new(1.2, 12, 1.2),
+			CFrame = CFrame.new(x, 6, laneZ + side * 6),
+			Color = stage.accentColor:Lerp(Color3.new(0, 0, 0), 0.3),
+			Material = Enum.Material.Neon,
+			CanCollide = false,
+		})
+	end
+end
+
 function WorldBuilder.BuildStage(stageId: string, deaths: number?): Folder
 	local stage = Stages.Get(stageId)
 	assert(stage, "unknown stage " .. tostring(stageId))
@@ -714,16 +828,12 @@ function WorldBuilder.BuildStage(stageId: string, deaths: number?): Folder
 		groundMat = Enum.Material.Mud
 	elseif stage.biome == "town" then
 		groundMat = Enum.Material.Asphalt
+	elseif stage.biome == "beach" then
+		groundMat = Enum.Material.Sand
 	end
 
-	part({
-		Name = "Ground",
-		Parent = world,
-		Size = Vector3.new(length + 40, 2, 28),
-		CFrame = CFrame.new(length / 2, -1, laneZ),
-		Color = stage.groundColor,
-		Material = groundMat,
-	})
+	-- Segmented ground: distinct heights per biome; mid/late gaps make jump matter
+	WorldBuilder._BuildGround(world, stage, laneZ, length, groundMat)
 
 	WorldBuilder._Parallax(world, stage, laneZ, length)
 
@@ -757,6 +867,7 @@ function WorldBuilder.BuildStage(stageId: string, deaths: number?): Folder
 		WorldBuilder._Decor(world, stage, laneZ, length)
 		WorldBuilder._SetPiece(world, stage, laneZ, length)
 		WorldBuilder._Platforms(world, stage, laneZ, length)
+		WorldBuilder._MidRoomGate(world, stage, laneZ, length)
 	end
 
 	if stage.coldOnePickup then

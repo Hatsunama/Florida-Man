@@ -193,3 +193,66 @@ Improve every aspect: story, levels, difficulty/power scaling, controls, enemy c
 - Facing math: identity LookVector (0,0,−1); old +90° Y → (−1,0,0); lookAlong(+X) → (+1,0,0) matches D/+velX
 - Spawn distance to flame: |18−20|=2 < 12 prompt range
 - Push: `origin/main`
+
+
+---
+
+# Full Quality Rebuild — 2026-09-04 (ET)
+
+**HEAD base:** `c1dabf7` (playability P0) — movement/hub invariants **kept**.
+**Trigger:** Player feedback — "not even close to good enough." Feel-first rebuild, no time limit.
+
+## Invariants preserved (regression = failure)
+
+- Movement: `CFrame.lookAlong` facing; AlignOrientation `RigidityEnabled=true`; AlignPosition Z-only; WalkSpeed=0; SetNetworkOwner
+- Hub: `SPAWN_X=18` near Flame; ProximityPrompt `ClickablePrompt=true` on Flame + Steve; no fake TOUCH
+- Cold One walkover; Community Standards (Florida Dew, no drugs, turtles allies)
+
+## What actually changed in feel (first 60 seconds)
+
+1. **Hitstop on every connect** (0.045s / 0.06s heavy) freezes player briefly — attacks *thunk*
+2. **Enemy flinch + knockback + hit sparks** on every hit; empty swings no longer shake the camera
+3. **Attack input buffer** (~120ms) queues swings through recovery instead of eating inputs
+4. **Swap** is a real combo piece: burst VFX + brief i-frame + heavy knockback; tempo shift toast
+5. **Skills** fire distinct patterns (beam / wave / aoe / dash / shield) not just damage numbers
+6. **Rarity** now cuts skill cooldown (−8/−14/−20%) as well as boosting power
+
+## Content / systems
+
+### Story (`Story.lua`)
+- Campaign bible: act tones, more Steve lines, rotating hub headlines after death, character sendoff credits, act openers on stage entry
+
+### Levels (`WorldBuilder`)
+- Segmented ground with biome materials + height variation
+- Mid/late gaps (jump matters) + safety floor
+- Mid-stage room gates: clear pocket → MidGate unlocks
+- Set pieces / parallax / lighting kept and wired to gates
+
+### Scaling (`Balance.lua`)
+- HP/dmg curve softened (0.10 / 0.075) — elites via phases/hazards, not sponges
+- Documented stage bands in comments
+- `WaveSpawnCap` + rarity skill CDR
+
+### Enemies
+- Unique telegraphs: crab pinch combo, influencer flash cone, Karen aura+swipe, fire ground cone, drone mark circle, burrow ring, Spillfather 3-phase patterns
+- Boss phase attrs at 66%/33% HP
+- Silhouette upgrades: drone rotors, pelican beak, cart wheels, barrel stripes, Karen bob+citation
+- Boss/elite base HP tuned down
+
+### Presentation
+- HUD controls accurate (click/E prompt, swap attack called out)
+- Newspaper/Credits/Draft paths unchanged but fed richer Story copy
+
+## Files touched (major)
+
+- `src/shared/Constants.lua`, `Balance.lua`, `Story.lua`, `Enemies.lua`, `Stages.lua`
+- `src/server/EnemyService.lua`, `GameService.lua`, `WorldBuilder.lua`, `EnemyFactory.lua`
+- `src/client/Controllers/VFX.lua`, `MovementController.lua`, `InputController.lua`, `CameraController.lua`
+- `src/client/init.client.lua`, `src/client/UI/HUD.lua`
+- `README.md`, `AUDIT.md`
+
+## Verification
+
+- Grep: no TOUCH lies
+- Invariants listed above present
+- Do **not** auto-launch Studio on user PC — push only; user opens via Rojo

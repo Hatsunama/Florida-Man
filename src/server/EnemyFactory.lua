@@ -493,11 +493,27 @@ local function buildHumanoidish(model: Model, root: Part, def: any)
 		local binder = part({
 			Name = "HOABinder",
 			Parent = model,
-			Size = Vector3.new(1.4, 1.8, 0.3),
+			Size = Vector3.new(1.5, 2.0, 0.35),
 			Color = Color3.fromRGB(200, 40, 80),
-			CFrame = root.CFrame * CFrame.new(1.1, 0.3, 0),
+			CFrame = root.CFrame * CFrame.new(1.2, 0.4, 0),
 		})
 		attachToRoot(root, binder)
+		local paper = part({
+			Name = "Citation",
+			Parent = model,
+			Size = Vector3.new(1.1, 1.4, 0.1),
+			Color = Color3.fromRGB(245, 240, 220),
+			CFrame = binder.CFrame * CFrame.new(0, 0, -0.25),
+		})
+		attachToRoot(root, paper)
+		local bob = part({
+			Name = "BobHair",
+			Parent = model,
+			Size = Vector3.new(1.8, 0.8, 1.8),
+			Color = Color3.fromRGB(40, 30, 25),
+			CFrame = head.CFrame * CFrame.new(0, 0.6, 0),
+		})
+		attachToRoot(root, bob)
 	end
 	-- Hazmat tank for grunt
 	if def.id == "GulfGulpGrunt" then
@@ -655,6 +671,99 @@ end
 local function buildGeneric(model: Model, root: Part, def: any)
 	root.Size = def.size
 	root.Color = def.color
+	local shape = def.shape or "hopper"
+	if shape == "drone" or def.id == "DroneSpotter" then
+		root.Size = Vector3.new(def.size.X, def.size.Y * 0.6, def.size.Z)
+		root.Material = Enum.Material.Metal
+		root.Color = Color3.fromRGB(50, 60, 80)
+		local rotor = part({
+			Name = "Rotor",
+			Parent = model,
+			Size = Vector3.new(def.size.X * 1.4, 0.2, 0.4),
+			Color = def.accent,
+			Material = Enum.Material.Neon,
+			CFrame = root.CFrame * CFrame.new(0, def.size.Y * 0.45, 0),
+		})
+		attachToRoot(root, rotor)
+		local lens = part({
+			Name = "MarkLens",
+			Parent = model,
+			Size = Vector3.new(0.8, 0.8, 0.8),
+			Shape = Enum.PartType.Ball,
+			Color = Color3.fromRGB(100, 255, 180),
+			Material = Enum.Material.Neon,
+			CFrame = root.CFrame * CFrame.new(0, -0.2, -def.size.Z * 0.4),
+		})
+		attachToRoot(root, lens)
+		return
+	end
+	if shape == "pelican" then
+		root.Size = Vector3.new(def.size.X * 0.7, def.size.Y * 0.7, def.size.Z * 0.7)
+		root.Color = Color3.fromRGB(240, 240, 230)
+		local beak = part({
+			Name = "Beak",
+			Parent = model,
+			Size = Vector3.new(2.4, 0.6, 0.7),
+			Color = Color3.fromRGB(255, 160, 40),
+			CFrame = root.CFrame * CFrame.new(0, 0.2, -def.size.Z * 0.55),
+		})
+		attachToRoot(root, beak)
+		local wing = part({
+			Name = "Wing",
+			Parent = model,
+			Size = Vector3.new(0.4, 1.5, 3.5),
+			Color = Color3.fromRGB(220, 220, 210),
+			CFrame = root.CFrame * CFrame.new(def.size.X * 0.4, 0.2, 0),
+		})
+		attachToRoot(root, wing)
+		return
+	end
+	if shape == "cart" then
+		root.Material = Enum.Material.Metal
+		local wheel = part({
+			Name = "Wheel",
+			Parent = model,
+			Size = Vector3.new(1.2, 1.2, 0.5),
+			Shape = Enum.PartType.Cylinder,
+			Color = Color3.fromRGB(30, 30, 35),
+			CFrame = root.CFrame * CFrame.new(-def.size.X * 0.3, -def.size.Y * 0.35, 0) * CFrame.Angles(0, 0, math.rad(90)),
+		})
+		attachToRoot(root, wheel)
+		local wheel2 = part({
+			Name = "Wheel2",
+			Parent = model,
+			Size = Vector3.new(1.2, 1.2, 0.5),
+			Shape = Enum.PartType.Cylinder,
+			Color = Color3.fromRGB(30, 30, 35),
+			CFrame = root.CFrame * CFrame.new(def.size.X * 0.3, -def.size.Y * 0.35, 0) * CFrame.Angles(0, 0, math.rad(90)),
+		})
+		attachToRoot(root, wheel2)
+		local accent = part({
+			Name = "Accent",
+			Parent = model,
+			Size = Vector3.new(def.size.X * 0.8, 0.4, def.size.Z * 0.8),
+			Color = def.accent,
+			Material = Enum.Material.Neon,
+			CFrame = root.CFrame * CFrame.new(0, def.size.Y * 0.4, 0),
+		})
+		attachToRoot(root, accent)
+		return
+	end
+	if shape == "barrel" then
+		root.Shape = Enum.PartType.Cylinder
+		root.Size = Vector3.new(def.size.Y, def.size.X, def.size.Z)
+		root.Material = Enum.Material.Metal
+		local stripe = part({
+			Name = "HazardStripe",
+			Parent = model,
+			Size = Vector3.new(def.size.Y * 0.3, def.size.X * 1.05, def.size.Z * 1.05),
+			Color = Color3.fromRGB(255, 180, 0),
+			Material = Enum.Material.Neon,
+			CFrame = root.CFrame,
+		})
+		attachToRoot(root, stripe)
+		return
+	end
 	local accent = part({
 		Name = "Accent",
 		Parent = model,

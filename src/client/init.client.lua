@@ -18,6 +18,7 @@ local UI = script:WaitForChild("UI")
 local InputController = require(Controllers:WaitForChild("InputController"))
 local CameraController = require(Controllers:WaitForChild("CameraController"))
 local MovementController = require(Controllers:WaitForChild("MovementController"))
+local VFX = require(Controllers:WaitForChild("VFX"))
 local HUD = require(UI:WaitForChild("HUD"))
 local Newspaper = require(UI:WaitForChild("Newspaper"))
 local ItemDraft = require(UI:WaitForChild("ItemDraft"))
@@ -116,43 +117,39 @@ Remotes.Get("CombatEvent").OnClientEvent:Connect(function(ev)
 		CameraController.Shake(ev.amount or 0.4, 0.18)
 		return
 	end
+	if ev.kind == "hitConnect" then
+		-- Every connect: hitstop + spark + shake (never on empty swings)
+		MovementController.Hitstop(ev.hitstop)
+		if typeof(ev.pos) == "Vector3" then
+			VFX.HitSpark(ev.pos, ev.heavy == true)
+		end
+		CameraController.Shake(ev.amount or 0.4, if ev.heavy then 0.22 else 0.14)
+		return
+	end
 	if not hrp then
 		return
 	end
 	if ev.kind == "attack" then
-		-- Slash VFX is immediate on client input (InputController/VFX); server echo only confirms juice
+		-- Slash VFX is immediate on client input; server echo only locks facing
 		local facing = ev.facing or MovementController.GetFacing()
 		MovementController.LockFacing(facing, 0.25)
-		CameraController.Shake(0.15 + (ev.combo or 1) * 0.05, 0.1)
+		-- No shake on empty swing — juice only on hitConnect
 	elseif ev.kind == "skill" then
-		local burst = Instance.new("Part")
-		burst.Shape = Enum.PartType.Ball
-		burst.Anchored = true
-		burst.CanCollide = false
-		burst.Material = Enum.Material.ForceField
-		burst.Color = Color3.fromRGB(120, 220, 255)
-		burst.Size = Vector3.new(4, 4, 4)
-		burst.CFrame = hrp.CFrame
-		burst.Parent = workspace
-		TweenService:Create(burst, TweenInfo.new(0.35), { Size = Vector3.new(20, 20, 20), Transparency = 1 }):Play()
-		Debris:AddItem(burst, 0.4)
+		local facing = ev.facing or MovementController.GetFacing()
+		VFX.SkillPattern(hrp, tostring(ev.skillKind or "aoe"), facing)
 		HUD.Toast(tostring(ev.skill or "Skill") .. "!")
 		CameraController.Shake(0.55, 0.22)
+		MovementController.Hitstop(0.05)
 	elseif ev.kind == "dodge" then
 		-- trail already from MovementController
 	elseif ev.kind == "swap" then
-		local ring = Instance.new("Part")
-		ring.Shape = Enum.PartType.Cylinder
-		ring.Anchored = true
-		ring.CanCollide = false
-		ring.Material = Enum.Material.Neon
-		ring.Color = Color3.fromRGB(255, 160, 40)
-		ring.Size = Vector3.new(0.5, 8, 8)
-		ring.CFrame = hrp.CFrame * CFrame.Angles(0, 0, math.rad(90))
-		ring.Parent = workspace
-		TweenService:Create(ring, TweenInfo.new(0.3), { Size = Vector3.new(0.5, 16, 16), Transparency = 1 }):Play()
-		Debris:AddItem(ring, 0.35)
-		CameraController.Shake(0.3, 0.15)
+		local col = Color3.fromRGB(255, 160, 40)
+		if typeof(ev.color) == "table" and ev.color[1] then
+			col = Color3.new(ev.color[1], ev.color[2], ev.color[3])
+		end
+		VFX.SwapBurst(hrp, col)
+		CameraController.Shake(0.35, 0.16)
+		MovementController.Hitstop(0.04)
 	elseif ev.kind == "hit" then
 		HUD.Toast("Ouch! -" .. tostring(ev.damage))
 		CameraController.Shake(0.65, 0.25)

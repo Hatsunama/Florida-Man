@@ -56,6 +56,10 @@ function EnemyService.Spawn(enemyId: string, x: number): Model?
 			local scaled = math.floor(def.damage * dmgM + 0.5)
 			model:SetAttribute("ScaledDamage", scaled)
 			model:SetAttribute("Damage", scaled)
+			model:SetAttribute("MaxHp", hum.MaxHealth)
+			if def.isBoss or def.isMiniboss then
+				model:SetAttribute("BossPhase", 1)
+			end
 		end
 	end
 	model.Parent = Workspace:WaitForChild("GameWorld")
@@ -86,7 +90,7 @@ local function updateNameplate(model: Model)
 	end
 end
 
-function EnemyService.ApplyDamage(model: Model, amount: number, attacker: Player?, knockback: number?): boolean
+function EnemyService.ApplyDamage(model: Model, amount: number, attacker: Player?, knockback: number?, heavy: boolean?): boolean
 	if not EnemyService._alive[model] then
 		return false
 	end
@@ -97,6 +101,8 @@ function EnemyService.ApplyDamage(model: Model, amount: number, attacker: Player
 	if not hum or hum.Health <= 0 then
 		return false
 	end
+	-- Flinch: brief AI pause so every hit reads
+	model:SetAttribute("FlinchUntil", os.clock() + Constants.FLINCH_TIME)
 	hum.Health = math.max(0, hum.Health - amount)
 	updateNameplate(model)
 	EnemyFactory.HitFlash(model)
@@ -104,16 +110,40 @@ function EnemyService.ApplyDamage(model: Model, amount: number, attacker: Player
 	local root = model.PrimaryPart
 	if root then
 		Remotes.Get("DamageNumber"):FireAllClients(root.Position, math.floor(amount), false)
-		Remotes.Get("CombatEvent"):FireAllClients({ kind = "shake", amount = if amount > 20 then 0.7 else 0.35 })
-		-- knockback along lane only
+		local shakeAmt = if heavy then 0.85 elseif amount > 20 then 0.65 else 0.4
+		Remotes.Get("CombatEvent"):FireAllClients({
+			kind = "hitConnect",
+			pos = root.Position,
+			amount = shakeAmt,
+			heavy = heavy == true,
+			hitstop = if heavy then Constants.HITSTOP_HEAVY else Constants.HITSTOP,
+		})
+		-- knockback along lane only + slight lift for readability
 		local kb = knockback or 4
 		if attacker and attacker.Character then
 			local hrp = attacker.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
 			if hrp then
 				local dir = if root.Position.X >= hrp.Position.X then 1 else -1
-				local np = root.Position + Vector3.new(dir * kb, 0, 0)
-				np = Vector3.new(np.X, root.Position.Y, Constants.LANE_Z)
+				local lift = if heavy then 0.6 else 0.25
+				local np = root.Position + Vector3.new(dir * kb, lift, 0)
+				np = Vector3.new(np.X, math.max(root.Position.Y, np.Y), Constants.LANE_Z)
 				model:PivotTo(CFrame.new(np) * (root.CFrame - root.Position))
+			end
+		end
+	end
+
+	-- Boss phase transitions (Spillfather / minibosses)
+	if model:GetAttribute("IsBoss") or model:GetAttribute("IsMiniboss") then
+		local maxHp = model:GetAttribute("MaxHp") :: number?
+		if maxHp and maxHp > 0 then
+			local pct = hum.Health / maxHp
+			local phase = (model:GetAttribute("BossPhase") :: number?) or 1
+			if pct <= 0.66 and phase < 2 then
+				model:SetAttribute("BossPhase", 2)
+				Remotes.Get("CombatEvent"):FireAllClients({ kind = "shake", amount = 1.0 })
+			elseif pct <= 0.33 and phase < 3 then
+				model:SetAttribute("BossPhase", 3)
+				Remotes.Get("CombatEvent"):FireAllClients({ kind = "shake", amount = 1.2 })
 			end
 		end
 	end
@@ -224,6 +254,12 @@ function EnemyService.StartAI()
 			end
 			if telegraphing[model] then
 				EnemyFactory.Animate(model, dt, false, true)
+				continue
+			end
+			-- Hit flinch: freeze briefly so knockback + flash read
+			local flinchUntil = model:GetAttribute("FlinchUntil")
+			if typeof(flinchUntil) == "number" and os.clock() < flinchUntil then
+				EnemyFactory.Animate(model, dt, false, false)
 				continue
 			end
 
@@ -348,35 +384,98 @@ function EnemyService._TelegraphAttack(model: Model, target: Player, behavior: s
 	local tele = (model:GetAttribute("Telegraph") :: number) or 0.5
 	local dmg = (model:GetAttribute("Damage") :: number) or 8
 	local facing = (model:GetAttribute("Facing") :: number) or 1
+	local enemyId = (model:GetAttribute("EnemyId") :: string) or ""
+	local phase = (model:GetAttribute("BossPhase") :: number?) or 1
+	-- Phase 2–3: slightly faster telegraphs, wider zones (pattern change, not sponge)
+	if phase >= 2 then
+		tele = math.max(0.28, tele * (if phase >= 3 then 0.7 else 0.85))
+	end
+
+	local tcAttr = model:GetAttribute("TelegraphColor")
+	local teleColor = if typeof(tcAttr) == "Color3" then tcAttr else Color3.fromRGB(255, 60, 60)
+
+	local zones: { Part } = {}
+	local function addZone(size: Vector3, cf: CFrame, color: Color3?, trans: number?): Part
+		local zone = Instance.new("Part")
+		zone.Name = "Telegraph"
+		zone.Anchored = true
+		zone.CanCollide = false
+		zone.Material = Enum.Material.Neon
+		zone.Color = color or teleColor
+		zone.Transparency = trans or 0.5
+		zone.Size = size
+		zone.CFrame = cf
+		zone.Parent = Workspace
+		Debris:AddItem(zone, tele + 0.2)
+		table.insert(zones, zone)
+		return zone
+	end
+
 	local width = if model:GetAttribute("IsBoss") then 16 elseif behavior == "firearc" then 14 else 9
+	local primary: Part? = nil
 
-	local zone = Instance.new("Part")
-	zone.Name = "Telegraph"
-	zone.Anchored = true
-	zone.CanCollide = false
-	zone.Material = Enum.Material.Neon
-	local tc = model:GetAttribute("TelegraphColor")
-	if typeof(tc) == "Color3" then
-		zone.Color = tc
+	-- UNIQUE telegraphs by folklore role
+	if behavior == "firearc" or enemyId == "FireLizard" or enemyId == "EmberSkink" or enemyId == "RigWelder" then
+		-- GROUND fire cone: wedge telegraph then breath
+		width = 12 + phase * 2
+		primary = addZone(Vector3.new(width, 0.35, 10), CFrame.new(root.Position.X + facing * width * 0.4, 0.25, Constants.LANE_Z), Color3.fromRGB(255, 100, 20), 0.45)
+		-- cone tip marker
+		addZone(Vector3.new(2, 0.5, 2), CFrame.new(root.Position.X + facing * 3, 0.4, Constants.LANE_Z), Color3.fromRGB(255, 220, 60), 0.3)
+	elseif enemyId == "SelfieZombie" or (behavior == "spitter" and enemyId == "SelfieZombie") then
+		-- Flash stun CONE (wide short)
+		width = 11
+		primary = addZone(Vector3.new(width * 0.55, 0.4, 12), CFrame.new(root.Position + Vector3.new(facing * width * 0.35, -root.Size.Y * 0.3, 0)), Color3.fromRGB(180, 240, 255), 0.4)
+		addZone(Vector3.new(3, 3, 0.4), CFrame.new(root.Position + Vector3.new(facing * 2, 1.5, 0)), Color3.fromRGB(255, 255, 255), 0.2)
+	elseif enemyId == "CondoKaren" then
+		-- Slow aura ring + clipboard swipe lane
+		primary = addZone(Vector3.new(14, 0.3, 14), CFrame.new(root.Position.X, 0.25, Constants.LANE_Z), Color3.fromRGB(255, 80, 120), 0.65)
+		addZone(Vector3.new(10, 0.4, 5), CFrame.new(root.Position + Vector3.new(facing * 5, -root.Size.Y * 0.35, 0)), Color3.fromRGB(200, 40, 80), 0.45)
+		width = 12
+	elseif enemyId == "DroneSpotter" then
+		-- Mark circle then dive
+		width = 8
+		primary = addZone(Vector3.new(8, 0.25, 8), CFrame.new(root.Position.X, 0.2, Constants.LANE_Z), Color3.fromRGB(100, 255, 180), 0.4)
+		-- dive lane
+		addZone(Vector3.new(6, 0.35, 5), CFrame.new(root.Position.X, 0.3, Constants.LANE_Z), Color3.fromRGB(255, 80, 80), 0.5)
+	elseif behavior == "burrower" or enemyId == "BurrowSnake" then
+		-- Dirt ring then pop
+		width = 7
+		primary = addZone(Vector3.new(7, 0.3, 7), CFrame.new(root.Position.X, 0.2, Constants.LANE_Z), Color3.fromRGB(180, 140, 80), 0.4)
+	elseif behavior == "scuttle" or enemyId == "BeachCrab" or enemyId == "OffshoreCrab" or enemyId == "CrabKingBoss" or enemyId == "HermitCrab" then
+		-- Pinch combo: two short telegraphs (left then right)
+		width = 8
+		primary = addZone(Vector3.new(7, 0.4, 5), CFrame.new(root.Position + Vector3.new(facing * 4, -root.Size.Y * 0.3, 0)), Color3.fromRGB(255, 120, 80), 0.45)
+		addZone(Vector3.new(5, 0.35, 4), CFrame.new(root.Position + Vector3.new(facing * 6.5, -root.Size.Y * 0.3, 0.5)), Color3.fromRGB(255, 180, 100), 0.55)
+	elseif behavior == "puddle" or enemyId == "OilGator" or enemyId == "OilPuddleLayer" then
+		-- Sludge puddle leave-behind telegraph
+		width = 10
+		primary = addZone(Vector3.new(10, 0.3, 6), CFrame.new(root.Position.X + facing * 4, 0.2, Constants.LANE_Z), Color3.fromRGB(40, 50, 30), 0.4)
+	elseif behavior == "summoner" then
+		width = 10
+		primary = addZone(Vector3.new(10, 0.35, 10), CFrame.new(root.Position.X, 0.25, Constants.LANE_Z), Color3.fromRGB(180, 80, 255), 0.5)
+	elseif model:GetAttribute("IsBoss") and enemyId == "Spillfather" then
+		-- Phase patterns: 1 slam lane, 2 double slam + summon, 3 arena slick ring
+		if phase <= 1 then
+			width = 16
+			primary = addZone(Vector3.new(16, 0.45, 8), CFrame.new(root.Position + Vector3.new(facing * 8, -1, 0)), Color3.fromRGB(255, 120, 0), 0.4)
+		elseif phase == 2 then
+			width = 18
+			primary = addZone(Vector3.new(14, 0.45, 7), CFrame.new(root.Position + Vector3.new(facing * 7, -1, 0)), Color3.fromRGB(255, 100, 0), 0.4)
+			addZone(Vector3.new(14, 0.45, 7), CFrame.new(root.Position + Vector3.new(-facing * 7, -1, 0)), Color3.fromRGB(255, 160, 40), 0.5)
+		else
+			width = 22
+			primary = addZone(Vector3.new(22, 0.4, 14), CFrame.new(root.Position.X, 0.25, Constants.LANE_Z), Color3.fromRGB(255, 80, 20), 0.45)
+			addZone(Vector3.new(10, 0.35, 10), CFrame.new(root.Position.X, 0.3, Constants.LANE_Z), Color3.fromRGB(40, 40, 30), 0.35)
+		end
 	else
-		zone.Color = if behavior == "firearc" then Color3.fromRGB(255, 140, 40) else Color3.fromRGB(255, 60, 60)
+		primary = addZone(Vector3.new(width, 0.4, 6), CFrame.new(root.Position + Vector3.new(facing * width * 0.5, -root.Size.Y * 0.35, 0)), teleColor, 0.5)
 	end
-	zone.Transparency = 0.55
-	-- Fire arcs telegraph ON THE GROUND as a cone wedge
-	if behavior == "firearc" then
-		zone.Size = Vector3.new(width, 0.35, 10)
-		zone.CFrame = CFrame.new(root.Position.X + facing * width * 0.4, 0.25, Constants.LANE_Z)
-	elseif behavior == "spitter" then
-		zone.Size = Vector3.new(width * 0.7, 0.35, 8)
-		zone.CFrame = CFrame.new(root.Position + Vector3.new(facing * width * 0.45, -root.Size.Y * 0.35, 0))
-	else
-		zone.Size = Vector3.new(width, 0.4, 6)
-		zone.CFrame = CFrame.new(root.Position + Vector3.new(facing * width * 0.5, -root.Size.Y * 0.35, 0))
-	end
-	zone.Parent = Workspace
-	Debris:AddItem(zone, tele + 0.15)
 
-	-- claw snap / attack telegraph anim (pulse so Motor6Ds actually read)
+	if not primary then
+		primary = zones[1]
+	end
+
+	-- claw snap / attack telegraph anim
 	local elapsed = 0
 	while elapsed < tele do
 		local step = task.wait(0.05)
@@ -390,10 +489,18 @@ function EnemyService._TelegraphAttack(model: Model, target: Player, behavior: s
 		return
 	end
 
-	if behavior == "summoner" then
+	if behavior == "summoner" or (enemyId == "Spillfather" and phase >= 2) then
 		spawnSummon(model)
-	elseif behavior == "puddle" then
+		if enemyId == "Spillfather" and phase >= 3 then
+			spawnSummon(model)
+		end
+	end
+	if behavior == "puddle" or enemyId == "OilGator" or (enemyId == "Spillfather" and phase >= 3) then
 		leavePuddle(root.Position + Vector3.new(facing * 4, 0, 0))
+		if enemyId == "Spillfather" and phase >= 3 then
+			leavePuddle(root.Position + Vector3.new(-facing * 6, 0, 0))
+			leavePuddle(root.Position)
+		end
 	end
 
 	local char = target.Character
@@ -403,11 +510,25 @@ function EnemyService._TelegraphAttack(model: Model, target: Player, behavior: s
 		if char:GetAttribute("IFrame") then
 			return
 		end
-		local inZone = math.abs(hrp.Position.X - zone.Position.X) < width * 0.55
-			and math.abs(hrp.Position.Z - Constants.LANE_Z) < 5
-		if inZone then
-			Remotes.Get("CombatEvent"):FireClient(target, { kind = "hit", damage = dmg, source = model:GetAttribute("EnemyId") })
-			target:SetAttribute("PendingDamage", dmg)
+		local hit = false
+		for _, zone in zones do
+			if zone.Parent and math.abs(hrp.Position.X - zone.Position.X) < math.max(zone.Size.X, zone.Size.Z) * 0.55
+				and math.abs(hrp.Position.Z - Constants.LANE_Z) < 5 then
+				hit = true
+				break
+			end
+		end
+		-- Karen slow aura: soft damage + attribute flag
+		if hit and enemyId == "CondoKaren" then
+			char:SetAttribute("SlowUntil", os.clock() + 1.4)
+		end
+		if hit then
+			local finalDmg = dmg
+			if enemyId == "Spillfather" and phase >= 3 then
+				finalDmg = math.floor(dmg * 1.15)
+			end
+			Remotes.Get("CombatEvent"):FireClient(target, { kind = "hit", damage = finalDmg, source = enemyId })
+			target:SetAttribute("PendingDamage", finalDmg)
 			target:SetAttribute("PendingDamageAt", os.clock())
 		end
 	end

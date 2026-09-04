@@ -11,12 +11,12 @@ You wake after the last honest night of your life. Crabs stole your **Cold One**
 | Act | Stages | Tone |
 |-----|--------|------|
 | **1 Hangover Coast** | 1–5 | Viral comedy → first radio collar on Drive-Thru Gator |
-| **2 The Swamp That Isn't Wild** | 6–10 | Snakes → mutants; Steve's tagline; animals aren't the enemy |
+| **2 The Swamp That Isn't Wild** | 6–10 | Snakes → mutants; Steve's tagline once; animals aren't the enemy |
 | **3 Red Tide Bargain** | 11–12 | Rescue turtles; "cleanup" is a cover; Turtle Paladin |
 | **4 Inside GulfGulp** | 13–19 | Gate → lab files → pipes → docks → barge → platform → helipad |
-| **5 The Spillfather** | 20 | Oil-exec sludge mech; save remaining turtles; sunrise credits |
+| **5 The Spillfather** | 20 | Oil-exec sludge mech (3 phases); save remaining turtles; sunrise credits |
 
-Newspaper cards **advance the plot**. Hub headline board updates after first death. Unique Steve banter per act.
+Newspaper cards **advance the plot**. Hub headline board rotates after deaths. Unique Steve banter per act. Credits include character sendoffs.
 
 ## Requirements
 
@@ -27,7 +27,7 @@ Newspaper cards **advance the plot**. Hub headline board updates after first dea
 
 ## Open in Studio (Rojo)
 
-1. Open repo folder
+1. Open repo folder (local clone path below after pull)
 2. Run `rojo serve` at the repo root
 3. In Roblox Studio, connect the **Rojo plugin** to `localhost:34872`
 4. Press Play. Press **E** at the **bonfire** (or click the prompt) to start
@@ -42,31 +42,32 @@ rojo build -o FloridaMan.rbxlx
 |--------|----------|------|
 | Move (lane) | A/D or ←/→ | Left stick |
 | Jump (coyote + variable) | Space | A |
-| Attack (3-hit combo, 100ms buffer) | Click / J | X / RT |
-| Skill | K | Y / LT |
-| Swap persona (+ swap attack) | Q | B |
+| Attack (3-hit combo, ~120ms buffer) | Click / J | X / RT |
+| Skill (pattern differs per persona) | K | Y / LT |
+| Swap persona (+ swap attack, brief i-frame) | Q | B |
 | Dodge dash (i-frames + trail) | Left Shift | RB |
 | Interact (bonfire / Captain Steve) | E or click prompt | LB |
 
-Movement is a **custom client 2.5D controller**: `AlignPosition` Z-lane lock, `AlignOrientation` via `CFrame.lookAlong` (+X when moving D), X via `AssemblyLinearVelocity` only (no CFrame stomp). Always-run with snappy accel. Controls prompt fades at hub.
+Movement is a **custom client 2.5D controller**: `AlignPosition` Z-lane lock, `AlignOrientation` via `CFrame.lookAlong` (+X when moving D), X via `AssemblyLinearVelocity` only (no CFrame stomp). Always-run with snappy accel.
 
-Camera: depth ~32, FOV 65, shake on hits only.
+**Combat feel:** hitstop (0.03–0.06s) + flinch/knockback + hit sparks on every connect; screen shake **only on hits**; empty swings stay quiet.
+
+Camera: depth ~32 (Constants.CAMERA_DEPTH), FOV 65, shake on hits only.
 
 ## Difficulty + power scaling
 
-Implemented in `Balance.lua` + `GameService` / `EnemyService`:
+Implemented in `Balance.lua` + `GameService` / `EnemyService` (curve documented in comments):
 
-- **Enemy HP** `*= (1 + 0.12 * stageIndex)` · **damage** `*= (1 + 0.08 * stageIndex)`
-- Stages 1–5 tutorial-fair (HP ~25–50 base, slow telegraphs, ≤2–3 on screen)
-- 6–10 denser packs + elites; 11–15 mixed roles + turtle pressure; 16–20 elites + hazards + built-character bosses
+- **Enemy HP** `*= (1 + 0.10 * stageIndex)` · **damage** `*= (1 + 0.075 * stageIndex)`
+- Stages 1–2 teach dodge/attack (≤2 on screen); 3–5 comedy roles; 6–10 mixes; 11–12 turtle pressure; 13–20 elites + hazards (not HP sponges)
 - **Max hostiles on screen:** 2 → 3 → 4 (never cube soup)
-- Persona rarity: **+15% / +30% / +50%** attack & skill power (Rare / Unique / Legendary)
+- Persona rarity: **+15% / +30% / +50%** attack & skill power; skill CD **−8% / −14% / −20%**
 - Hangover **only stage 1**, clears when you reclaim The Cold One
-- Lucky draft melts late game; unlucky run stays completable with dodge skill
+- Bosses use **phase pattern changes** (Spillfather slam → summon → arena slick)
 
 ## Level quality
 
-Each stage has a unique **set piece** (collapsing pier, fryer oil, neon canopy, canal jump pads, cypress canopy, lab conveyor, pipe maze, barge gaps, helipad wind, Spillfather arena), 3-layer parallax, cartoon hazards, mini-arena framing for bosses, visible goal lights, and biome lighting (Atmosphere + ColorCorrection + Bloom).
+Each stage has a unique **set piece**, **segmented ground** with biome materials/heights, mid/late **gaps** that make jump matter, mid-stage **room gates** (clear pocket → door opens), 3-layer parallax, cartoon hazards with telegraphs, visible goal lights, and biome lighting (Atmosphere + ColorCorrection + Bloom).
 
 ## Content counts
 
@@ -82,9 +83,9 @@ Each stage has a unique **set piece** (collapsing pier, fryer oil, neon canopy, 
 
 Beach Burnout, Crab King, Gator Hauler, Snake Charmer, Golf Cart Bandit, Fireworks Enthusiast, Lizard Breath, Turtle Paladin.
 
-### Enemy folklore (roles kept)
+### Enemy folklore (unique telegraphs)
 
-Hangover Pinchers, Stolen-Sunglasses Crab, King of the Tide Pool · Influencer Stick, HOA Binder Karen · Drive-Thru Gator (collar beat) · Rattle Cottonmouth, Collared Oil Gator, Fire-Breathing Lizard · Cheap Hazmat Grunts, Mark Drones, Sample Tossers, Barrel Rollers · **The Spillfather** (slam / summon / arena slick). Turtles always allies.
+Hangover Pinchers (pinch combo) · Influencer flash stun cone · HOA Karen slow aura + clipboard · Oil Gator sludge puddles · Fire Lizard ground fire cone · Mark Drone circle-then-dive · **The Spillfather** (3 phases). Turtles always allies.
 
 ## Layout
 
