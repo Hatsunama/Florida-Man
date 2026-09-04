@@ -343,10 +343,16 @@ function EnemyService._TelegraphAttack(model: Model, target: Player, behavior: s
 	zone.Parent = Workspace
 	Debris:AddItem(zone, tele + 0.15)
 
-	-- claw snap anim
-	EnemyFactory.Animate(model, 0.05, false, true)
-
-	task.wait(tele)
+	-- claw snap / attack telegraph anim (pulse so Motor6Ds actually read)
+	local elapsed = 0
+	while elapsed < tele do
+		local step = task.wait(0.05)
+		elapsed += step
+		if not model.Parent then
+			return
+		end
+		EnemyFactory.Animate(model, step, false, true)
+	end
 	if not model.Parent or not EnemyService._alive[model] then
 		return
 	end

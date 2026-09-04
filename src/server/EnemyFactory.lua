@@ -42,155 +42,220 @@ local function part(props: { [string]: any }): Part
 end
 
 local function attachToRoot(root: BasePart, child: BasePart)
+	-- Static visual parts only — NEVER use on Motor6D Part0/Part1 driven limbs
 	child.Anchored = false
 	child.CanCollide = false
 	child.Massless = true
 	weld(root, child)
 end
 
+local function motor6d(name: string, part0: BasePart, part1: BasePart, c0: CFrame, c1: CFrame?): Motor6D
+	part1.Anchored = false
+	part1.CanCollide = false
+	part1.Massless = true
+	local m = Instance.new("Motor6D")
+	m.Name = name
+	m.Part0 = part0
+	m.Part1 = part1
+	m.C0 = c0
+	m.C1 = c1 or CFrame.new()
+	m.Parent = part0
+	return m
+end
+
+local function isMotorConnected(model: Model, part: BasePart): boolean
+	for _, c in model:GetDescendants() do
+		if c:IsA("Motor6D") and (c.Part0 == part or c.Part1 == part) then
+			return true
+		end
+		if c:IsA("WeldConstraint") and (c.Part0 == part or c.Part1 == part) then
+			return true
+		end
+	end
+	return false
+end
+
 local function buildCrab(model: Model, root: Part, def: any)
 	local s = def.size
-	root.Size = Vector3.new(s.X * 0.85, s.Y * 0.7, s.Z * 0.85)
-	root.Shape = Enum.PartType.Ball
+	-- Wider flatter body — stylized crab silhouette
+	root.Size = Vector3.new(s.X * 0.95, s.Y * 0.55, s.Z * 0.75)
+	root.Shape = Enum.PartType.Block
 	root.Material = Enum.Material.SmoothPlastic
 	root.Color = def.color
+	root.TopSurface = Enum.SurfaceType.Smooth
+	root.BottomSurface = Enum.SurfaceType.Smooth
 
-	-- carapace shell
+	-- Beveled carapace stack (shell feel without meshes)
 	local shell = part({
 		Name = "Carapace",
 		Parent = model,
-		Size = Vector3.new(s.X * 1.05, s.Y * 0.55, s.Z * 1.05),
-		Color = def.color:Lerp(Color3.fromRGB(255, 100, 40), 0.25),
+		Size = Vector3.new(s.X * 1.15, s.Y * 0.42, s.Z * 0.95),
+		Color = def.color:Lerp(Color3.fromRGB(255, 110, 50), 0.22),
 		Material = Enum.Material.SmoothPlastic,
-		CFrame = root.CFrame * CFrame.new(0, s.Y * 0.25, 0),
+		CFrame = root.CFrame * CFrame.new(0, s.Y * 0.28, 0),
 	})
 	attachToRoot(root, shell)
+	local dome = part({
+		Name = "ShellDome",
+		Parent = model,
+		Size = Vector3.new(s.X * 0.75, s.Y * 0.35, s.Z * 0.65),
+		Shape = Enum.PartType.Ball,
+		Color = def.color:Lerp(Color3.fromRGB(255, 90, 40), 0.35),
+		CFrame = root.CFrame * CFrame.new(0, s.Y * 0.42, 0.05),
+	})
+	attachToRoot(root, dome)
+	local ridge = part({
+		Name = "ShellRidge",
+		Parent = model,
+		Size = Vector3.new(s.X * 0.15, s.Y * 0.2, s.Z * 0.7),
+		Color = def.color:Lerp(Color3.fromRGB(40, 15, 10), 0.35),
+		CFrame = root.CFrame * CFrame.new(0, s.Y * 0.5, 0),
+	})
+	attachToRoot(root, ridge)
 
-	-- eye stalks
+	-- Eye stalks (static welds to root)
 	for _, side in { -1, 1 } do
 		local stalk = part({
 			Name = "EyeStalk",
 			Parent = model,
-			Size = Vector3.new(0.25, 1.1, 0.25),
+			Size = Vector3.new(0.22, 1.25, 0.22),
 			Color = def.color,
-			CFrame = root.CFrame * CFrame.new(side * s.X * 0.28, s.Y * 0.55, -s.Z * 0.25),
+			CFrame = root.CFrame * CFrame.new(side * s.X * 0.22, s.Y * 0.62, -s.Z * 0.28),
 		})
 		attachToRoot(root, stalk)
 		local eye = part({
 			Name = "Eye",
 			Parent = model,
-			Size = Vector3.new(0.45, 0.45, 0.45),
+			Size = Vector3.new(0.5, 0.5, 0.5),
 			Shape = Enum.PartType.Ball,
-			Color = Color3.fromRGB(20, 20, 20),
-			Material = Enum.Material.SmoothPlastic,
-			CFrame = stalk.CFrame * CFrame.new(0, 0.6, 0),
+			Color = Color3.fromRGB(18, 18, 18),
+			CFrame = stalk.CFrame * CFrame.new(0, 0.7, 0),
 		})
 		attachToRoot(root, eye)
 		local pupil = part({
 			Name = "PupilGlow",
 			Parent = model,
-			Size = Vector3.new(0.2, 0.2, 0.2),
+			Size = Vector3.new(0.22, 0.22, 0.22),
 			Shape = Enum.PartType.Ball,
 			Color = def.accent,
 			Material = Enum.Material.Neon,
-			CFrame = eye.CFrame * CFrame.new(0, 0, -0.15),
+			CFrame = eye.CFrame * CFrame.new(0, 0, -0.18),
 		})
 		attachToRoot(root, pupil)
 	end
 
-	-- 6 legs with Motor6D for walk cycle
+	-- 6 legs: hip bone Motor6D from root (NO weld on animated chain)
 	local legsFolder = Instance.new("Folder")
 	legsFolder.Name = "Legs"
 	legsFolder.Parent = model
 	for i = 1, 6 do
 		local side = if i <= 3 then -1 else 1
 		local row = ((i - 1) % 3) - 1
+		local hipCF = root.CFrame * CFrame.new(side * s.X * 0.48, -s.Y * 0.05, row * s.Z * 0.32)
 		local hip = part({
 			Name = "LegHip" .. i,
 			Parent = legsFolder,
-			Size = Vector3.new(0.35, 0.35, 0.35),
+			Size = Vector3.new(0.32, 0.32, 0.32),
 			Color = def.color,
-			CFrame = root.CFrame * CFrame.new(side * s.X * 0.42, -s.Y * 0.15, row * s.Z * 0.28),
+			CFrame = hipCF,
 		})
-		attachToRoot(root, hip)
+		-- Root → hip via Motor6D only (animatable / assembly stays connected)
+		motor6d(
+			"RootHipMotor",
+			root,
+			hip,
+			CFrame.new(side * s.X * 0.48, -s.Y * 0.05, row * s.Z * 0.32),
+			CFrame.new()
+		)
+		hip:SetAttribute("LegIndex", i)
+		hip:SetAttribute("LegSide", side)
+
 		local upper = part({
 			Name = "LegUpper" .. i,
 			Parent = legsFolder,
-			Size = Vector3.new(0.28, 0.9, 0.28),
+			Size = Vector3.new(0.26, 1.05, 0.26),
 			Color = def.color:Lerp(Color3.fromRGB(40, 20, 10), 0.2),
-			CFrame = hip.CFrame * CFrame.new(side * 0.55, -0.2, 0) * CFrame.Angles(0, 0, side * math.rad(35)),
+			CFrame = hipCF * CFrame.new(side * 0.65, -0.25, 0) * CFrame.Angles(0, 0, side * math.rad(40)),
 		})
-		local m1 = Instance.new("Motor6D")
-		m1.Name = "HipMotor"
-		m1.Part0 = hip
-		m1.Part1 = upper
-		m1.C0 = CFrame.new(side * 0.2, 0, 0)
-		m1.C1 = CFrame.new(0, 0.4, 0)
-		m1.Parent = hip
+		motor6d("HipMotor", hip, upper, CFrame.new(side * 0.18, 0, 0), CFrame.new(0, 0.45, 0))
+
 		local lower = part({
 			Name = "LegLower" .. i,
 			Parent = legsFolder,
-			Size = Vector3.new(0.22, 0.85, 0.22),
+			Size = Vector3.new(0.2, 0.95, 0.2),
 			Color = def.accent,
-			CFrame = upper.CFrame * CFrame.new(side * 0.35, -0.7, 0),
+			CFrame = upper.CFrame * CFrame.new(side * 0.3, -0.75, 0),
 		})
-		local m2 = Instance.new("Motor6D")
-		m2.Name = "KneeMotor"
-		m2.Part0 = upper
-		m2.Part1 = lower
-		m2.C0 = CFrame.new(0, -0.45, 0)
-		m2.C1 = CFrame.new(0, 0.35, 0)
-		m2.Parent = upper
-		hip:SetAttribute("LegIndex", i)
-		hip:SetAttribute("LegSide", side)
+		motor6d("KneeMotor", upper, lower, CFrame.new(0, -0.5, 0), CFrame.new(0, 0.4, 0))
+
+		local tip = part({
+			Name = "Foot" .. i,
+			Parent = legsFolder,
+			Size = Vector3.new(0.35, 0.18, 0.45),
+			Color = def.color:Lerp(Color3.fromRGB(30, 10, 5), 0.4),
+			CFrame = lower.CFrame * CFrame.new(0, -0.5, 0),
+		})
+		-- Foot is decorative child of lower — Motor6D keeps it in the chain (no root weld)
+		motor6d("FootMotor", lower, tip, CFrame.new(0, -0.45, 0), CFrame.new())
 	end
 
-	-- claws
+	-- Claws: Motor6D chain from root — snap on attack telegraph
 	for _, side in { -1, 1 } do
 		local arm = part({
 			Name = "ClawArm",
 			Parent = model,
-			Size = Vector3.new(0.45, 0.45, 1.2),
+			Size = Vector3.new(0.42, 0.42, 1.35),
 			Color = def.color,
-			CFrame = root.CFrame * CFrame.new(side * s.X * 0.55, 0.1, -s.Z * 0.35),
+			CFrame = root.CFrame * CFrame.new(side * s.X * 0.55, 0.15, -s.Z * 0.4),
 		})
-		local mArm = Instance.new("Motor6D")
-		mArm.Name = "ClawMotor"
-		mArm.Part0 = root
-		mArm.Part1 = arm
-		mArm.C0 = CFrame.new(side * s.X * 0.45, 0.1, -s.Z * 0.2)
-		mArm.C1 = CFrame.new(0, 0, 0.4)
-		mArm.Parent = root
+		motor6d(
+			"ClawMotor",
+			root,
+			arm,
+			CFrame.new(side * s.X * 0.42, 0.15, -s.Z * 0.15),
+			CFrame.new(0, 0, 0.45)
+		)
+
 		local claw = part({
 			Name = "Claw",
 			Parent = model,
-			Size = Vector3.new(1.1, 0.7, 1.4),
-			Color = def.color:Lerp(Color3.fromRGB(255, 80, 40), 0.15),
-			CFrame = arm.CFrame * CFrame.new(0, 0, -0.9),
+			Size = Vector3.new(1.25, 0.75, 1.55),
+			Color = def.color:Lerp(Color3.fromRGB(255, 80, 40), 0.18),
+			CFrame = arm.CFrame * CFrame.new(0, 0, -0.95),
 		})
-		local mClaw = Instance.new("Motor6D")
-		mClaw.Name = "PinchMotor"
-		mClaw.Part0 = arm
-		mClaw.Part1 = claw
-		mClaw.C0 = CFrame.new(0, 0, -0.7)
-		mClaw.C1 = CFrame.new()
-		mClaw.Parent = arm
-		-- pincer tip
-		local tip = part({
-			Name = "Pincer",
+		motor6d("PinchMotor", arm, claw, CFrame.new(0, 0, -0.75), CFrame.new())
+
+		-- Dual pincer tips — welded to claw only (static relative to claw)
+		local tipA = part({
+			Name = "PincerA",
 			Parent = model,
-			Size = Vector3.new(0.5, 0.35, 0.8),
+			Size = Vector3.new(0.4, 0.28, 0.85),
 			Color = def.accent,
 			Material = Enum.Material.Neon,
-			CFrame = claw.CFrame * CFrame.new(side * 0.25, 0, -0.5),
+			CFrame = claw.CFrame * CFrame.new(side * 0.35, 0.12, -0.55),
 		})
-		attachToRoot(claw, tip)
+		tipA.Anchored = false
+		tipA.CanCollide = false
+		tipA.Massless = true
+		weld(claw, tipA, "PincerWeldA")
+
+		local tipB = part({
+			Name = "PincerB",
+			Parent = model,
+			Size = Vector3.new(0.35, 0.22, 0.7),
+			Color = def.accent:Lerp(Color3.fromRGB(255, 255, 200), 0.3),
+			Material = Enum.Material.Neon,
+			CFrame = claw.CFrame * CFrame.new(side * -0.15, -0.1, -0.5),
+		})
+		tipB.Anchored = false
+		tipB.CanCollide = false
+		tipB.Massless = true
+		weld(claw, tipB, "PincerWeldB")
 	end
 
-	-- dust emitter placeholder
 	local dust = Instance.new("Attachment")
 	dust.Name = "WalkDust"
-	dust.Position = Vector3.new(0, -s.Y * 0.35, 0)
+	dust.Position = Vector3.new(0, -s.Y * 0.3, 0)
 	dust.Parent = root
 	local pe = Instance.new("ParticleEmitter")
 	pe.Name = "SandDust"
@@ -515,26 +580,14 @@ function EnemyFactory.Build(def: any, position: Vector3): Model
 	local shaper = SHAPERS[def.shape] or buildGeneric
 	shaper(model, root, def)
 
-	-- Ensure every BasePart except root is unanchored + welded (safety net)
+	-- Safety net: every BasePart must be in the assembly.
+	-- CRITICAL: never WeldConstraint a part that is already Motor6D-driven — welds freeze animation.
 	for _, d in model:GetDescendants() do
 		if d:IsA("BasePart") and d ~= root then
 			d.Anchored = false
 			d.CanCollide = false
 			d.Massless = true
-			local hasWeld = false
-			for _, c in d:GetChildren() do
-				if c:IsA("WeldConstraint") or c:IsA("Motor6D") then
-					hasWeld = true
-					break
-				end
-			end
-			for _, c in root:GetDescendants() do
-				if (c:IsA("WeldConstraint") or c:IsA("Motor6D")) and (c.Part0 == d or c.Part1 == d) then
-					hasWeld = true
-					break
-				end
-			end
-			if not hasWeld then
+			if not isMotorConnected(model, d) then
 				weld(root, d, "SafetyWeld")
 			end
 		end
@@ -596,24 +649,39 @@ function EnemyFactory.Animate(model: Model, dt: number, moving: boolean, attacki
 
 	if shape == "crab" then
 		for _, d in model:GetDescendants() do
-			if d:IsA("Motor6D") and d.Name == "HipMotor" then
-				local idx = 0
+			if d:IsA("Motor6D") and d.Name == "RootHipMotor" then
+				local hip = d.Part1
+				local idx = if hip then (hip:GetAttribute("LegIndex") :: number?) or 0 else 0
+				local side = if hip then (hip:GetAttribute("LegSide") :: number?) or 1 else 1
+				-- Alternating tripod gait
+				local offset = idx * 1.05
+				local sway = if moving then math.sin(phase + offset) * 0.22 else math.sin(phase * 0.25 + offset) * 0.04
+				d.C1 = CFrame.Angles(0, 0, side * sway)
+			elseif d:IsA("Motor6D") and d.Name == "HipMotor" then
 				local hip = d.Part0
-				if hip then
-					idx = (hip:GetAttribute("LegIndex") :: number?) or 0
-				end
-				local offset = idx * 0.7
-				local swing = if moving then math.sin(phase + offset) * 0.55 else math.sin(phase * 0.3 + offset) * 0.08
-				d.C1 = CFrame.new(0, 0.4, 0) * CFrame.Angles(swing, 0, 0)
+				local idx = if hip then (hip:GetAttribute("LegIndex") :: number?) or 0 else 0
+				local offset = idx * 1.05
+				local swing = if moving then math.sin(phase + offset) * 0.65 else math.sin(phase * 0.3 + offset) * 0.08
+				d.C1 = CFrame.new(0, 0.45, 0) * CFrame.Angles(swing, 0, 0)
 			elseif d:IsA("Motor6D") and d.Name == "KneeMotor" then
-				local bend = if moving then math.sin(phase * 1.2) * 0.35 else 0.1
-				d.C1 = CFrame.new(0, 0.35, 0) * CFrame.Angles(-math.abs(bend), 0, 0)
+				local upper = d.Part0
+				local idx = 0
+				if upper then
+					local n = tonumber(string.match(upper.Name, "%d+"))
+					idx = n or 0
+				end
+				local offset = idx * 1.05
+				local bend = if moving then 0.25 + math.sin(phase * 1.15 + offset) * 0.45 else 0.12
+				d.C1 = CFrame.new(0, 0.4, 0) * CFrame.Angles(-math.abs(bend), 0, 0)
 			elseif d:IsA("Motor6D") and d.Name == "ClawMotor" then
-				local snap = if attacking then math.sin(phase * 8) * 0.4 else math.sin(phase * 0.5) * 0.08
-				d.C1 = CFrame.new(0, 0, 0.4) * CFrame.Angles(0, snap, 0)
+				-- Raise + lunge on attack telegraph
+				local snap = if attacking then math.sin(phase * 9) * 0.55 else math.sin(phase * 0.5) * 0.1
+				local raise = if attacking then -0.45 else -0.08
+				d.C1 = CFrame.new(0, 0, 0.45) * CFrame.Angles(raise, snap, 0)
 			elseif d:IsA("Motor6D") and d.Name == "PinchMotor" then
-				local pinch = if attacking then 0.5 + math.sin(phase * 10) * 0.3 else 0.15
-				d.C1 = CFrame.Angles(0, 0, pinch)
+				-- Claw snap open/close
+				local pinch = if attacking then 0.15 + math.abs(math.sin(phase * 12)) * 0.7 else 0.2
+				d.C1 = CFrame.Angles(0, pinch * 0.35, pinch)
 			end
 		end
 		local dust = model.PrimaryPart and model.PrimaryPart:FindFirstChild("WalkDust")

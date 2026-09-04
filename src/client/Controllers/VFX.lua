@@ -42,4 +42,46 @@ function VFX.WaterRipple(at: Vector3)
 	Debris:AddItem(ring, 0.5)
 end
 
+function VFX.SwingSlash(hrp: BasePart, facing: number, combo: number?)
+	local c = combo or 1
+	local slash = Instance.new("Part")
+	slash.Name = "LocalSwing"
+	slash.Anchored = true
+	slash.CanCollide = false
+	slash.Material = Enum.Material.Neon
+	slash.Color = Color3.fromRGB(255, 235, 140)
+	slash.Size = Vector3.new(5.5 + c * 0.8, 0.35, 3.2)
+	slash.CFrame = CFrame.new(hrp.Position + Vector3.new(facing * 4.5, 1.1, 0))
+		* CFrame.Angles(0, 0, facing * math.rad(-18 + c * 6))
+	slash.Transparency = 0.15
+	slash.Parent = workspace
+	TweenService:Create(slash, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+		Transparency = 1,
+		Size = slash.Size + Vector3.new(2.5, 0, 1.2),
+		CFrame = slash.CFrame * CFrame.new(facing * 1.2, 0.2, 0),
+	}):Play()
+	Debris:AddItem(slash, 0.22)
+
+	local whoosh = Instance.new("Part")
+	whoosh.Anchored = true
+	whoosh.CanCollide = false
+	whoosh.Transparency = 1
+	whoosh.Size = Vector3.new(0.2, 0.2, 0.2)
+	whoosh.Position = hrp.Position + Vector3.new(facing * 3, 1, 0)
+	whoosh.Parent = workspace
+	local att = Instance.new("Attachment")
+	att.Parent = whoosh
+	local pe = Instance.new("ParticleEmitter")
+	pe.Color = ColorSequence.new(Color3.fromRGB(255, 240, 180), Color3.fromRGB(255, 160, 60))
+	pe.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.5), NumberSequenceKeypoint.new(1, 0) })
+	pe.Lifetime = NumberRange.new(0.15, 0.28)
+	pe.Speed = NumberRange.new(4, 10)
+	pe.SpreadAngle = Vector2.new(25, 25)
+	pe.Rate = 0
+	pe.LightEmission = 0.7
+	pe.Parent = att
+	pe:Emit(10 + c * 3)
+	Debris:AddItem(whoosh, 0.35)
+end
+
 return VFX

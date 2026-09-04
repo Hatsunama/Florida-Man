@@ -5,6 +5,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Remotes = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Remotes"))
+local VFX = require(script.Parent:WaitForChild("VFX"))
 
 local InputController = {}
 InputController._enabled = true
@@ -33,6 +34,31 @@ local function tryInteract()
 	end
 end
 
+
+local comboHint = 0
+local lastSwingAt = 0
+
+local function localSwing()
+	local mov = InputController._movement
+	local facing = 1
+	if mov then
+		facing = mov.GetFacing()
+		mov.LockFacing(facing, 0.28)
+	end
+	local now = os.clock()
+	if now - lastSwingAt > 0.45 then
+		comboHint = 0
+	end
+	comboHint = (comboHint % 3) + 1
+	lastSwingAt = now
+	local player = Players.LocalPlayer
+	local char = player.Character
+	local hrp = char and char:FindFirstChild("HumanoidRootPart") :: BasePart?
+	if hrp then
+		VFX.SwingSlash(hrp, facing, comboHint)
+	end
+end
+
 function InputController.BindMovement(movement: any)
 	InputController._movement = movement
 end
@@ -45,11 +71,7 @@ function InputController.Start()
 		local k = input.KeyCode
 		local t = input.UserInputType
 		if t == Enum.UserInputType.MouseButton1 or k == Enum.KeyCode.J then
-			local mov = InputController._movement
-			if mov then
-				local facing = mov.GetFacing()
-				mov.LockFacing(facing, 0.28)
-			end
+			localSwing()
 			fire("RequestAttack")
 		elseif k == Enum.KeyCode.K then
 			fire("RequestSkill")
@@ -66,6 +88,7 @@ function InputController.Start()
 
 	ContextActionService:BindAction("FM_Attack", function(_, state)
 		if state == Enum.UserInputState.Begin and InputController._enabled then
+			localSwing()
 			fire("RequestAttack")
 		end
 	end, false, Enum.KeyCode.ButtonX, Enum.KeyCode.ButtonR2)

@@ -120,19 +120,9 @@ Remotes.Get("CombatEvent").OnClientEvent:Connect(function(ev)
 		return
 	end
 	if ev.kind == "attack" then
+		-- Slash VFX is immediate on client input (InputController/VFX); server echo only confirms juice
 		local facing = ev.facing or MovementController.GetFacing()
 		MovementController.LockFacing(facing, 0.25)
-		local slash = Instance.new("Part")
-		slash.Anchored = true
-		slash.CanCollide = false
-		slash.Material = Enum.Material.Neon
-		slash.Color = Color3.fromRGB(255, 230, 120)
-		slash.Size = Vector3.new(6 + (ev.combo or 1), 0.4, 4)
-		slash.CFrame = CFrame.new(hrp.Position + Vector3.new(facing * 5, 1, 0))
-		slash.Transparency = 0.2
-		slash.Parent = workspace
-		TweenService:Create(slash, TweenInfo.new(0.2), { Transparency = 1, Size = slash.Size + Vector3.new(2, 0, 1) }):Play()
-		Debris:AddItem(slash, 0.25)
 		CameraController.Shake(0.15 + (ev.combo or 1) * 0.05, 0.1)
 	elseif ev.kind == "skill" then
 		local burst = Instance.new("Part")

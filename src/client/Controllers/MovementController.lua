@@ -1,7 +1,9 @@
 --!strict
---[[ Client-authoritative 2.5D controller — Skul/Dead Cells lane feel.
-	Locks Z to lane, smooth accel/decel, coyote jump, variable jump, air control,
-	dodge dash with local VFX. Disables default camera fight / AutoRotate issues.
+--[[ Premium 2.5D lane mover — Skul/Dead Cells feel.
+	Drives X via AssemblyLinearVelocity only (never stomps full CFrame).
+	Soft Z lock via AlignPosition (Z-axis force). Facing via AlignOrientation.
+	Keeps coyote, jump buffer, variable jump, dash i-frames + trail.
+	No stacked custom gravity — Roblox workspace.Gravity owns Y.
 ]]
 
 local Players = game:GetService("Players")
@@ -30,7 +32,6 @@ local dodgeUntil = 0
 local hangoverMult = 1
 local baseSpeed = 18
 local enabled = true
-local groundY: number? = nil
 
 local ACCEL = 85
 local DECEL = 95
@@ -40,9 +41,16 @@ local JUMP_VELOCITY = 56
 local JUMP_CUT = 0.45
 local COYOTE_TIME = 0.12
 local JUMP_BUFFER = 0.12
-local GRAVITY = 140
 local DODGE_SPEED = 62
 local DODGE_DUR = 0.18
+
+-- Per-character constraint refs (rebuilt on spawn)
+local rootAttachment: Attachment? = nil
+local alignPos: AlignPosition? = nil
+local alignOri: AlignOrientation? = nil
+
+local FACE_RIGHT = CFrame.Angles(0, math.rad(90), 0)
+local FACE_LEFT = CFrame.Angles(0, math.rad(-90), 0)
 
 local function getChar(): (Model?, BasePart?, Humanoid?)
 	local char = player.Character
@@ -54,21 +62,70 @@ local function getChar(): (Model?, BasePart?, Humanoid?)
 	return char, hrp, hum
 end
 
+local function destroyMovers()
+	if alignPos then
+		alignPos:Destroy()
+		alignPos = nil
+	end
+	if alignOri then
+		alignOri:Destroy()
+		alignOri = nil
+	end
+	if rootAttachment then
+		rootAttachment:Destroy()
+		rootAttachment = nil
+	end
+end
+
+local function setupMovers(hrp: BasePart)
+	destroyMovers()
+
+	local att = Instance.new("Attachment")
+	att.Name = "FM_MoveAttach"
+	att.Parent = hrp
+	rootAttachment = att
+
+	-- Soft lane lock: force only on Z toward LANE_Z (does not fight X/Y physics)
+	local ap = Instance.new("AlignPosition")
+	ap.Name = "FM_LaneLock"
+	ap.Mode = Enum.PositionAlignmentMode.OneAttachment
+	ap.Attachment0 = att
+	ap.ApplyAtCenterOfMass = true
+	ap.RigidityEnabled = false
+	ap.Responsiveness = 45
+	ap.MaxForce = 1e6
+	ap.ForceLimitMode = Enum.ForceLimitMode.PerAxis
+	ap.MaxAxesForce = Vector3.new(0, 0, 120000)
+	ap.Position = Vector3.new(hrp.Position.X, hrp.Position.Y, Constants.LANE_Z)
+	ap.Parent = hrp
+	alignPos = ap
+
+	-- Smooth facing without slamming CFrame every frame
+	local ao = Instance.new("AlignOrientation")
+	ao.Name = "FM_Face"
+	ao.Mode = Enum.OrientationAlignmentMode.OneAttachment
+	ao.Attachment0 = att
+	ao.RigidityEnabled = false
+	ao.Responsiveness = 28
+	ao.MaxTorque = 1e7
+	ao.CFrame = if facing > 0 then FACE_RIGHT else FACE_LEFT
+	ao.Parent = hrp
+	alignOri = ao
+end
+
 local function configureHumanoid(hum: Humanoid, hrp: BasePart)
 	hum.AutoRotate = false
-	hum.WalkSpeed = 0 -- we drive X ourselves
+	hum.WalkSpeed = 0
 	hum.JumpPower = 0
 	hum.JumpHeight = 0
 	hum:SetStateEnabled(Enum.HumanoidStateType.Climbing, false)
 	hum:SetStateEnabled(Enum.HumanoidStateType.Swimming, false)
-	-- Keep falling/running for ground detection
-	-- network ownership is server-side
+	setupMovers(hrp)
 end
 
 local function isGrounded(hrp: BasePart, hum: Humanoid): boolean
 	local state = hum:GetState()
 	if state == Enum.HumanoidStateType.Freefall or state == Enum.HumanoidStateType.Jumping then
-		-- raycast confirm
 		local params = RaycastParams.new()
 		params.FilterType = Enum.RaycastFilterType.Exclude
 		params.FilterDescendantsInstances = { player.Character :: Instance }
@@ -115,6 +172,7 @@ end
 
 local function doJump(hrp: BasePart, hum: Humanoid)
 	local v = hrp.AssemblyLinearVelocity
+	-- Preserve X; set jump Y; zero Z (lane)
 	hrp.AssemblyLinearVelocity = Vector3.new(v.X, JUMP_VELOCITY, 0)
 	hum:ChangeState(Enum.HumanoidStateType.Jumping)
 	jumping = true
@@ -141,6 +199,9 @@ end
 function MovementController.LockFacing(dir: number, duration: number)
 	facing = if dir >= 0 then 1 else -1
 	attackLockUntil = os.clock() + duration
+	if alignOri then
+		alignOri.CFrame = if facing > 0 then FACE_RIGHT else FACE_LEFT
+	end
 end
 
 function MovementController.RequestDodge()
@@ -163,7 +224,9 @@ function MovementController.RequestDodge()
 	dodgeUntil = os.clock() + Constants.DODGE_COOLDOWN
 	char:SetAttribute("IFrame", true)
 	spawnDodgeTrail(hrp)
-	-- impulse
+	if alignOri then
+		alignOri.CFrame = if facing > 0 then FACE_RIGHT else FACE_LEFT
+	end
 	local v = hrp.AssemblyLinearVelocity
 	hrp.AssemblyLinearVelocity = Vector3.new(dir * DODGE_SPEED, math.max(v.Y, 4), 0)
 	velX = dir * DODGE_SPEED * 0.55
@@ -190,24 +253,26 @@ function MovementController.Start()
 	UserInputService.InputEnded:Connect(function(input)
 		if input.KeyCode == Enum.KeyCode.Space or input.KeyCode == Enum.KeyCode.ButtonA then
 			jumpHeld = false
-			-- variable jump cut
 			local _, hrp = getChar()
 			if hrp and jumping and hrp.AssemblyLinearVelocity.Y > 0 then
 				local v = hrp.AssemblyLinearVelocity
-				hrp.AssemblyLinearVelocity = Vector3.new(v.X, v.Y * JUMP_CUT, v.Z)
+				hrp.AssemblyLinearVelocity = Vector3.new(v.X, v.Y * JUMP_CUT, 0)
 			end
 		end
 	end)
 
 	player.CharacterAdded:Connect(function(char)
-		task.wait(0.2)
+		destroyMovers()
+		task.wait(0.15)
 		local hrp = char:WaitForChild("HumanoidRootPart", 5) :: BasePart?
 		local hum = char:WaitForChild("Humanoid", 5) :: Humanoid?
 		if hrp and hum then
 			configureHumanoid(hum, hrp)
-			-- disable shift lock weirdness
 			player.DevEnableMouseLock = false
 		end
+	end)
+	player.CharacterRemoving:Connect(function()
+		destroyMovers()
 	end)
 	if player.Character then
 		local hrp = player.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
@@ -229,10 +294,13 @@ function MovementController.Start()
 			return
 		end
 
-		-- input
+		-- Ensure movers exist (respawn / edge cases)
+		if not alignPos or not alignOri or not rootAttachment or rootAttachment.Parent ~= hrp then
+			setupMovers(hrp)
+		end
+
 		local left = UserInputService:IsKeyDown(Enum.KeyCode.A) or UserInputService:IsKeyDown(Enum.KeyCode.Left)
 		local right = UserInputService:IsKeyDown(Enum.KeyCode.D) or UserInputService:IsKeyDown(Enum.KeyCode.Right)
-		-- gamepad
 		local stick = UserInputService:GetGamepadState(Enum.UserInputType.Gamepad1)
 		local stickX = 0
 		for _, obj in stick do
@@ -256,7 +324,6 @@ function MovementController.Start()
 			coyote = COYOTE_TIME
 			if jumping and hrp.AssemblyLinearVelocity.Y <= 0.5 then
 				jumping = false
-				-- landing squash feel via brief scale attribute for camera
 				char:SetAttribute("LandSquash", os.clock())
 			end
 		else
@@ -280,7 +347,6 @@ function MovementController.Start()
 					facing = if moveX >= 0 then 1 else -1
 				end
 			else
-				-- decel
 				local dec = if grounded then DECEL else DECEL * 0.4
 				if velX > 0 then
 					velX = math.max(0, velX - dec * dt)
@@ -290,25 +356,16 @@ function MovementController.Start()
 			end
 		end
 
-		-- apply velocity; lock Z; keep Y from physics
+		-- Drive X only; preserve physics Y; kill Z velocity (AlignPosition holds Z pos)
 		local v = hrp.AssemblyLinearVelocity
-		local newY = v.Y
-		-- custom gravity boost for snappier fall
-		if not grounded and newY < 0 then
-			newY -= GRAVITY * 0.35 * dt
-		end
-		hrp.AssemblyLinearVelocity = Vector3.new(velX, newY, 0)
+		hrp.AssemblyLinearVelocity = Vector3.new(velX, v.Y, 0)
 
-		-- hard lane lock (no fence jitter)
-		local pos = hrp.Position
-		if math.abs(pos.Z - Constants.LANE_Z) > 0.01 or math.abs(hrp.AssemblyLinearVelocity.Z) > 0.01 then
-			hrp.CFrame = CFrame.new(pos.X, pos.Y, Constants.LANE_Z) * CFrame.Angles(0, if facing > 0 then math.rad(90) else math.rad(-90), 0)
-			local vv = hrp.AssemblyLinearVelocity
-			hrp.AssemblyLinearVelocity = Vector3.new(vv.X, vv.Y, 0)
-		else
-			-- face along +X / -X (side scroll)
-			local targetCF = CFrame.new(pos) * CFrame.Angles(0, if facing > 0 then math.rad(90) else math.rad(-90), 0)
-			hrp.CFrame = targetCF
+		-- Soft Z target tracks current X/Y so we never yank those axes
+		if alignPos then
+			alignPos.Position = Vector3.new(hrp.Position.X, hrp.Position.Y, Constants.LANE_Z)
+		end
+		if alignOri then
+			alignOri.CFrame = if facing > 0 then FACE_RIGHT else FACE_LEFT
 		end
 
 		char:SetAttribute("Facing", facing)

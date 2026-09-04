@@ -848,13 +848,27 @@ end
 function GameService.InitPlayer(player: Player)
 	states[player] = newRunState(0)
 	player.CharacterAdded:Connect(function(char)
+		local hrp = char:WaitForChild("HumanoidRootPart", 8) :: BasePart?
+		-- Client-authoritative 2.5D mover: ownership must be on the player or server overwrites velocity → rubber-band
+		if hrp then
+			pcall(function()
+				hrp:SetNetworkOwner(player)
+			end)
+		end
 		task.wait(0.3)
+		-- Re-assert after teleport / physics settle
+		if hrp and hrp.Parent then
+			pcall(function()
+				hrp:SetNetworkOwner(player)
+			end)
+		end
 		local s = states[player]
 		if s then
-			if s.inHub or not s.runActive then
-				teleportPlayer(player, WorldBuilder.GetSpawnCFrame(s.stageId))
-			else
-				teleportPlayer(player, WorldBuilder.GetSpawnCFrame(s.stageId))
+			teleportPlayer(player, WorldBuilder.GetSpawnCFrame(s.stageId))
+			if hrp and hrp.Parent then
+				pcall(function()
+					hrp:SetNetworkOwner(player)
+				end)
 			end
 			applyCharacterSpeed(player)
 			local hum = char:FindFirstChildOfClass("Humanoid")
