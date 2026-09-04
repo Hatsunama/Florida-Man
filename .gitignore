@@ -1,0 +1,23 @@
+# Rojo / Roblox
+*.rbxl
+*.rbxlx
+*.rbxm
+*.rbxmx
+sourcemap.json
+
+# OS / editors
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/
+*.code-workspace
+
+# Node / tooling
+node_modules/
+.aftman/
+.rokit/
+
+# Local Studio place locks
+*.lock
