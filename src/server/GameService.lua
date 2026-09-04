@@ -789,6 +789,13 @@ function GameService.TickWaves(player: Player)
 	if progress >= 0.88 and not stage.boss and EnemyService.CountHostile() == 0 then
 		GameService.FinishStage(player)
 	end
+	-- force-clear assist: if miniboss required and spawned and dead, allow exit near gate
+	if stage.miniboss and s.minibossSpawned and progress >= 0.9 and EnemyService.CountHostile() == 0 then
+		GameService.FinishStage(player)
+	end
+	if stage.rescueTurtles > 0 and s.turtlesRescued >= s.turtlesNeeded and progress >= 0.9 and EnemyService.CountHostile() == 0 then
+		GameService.FinishStage(player)
+	end
 end
 
 function GameService.InitPlayer(player: Player)

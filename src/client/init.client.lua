@@ -165,3 +165,24 @@ local player = Players.LocalPlayer
 player.CameraMode = Enum.CameraMode.Classic
 
 print("[Florida Man] Client ready — welcome to the swamp.")
+
+
+-- Hub hint loop
+task.spawn(function()
+	while true do
+		task.wait(4)
+		local plr = Players.LocalPlayer
+		local char = plr.Character
+		local hrp = char and char:FindFirstChild("HumanoidRootPart")
+		local world = workspace:FindFirstChild("GameWorld")
+		if hrp and world then
+			local flame = world:FindFirstChild("Flame")
+			local steve = world:FindFirstChild("CaptainSteve")
+			if flame and (flame.Position - hrp.Position).Magnitude < 14 then
+				HUD.Toast("Press E / LB near the bonfire to start your run")
+			elseif steve and (steve.Position - hrp.Position).Magnitude < 14 then
+				HUD.Toast("Press E / LB — Captain Steve (Sunburn upgrades)")
+			end
+		end
+	end
+end)
