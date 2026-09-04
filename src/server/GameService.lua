@@ -4,6 +4,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
+local ProximityPromptService = game:GetService("ProximityPromptService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Constants = require(Shared:WaitForChild("Constants"))
@@ -504,6 +505,12 @@ function GameService.StartRun(player: Player)
 	if not s then
 		return
 	end
+	-- Only from hub (ProximityPrompt / E). Ignore duplicate triggers mid-run.
+	if not s.inHub or s.runActive then
+		return
+	end
+	s.inHub = false
+	s.runActive = true -- claim immediately so double E/prompt cannot re-enter
 	-- fresh run keeping meta deaths / unlocked? For roguelite: keep unlocks + sunburn + deaths, reset items/hp/stage
 	local deaths = s.deaths
 	local unlocked = s.unlockedPersonas
@@ -645,20 +652,7 @@ function GameService.DoAttack(player: Player)
 			end
 		end
 	end
-	-- Cold One pickup
-	local world = Workspace:FindFirstChild("GameWorld")
-	if world and not s.coldOneTaken then
-		local cold = world:FindFirstChild("ColdOne")
-		if cold and cold:IsA("BasePart") and (cold.Position - origin).Magnitude < 8 then
-			s.coldOneTaken = true
-			s.hangoverUntil = 0
-			s.hp = math.min(s.maxHp, s.hp + Constants.COLD_ONE_HEAL)
-			cold:Destroy()
-			applyCharacterSpeed(player)
-			toast(player, "Reclaimed The Cold One (Florida Dew)! Hangover cleared. +" .. Constants.COLD_ONE_HEAL .. " HP")
-			pushState(player)
-		end
-	end
+	-- Cold One is walkover pickup (see tick loop) — not attack-gated
 	Remotes.Get("CombatEvent"):FireClient(player, { kind = "attack", combo = s.combo, facing = s.facing, weapon = s.weaponId })
 	Remotes.Get("PlaySound"):FireClient(player, "SFX_Swing")
 end
@@ -914,10 +908,62 @@ function GameService.GetState(player: Player): RunState?
 	return states[player]
 end
 
+
+
+local function talkCaptainSteve(player: Player)
+	local s = states[player]
+	if not s then
+		return
+	end
+	local act = 1
+	local st = Stages.Get(s.stageId)
+	if st and st.steveAct then
+		act = st.steveAct
+	elseif s.deaths > 0 then
+		act = math.clamp(Balance.ActNumber(s.stageIndex), 1, 5)
+	end
+	local line = Story.SteveLine(act, s.deaths)
+	toast(player, "Captain Steve: " .. line)
+	Remotes.Get("ShowTagline"):FireClient(player, line, "Captain Steve")
+	pushState(player)
+end
+
+local function tryColdOnePickup(player: Player)
+	local s = states[player]
+	if not s or s.coldOneTaken or not s.runActive then
+		return
+	end
+	local char = player.Character
+	local hrp = char and char:FindFirstChild("HumanoidRootPart") :: BasePart?
+	local world = Workspace:FindFirstChild("GameWorld")
+	if not hrp or not world then
+		return
+	end
+	local cold = world:FindFirstChild("ColdOne")
+	if cold and cold:IsA("BasePart") and (cold.Position - hrp.Position).Magnitude < 6 then
+		s.coldOneTaken = true
+		s.hangoverUntil = 0
+		s.hp = math.min(s.maxHp, s.hp + Constants.COLD_ONE_HEAL)
+		cold:Destroy()
+		applyCharacterSpeed(player)
+		toast(player, "Walked into The Cold One (Florida Dew)! Hangover cleared. +" .. Constants.COLD_ONE_HEAL .. " HP")
+		pushState(player)
+	end
+end
+
 function GameService.SetupRemotes()
 	Remotes.InitServer()
 	EnemyService.SetCallbacks(onEnemyKilled, onTurtleRescued)
 	EnemyService.StartAI()
+
+	ProximityPromptService.PromptTriggered:Connect(function(prompt: ProximityPrompt, player: Player)
+		local action = prompt:GetAttribute("FM_Action")
+		if action == "StartRun" then
+			GameService.StartRun(player)
+		elseif action == "TalkCaptainSteve" then
+			talkCaptainSteve(player)
+		end
+	end)
 
 	Remotes.Get("RequestStartRun").OnServerEvent:Connect(function(player)
 		GameService.StartRun(player)
@@ -994,21 +1040,7 @@ function GameService.SetupRemotes()
 		end
 	end)
 	Remotes.Get("TalkCaptainSteve").OnServerEvent:Connect(function(player)
-		local s = states[player]
-		if not s then
-			return
-		end
-		local act = 1
-		local st = Stages.Get(s.stageId)
-		if st and st.steveAct then
-			act = st.steveAct
-		elseif s.deaths > 0 then
-			act = math.clamp(Balance.ActNumber(s.stageIndex), 1, 5)
-		end
-		local line = Story.SteveLine(act, s.deaths)
-		toast(player, "Captain Steve: " .. line)
-		Remotes.Get("ShowTagline"):FireClient(player, line, "Captain Steve")
-		pushState(player)
+		talkCaptainSteve(player)
 	end)
 	Remotes.Get("SmashPersona").OnServerEvent:Connect(function(player, personaId)
 		local s = states[player]
@@ -1101,6 +1133,7 @@ function GameService.SetupRemotes()
 					end
 				end
 				GameService.TickWaves(player)
+				tryColdOnePickup(player)
 				-- hub interact proximity
 				local st = states[player]
 				if st and st.inHub then

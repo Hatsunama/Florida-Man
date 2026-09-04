@@ -31,18 +31,23 @@ function Newspaper.Show(payload: any)
 	gui.Name = "FM_Newspaper"
 	gui.IgnoreGuiInset = true
 	gui.DisplayOrder = 50
+	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	gui.Parent = pg
 
 	local dim = Instance.new("Frame")
 	dim.Size = UDim2.fromScale(1, 1)
 	dim.BackgroundColor3 = Color3.new(0, 0, 0)
 	dim.BackgroundTransparency = 0.4
+	dim.Active = false
+	dim.ZIndex = 1
 	dim.Parent = gui
 
 	local paper = Instance.new("Frame")
 	paper.Size = UDim2.new(0, 680, 0, 460)
 	paper.Position = UDim2.new(0.5, -340, 0.5, -230)
 	paper.BackgroundColor3 = Color3.fromRGB(235, 225, 200)
+	paper.Active = false
+	paper.ZIndex = 5
 	paper.Parent = gui
 	corner(paper, 4)
 
@@ -119,6 +124,10 @@ function Newspaper.Show(payload: any)
 	btn.Font = Enum.Font.GothamBold
 	btn.TextSize = 20
 	btn.TextColor3 = Color3.new(1, 1, 1)
+	btn.Active = true
+	btn.Selectable = true
+	btn.ZIndex = 20
+	btn.AutoButtonColor = true
 	btn.Text = if payload.isFinale then "TO SUNRISE CREDITS" else "CONTINUE → ITEM DRAFT"
 	btn.Parent = paper
 	corner(btn, 8)

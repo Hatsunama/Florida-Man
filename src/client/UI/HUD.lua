@@ -192,7 +192,7 @@ function HUD.Init()
 	controlsLbl.Font = Enum.Font.Gotham
 	controlsLbl.TextScaled = true
 	controlsLbl.TextColor3 = Color3.fromRGB(180, 190, 210)
-	controlsLbl.Text = "A/D lane · Space jump · Shift dash · Click/J attack · K skill · Q swap · E interact"
+	controlsLbl.Text = "A/D move · Space jump · Shift dash · J/LMB attack · K skill · Q swap · E or click prompt to interact"
 	controlsLbl.Parent = gui
 	corner(controlsLbl, 8)
 	-- Fade controls after first few seconds at hub

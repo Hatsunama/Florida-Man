@@ -159,8 +159,13 @@ Remotes.Get("CombatEvent").OnClientEvent:Connect(function(ev)
 	end
 end)
 
-Remotes.Get("Toast").OnClientEvent:Connect(function(text)
-	if string.find(tostring(text), "Smash spare") then
+-- Open Steve upgrade panel only on intentional interact (prompt / E), not stage taglines
+local ProximityPromptService = game:GetService("ProximityPromptService")
+ProximityPromptService.PromptTriggered:Connect(function(prompt, plr)
+	if plr ~= Players.LocalPlayer then
+		return
+	end
+	if prompt:GetAttribute("FM_Action") == "TalkCaptainSteve" then
 		CaptainSteveUI.Open()
 	end
 end)
@@ -198,9 +203,9 @@ task.spawn(function()
 			local flame = world:FindFirstChild("Flame")
 			local steve = world:FindFirstChild("CaptainSteve")
 			if flame and (flame.Position - hrp.Position).Magnitude < 14 then
-				HUD.Toast("Press E / LB near the bonfire to start your run")
+				HUD.Toast("Press E or click the bonfire prompt to start your run")
 			elseif steve and (steve.Position - hrp.Position).Magnitude < 14 then
-				HUD.Toast("Press E / LB — Captain Steve (Sunburn upgrades)")
+				HUD.Toast("Press E or click prompt — Captain Steve (Sunburn upgrades)")
 			end
 		end
 	end

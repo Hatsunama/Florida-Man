@@ -27,6 +27,7 @@ function CaptainSteveUI.Open()
 	gui.Name = "FM_Steve"
 	gui.IgnoreGuiInset = true
 	gui.DisplayOrder = 45
+	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	gui.Parent = pg
 
 	local panel = Instance.new("Frame")
@@ -102,6 +103,10 @@ function CaptainSteveUI.Open()
 			up.TextSize = 14
 			up.TextColor3 = Color3.new(1, 1, 1)
 			up.Text = "Upgrade"
+			up.Active = true
+			up.Selectable = true
+			up.ZIndex = 10
+			up.AutoButtonColor = true
 			up.Parent = row
 			local uc = Instance.new("UICorner")
 			uc.CornerRadius = UDim.new(0, 6)
@@ -121,6 +126,10 @@ function CaptainSteveUI.Open()
 			smash.TextSize = 14
 			smash.TextColor3 = Color3.new(1, 1, 1)
 			smash.Text = "Smash"
+			smash.Active = true
+			smash.Selectable = true
+			smash.ZIndex = 10
+			smash.AutoButtonColor = true
 			smash.Parent = row
 			local sc = Instance.new("UICorner")
 			sc.CornerRadius = UDim.new(0, 6)
@@ -141,6 +150,10 @@ function CaptainSteveUI.Open()
 	close.Font = Enum.Font.GothamBold
 	close.Text = "Close"
 	close.TextColor3 = Color3.new(1, 1, 1)
+	close.Active = true
+	close.Selectable = true
+	close.ZIndex = 10
+	close.AutoButtonColor = true
 	close.Parent = panel
 	local cc = Instance.new("UICorner")
 	cc.CornerRadius = UDim.new(0, 8)

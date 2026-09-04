@@ -55,6 +55,22 @@ local function label(parent: Instance, text: string, color: Color3?, offsetY: nu
 	return bb
 end
 
+
+local function proximityPrompt(parent: Instance, props: { [string]: any }): ProximityPrompt
+	local pp = Instance.new("ProximityPrompt")
+	pp.ActionText = props.ActionText or "Interact"
+	pp.ObjectText = props.ObjectText or ""
+	pp.KeyboardKeyCode = Enum.KeyCode.E
+	pp.HoldDuration = 0
+	pp.ClickablePrompt = true
+	pp.RequiresLineOfSight = false
+	pp.MaxActivationDistance = props.MaxActivationDistance or 12
+	pp.Style = Enum.ProximityPromptStyle.Default
+	pp:SetAttribute("FM_Action", props.Action or "")
+	pp.Parent = parent
+	return pp
+end
+
 local function clearEffects()
 	for _, name in { "FM_Atmosphere", "FM_CC", "FM_Bloom", "FM_DoF" } do
 		local e = Lighting:FindFirstChild(name)
@@ -586,7 +602,13 @@ function WorldBuilder._BuildHub(world: Folder, stage: any, laneZ: number, deaths
 		Shape = Enum.PartType.Ball,
 	})
 	flame:SetAttribute("Interact", "StartRun")
-	label(flame, "🔥 TOUCH TO BEGIN", Color3.fromRGB(255, 200, 80))
+	label(flame, "🔥 Press E · Start Run", Color3.fromRGB(255, 200, 80))
+	proximityPrompt(flame, {
+		ActionText = "Start Run",
+		ObjectText = "Bonfire",
+		Action = "StartRun",
+		MaxActivationDistance = 12,
+	})
 	local att = Instance.new("Attachment")
 	att.Parent = flame
 	local pe = Instance.new("ParticleEmitter")
@@ -656,7 +678,13 @@ function WorldBuilder._BuildHub(world: Folder, stage: any, laneZ: number, deaths
 		CFrame = CFrame.new(32, 2.2, laneZ + 0.2), Color = Color3.fromRGB(230, 230, 220), CanCollide = false })
 	part({ Name = "Eye", Parent = steveModel, Size = Vector3.new(0.45, 0.45, 0.45), Shape = Enum.PartType.Ball,
 		CFrame = CFrame.new(33.2, 3.2, laneZ - 2.6), Color = Color3.fromRGB(20, 20, 20), CanCollide = false })
-	label(body, "Captain Steve\n(Pelican Upgrades)", Color3.fromRGB(255, 240, 180))
+	label(body, "Captain Steve\nPress E · Talk", Color3.fromRGB(255, 240, 180))
+	proximityPrompt(body, {
+		ActionText = "Talk",
+		ObjectText = "Captain Steve",
+		Action = "TalkCaptainSteve",
+		MaxActivationDistance = 12,
+	})
 
 	local board = part({
 		Name = "HeadlineBoard",
@@ -742,7 +770,7 @@ function WorldBuilder.BuildStage(stageId: string, deaths: number?): Folder
 			Shape = Enum.PartType.Cylinder,
 		})
 		can:SetAttribute("Pickup", "ColdOne")
-		label(can, "Florida Dew\n(The Cold One)", Color3.fromRGB(180, 255, 180))
+		label(can, "Florida Dew — walk over to pick up", Color3.fromRGB(180, 255, 180))
 	end
 
 	if not stage.isHub then

@@ -32,12 +32,15 @@ function ItemDraft.Show(picks: { any })
 	gui.Name = "FM_Draft"
 	gui.IgnoreGuiInset = true
 	gui.DisplayOrder = 55
+	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	gui.Parent = pg
 
 	local dim = Instance.new("Frame")
 	dim.Size = UDim2.fromScale(1, 1)
 	dim.BackgroundColor3 = Color3.new(0, 0, 0)
 	dim.BackgroundTransparency = 0.4
+	dim.Active = false
+	dim.ZIndex = 1
 	dim.Parent = gui
 
 	local title = Instance.new("TextLabel")
@@ -48,6 +51,7 @@ function ItemDraft.Show(picks: { any })
 	title.TextSize = 28
 	title.TextColor3 = Color3.fromRGB(255, 220, 120)
 	title.Text = "END OF STAGE — pick 1 item"
+	title.ZIndex = 5
 	title.Parent = gui
 
 	local hint = Instance.new("TextLabel")
@@ -58,6 +62,7 @@ function ItemDraft.Show(picks: { any })
 	hint.TextSize = 16
 	hint.TextColor3 = Color3.fromRGB(200, 210, 230)
 	hint.Text = "Inscriptions: HUMID · FERAL · LUCKY · GREASY · HEROIC · CHAOS  —  3 matching = set bonus"
+	hint.ZIndex = 5
 	hint.Parent = gui
 
 	for i, it in picks do
@@ -66,6 +71,9 @@ function ItemDraft.Show(picks: { any })
 		card.Position = UDim2.new(0.5, -320 + (i - 1) * 220, 0.35, 0)
 		card.BackgroundColor3 = Color3.fromRGB(28, 32, 42)
 		card.AutoButtonColor = true
+		card.Active = true
+		card.Selectable = true
+		card.ZIndex = 10
 		card.Text = ""
 		card.Parent = gui
 		corner(card, 12)
@@ -82,6 +90,8 @@ function ItemDraft.Show(picks: { any })
 		rarity.TextSize = 14
 		rarity.TextColor3 = Util.RarityColor(it.rarity)
 		rarity.Text = string.upper(it.rarity)
+		rarity.Active = false
+		rarity.ZIndex = 11
 		rarity.Parent = card
 
 		local name = Instance.new("TextLabel")
@@ -93,6 +103,8 @@ function ItemDraft.Show(picks: { any })
 		name.TextSize = 20
 		name.TextColor3 = Color3.new(1, 1, 1)
 		name.Text = it.name
+		name.Active = false
+		name.ZIndex = 11
 		name.Parent = card
 
 		local tag = Instance.new("TextLabel")
@@ -103,6 +115,8 @@ function ItemDraft.Show(picks: { any })
 		tag.TextSize = 14
 		tag.TextColor3 = Util.InscriptionColor(it.inscription)
 		tag.Text = "[" .. it.inscription .. "]"
+		tag.Active = false
+		tag.ZIndex = 11
 		tag.Parent = card
 
 		local desc = Instance.new("TextLabel")
@@ -115,6 +129,8 @@ function ItemDraft.Show(picks: { any })
 		desc.TextColor3 = Color3.fromRGB(200, 205, 220)
 		desc.TextYAlignment = Enum.TextYAlignment.Top
 		desc.Text = it.description .. "\n\n" .. it.statText
+		desc.Active = false
+		desc.ZIndex = 11
 		desc.Parent = card
 
 		card.MouseButton1Click:Connect(function()

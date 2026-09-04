@@ -9,7 +9,7 @@ Story.ACTS = {
 		steve = {
 			"Kid, the crabs took your Cold One. That's the joke. The swamp tells the truth later.",
 			"Radio collars on gators? That's not 'nature.' That's a logo with teeth.",
-			"Touch the fire when you're ready to chase a headline across half the state.",
+			"Press E at the bonfire (or click the prompt) when you're ready to chase a headline across half the state.",
 		},
 	},
 	[2] = {
@@ -70,7 +70,7 @@ Story.CREDITS = {
 	"But tonight the Cold One is yours,",
 	"and the sunrise is actually trying.",
 	"",
-	"Thanks for playing — touch the bonfire to run it back.",
+	"Thanks for playing — Press E at the bonfire to run it back.",
 }
 
 function Story.SteveLine(act: number, deaths: number?): string

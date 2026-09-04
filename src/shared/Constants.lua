@@ -23,7 +23,7 @@ local Constants = {
 	SUNBURN_PER_LEGENDARY = 50,
 	LANE_Z = 0,
 	STAGE_LENGTH = 240,
-	SPAWN_X = 8,
+	SPAWN_X = 18, -- hub: within ProximityPrompt range of Flame at x=20
 	REMOTE_FOLDER = "Remotes",
 	COLD_ONE_HEAL = 35,
 	HANGOVER_SLOW = 0.88,

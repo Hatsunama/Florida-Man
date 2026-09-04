@@ -49,8 +49,13 @@ local rootAttachment: Attachment? = nil
 local alignPos: AlignPosition? = nil
 local alignOri: AlignOrientation? = nil
 
-local FACE_RIGHT = CFrame.Angles(0, math.rad(90), 0)
-local FACE_LEFT = CFrame.Angles(0, math.rad(-90), 0)
+--[[ Facing for +Z side-scroller: D/+X travel must face +X (LookVector.X > 0).
+	Old Angles(0,+90,0) yielded LookVector (-1,0,0) which caused moonwalk.
+	lookAlong with faceDir = sign(moveX) aligns LookVector with travel. ]]
+local function faceCFrame(faceDir: number): CFrame
+	local dir = if faceDir >= 0 then 1 else -1
+	return CFrame.lookAlong(Vector3.zero, Vector3.new(dir, 0, 0))
+end
 
 local function getChar(): (Model?, BasePart?, Humanoid?)
 	local char = player.Character
@@ -100,15 +105,15 @@ local function setupMovers(hrp: BasePart)
 	ap.Parent = hrp
 	alignPos = ap
 
-	-- Smooth facing without slamming CFrame every frame
+	-- Snap facing so LookVector matches travel (+X when facing=+1)
 	local ao = Instance.new("AlignOrientation")
 	ao.Name = "FM_Face"
 	ao.Mode = Enum.OrientationAlignmentMode.OneAttachment
 	ao.Attachment0 = att
-	ao.RigidityEnabled = false
-	ao.Responsiveness = 28
+	ao.RigidityEnabled = true
+	ao.Responsiveness = 200
 	ao.MaxTorque = 1e7
-	ao.CFrame = if facing > 0 then FACE_RIGHT else FACE_LEFT
+	ao.CFrame = faceCFrame(facing)
 	ao.Parent = hrp
 	alignOri = ao
 end
@@ -200,7 +205,7 @@ function MovementController.LockFacing(dir: number, duration: number)
 	facing = if dir >= 0 then 1 else -1
 	attackLockUntil = os.clock() + duration
 	if alignOri then
-		alignOri.CFrame = if facing > 0 then FACE_RIGHT else FACE_LEFT
+		alignOri.CFrame = faceCFrame(facing)
 	end
 end
 
@@ -225,7 +230,7 @@ function MovementController.RequestDodge()
 	char:SetAttribute("IFrame", true)
 	spawnDodgeTrail(hrp)
 	if alignOri then
-		alignOri.CFrame = if facing > 0 then FACE_RIGHT else FACE_LEFT
+		alignOri.CFrame = faceCFrame(facing)
 	end
 	local v = hrp.AssemblyLinearVelocity
 	hrp.AssemblyLinearVelocity = Vector3.new(dir * DODGE_SPEED, math.max(v.Y, 4), 0)
@@ -365,7 +370,14 @@ function MovementController.Start()
 			alignPos.Position = Vector3.new(hrp.Position.X, hrp.Position.Y, Constants.LANE_Z)
 		end
 		if alignOri then
-			alignOri.CFrame = if facing > 0 then FACE_RIGHT else FACE_LEFT
+			alignOri.CFrame = faceCFrame(facing)
+		end
+
+		-- Keep default Animate forward: MoveDirection shares sign with LookVector/travel
+		if math.abs(moveX) > 0.1 then
+			hum:Move(Vector3.new(moveX, 0, 0), false)
+		else
+			hum:Move(Vector3.zero, false)
 		end
 
 		char:SetAttribute("Facing", facing)

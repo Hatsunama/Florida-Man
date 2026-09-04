@@ -30,7 +30,7 @@ Newspaper cards **advance the plot**. Hub headline board updates after first dea
 1. Open repo folder
 2. Run `rojo serve` at the repo root
 3. In Roblox Studio, connect the **Rojo plugin** to `localhost:34872`
-4. Press Play. Touch the **bonfire** (or press **E**) to start
+4. Press Play. Press **E** at the **bonfire** (or click the prompt) to start
 
 ```powershell
 rojo build -o FloridaMan.rbxlx
@@ -46,9 +46,9 @@ rojo build -o FloridaMan.rbxlx
 | Skill | K | Y / LT |
 | Swap persona (+ swap attack) | Q | B |
 | Dodge dash (i-frames + trail) | Left Shift | RB |
-| Interact (bonfire / Captain Steve) | E | LB |
+| Interact (bonfire / Captain Steve) | E or click prompt | LB |
 
-Movement is a **custom client 2.5D controller**: `AlignPosition` Z-lane lock, `AlignOrientation` facing, X via `AssemblyLinearVelocity` only (no CFrame stomp). Always-run with snappy accel. Controls prompt fades at hub.
+Movement is a **custom client 2.5D controller**: `AlignPosition` Z-lane lock, `AlignOrientation` via `CFrame.lookAlong` (+X when moving D), X via `AssemblyLinearVelocity` only (no CFrame stomp). Always-run with snappy accel. Controls prompt fades at hub.
 
 Camera: depth ~32, FOV 65, shake on hits only.
 

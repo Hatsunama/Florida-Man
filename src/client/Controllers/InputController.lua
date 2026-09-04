@@ -6,6 +6,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Remotes = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Remotes"))
 local VFX = require(script.Parent:WaitForChild("VFX"))
+local CaptainSteveUI = require(script.Parent.Parent:WaitForChild("UI"):WaitForChild("CaptainSteveUI"))
 
 local InputController = {}
 InputController._enabled = true
@@ -24,13 +25,14 @@ local function tryInteract()
 		return
 	end
 	local flame = world:FindFirstChild("Flame")
-	if flame and (flame.Position - hrp.Position).Magnitude < 10 then
+	if flame and (flame.Position - hrp.Position).Magnitude < 12 then
 		fire("RequestStartRun")
 		return
 	end
 	local steve = world:FindFirstChild("CaptainSteve")
 	if steve and (steve.Position - hrp.Position).Magnitude < 12 then
 		fire("TalkCaptainSteve")
+		CaptainSteveUI.Open()
 	end
 end
 

@@ -42,7 +42,7 @@ local list: { StageDef } = {
 	{
 		id = "Hub", index = 0, name = "Dawn Bonfire",
 		headline = "FLORIDA MAN — you danced until the fire died. The crabs stole your Cold One.",
-		blurb = "Wake on the beach. Touch the bonfire to start your legend.",
+		blurb = "Wake on the beach. Press E at the bonfire (or click the prompt) to start your legend.",
 		length = 70, groundColor = Color3.fromRGB(210, 180, 110), accentColor = Color3.fromRGB(255, 140, 40),
 		fogColor = Color3.fromRGB(180, 200, 220), clockTime = 6.2,
 		waves = {}, miniboss = nil, boss = nil, unlockPersona = nil, rescueTurtles = 0,

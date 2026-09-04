@@ -142,3 +142,54 @@ Improve every aspect: story, levels, difficulty/power scaling, controls, enemy c
 
 - `rojo` may be missing on box — build skipped if absent
 - Push: `origin/main` as Hatsunama
+
+
+---
+
+# Playability P0 — 2026-09-04 (ET)
+
+**Trigger:** Player feedback — moonwalk, unclickable "touch" prompts, spawn out of interact range, unplayable feel.
+
+## Findings (root causes)
+
+| # | Bug | Effect |
+|---|-----|--------|
+| 1 | `FACE_RIGHT = Angles(0,+90°,0)` → LookVector **−X** while D moves **+X** | Character literally runs backwards / moonwalks |
+| 2 | Bonfire label `TOUCH TO BEGIN` + story "Touch the fire" but interact was **E-only** (no ClickDetector / ProximityPrompt) | Players click the flame; nothing happens |
+| 3 | `SPAWN_X=8`, Flame at **x=20**, E range **10** → distance **12 > 10** | Fresh spawn: E does nothing until you walk closer — feels broken |
+| 4 | Cold One pickup lived inside `DoAttack` | Had to attack near the can; walk-over did nothing |
+| 5 | Captain Steve panel gated on toast containing `"Smash spare"` (never sent) | Talk did not open upgrades UI |
+| 6 | Draft/Newspaper/Steve buttons lacked explicit Active/Selectable/ZIndex hardening | Risk of "can't click" on overlay UIs |
+
+## Fixes
+
+### Facing (`MovementController.lua`)
+- **Before:** `AlignOrientation.CFrame = FACE_RIGHT/LEFT` via `CFrame.Angles(0, ±90°, 0)` (inverted vs +X travel); `RigidityEnabled=false`, Responsiveness 28
+- **After:** `CFrame.lookAlong(Vector3.zero, Vector3.new(faceDir, 0, 0))` with `faceDir = sign(moveX)` so LookVector.X and velX share sign; `RigidityEnabled=true`; `hum:Move` world ±X so default Animate is not reverse relative to LookVector
+- Kept AlignPosition Z lock + WalkSpeed=0 custom mover + network ownership from prior P0
+
+### Interact / spawn
+- `SPAWN_X` **8 → 18** (within 12 studs of Flame at x=20)
+- `ProximityPrompt` on Flame + CaptainSteve: ActionText Start Run / Talk, ObjectText Bonfire / Captain Steve, Key=E, HoldDuration=0, **ClickablePrompt=true**, RequiresLineOfSight=false, MaxActivationDistance=12
+- Server `ProximityPromptService.PromptTriggered` → `StartRun` / `talkCaptainSteve` (E remote path kept)
+- Labels/HUD/Story/Stages/toasts: no more "TOUCH" — accurate "Press E · Start Run" / click prompt copy
+- Cold One: **walkover** pickup in tick loop + clear label
+- Steve UI opens on prompt/E interact only (not stage taglines)
+- `StartRun` requires hub + re-entry claim to ignore double E/prompt
+
+### UI click paths
+- ItemDraft / Newspaper / CaptainSteveUI: Active/Selectable/ZIndex on TextButtons; dim frames `Active=false`
+
+## Files touched
+- `src/client/Controllers/MovementController.lua`
+- `src/client/Controllers/InputController.lua`
+- `src/client/init.client.lua`
+- `src/client/UI/HUD.lua`, `ItemDraft.lua`, `Newspaper.lua`, `CaptainSteveUI.lua`
+- `src/server/WorldBuilder.lua`, `GameService.lua`
+- `src/shared/Constants.lua`, `Story.lua`, `Stages.lua`
+- `AUDIT.md`
+
+## Verification
+- Facing math: identity LookVector (0,0,−1); old +90° Y → (−1,0,0); lookAlong(+X) → (+1,0,0) matches D/+velX
+- Spawn distance to flame: |18−20|=2 < 12 prompt range
+- Push: `origin/main`
