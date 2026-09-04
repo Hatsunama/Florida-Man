@@ -58,3 +58,16 @@ Phases chunk Spillfather (~66% / 33% thresholds) so the bar never feels like one
 ## Nightly sim note (manual)
 
 Until codegen exists: pick stage index → `EstimateScaledEnemyHp` vs `EstimateStarterHitDamage` × expected connects before telegraph. Target: stage 1 crab TTK ≤ 1.2s of swing uptime.
+
+## N3 catalog honesty (2026-09-04)
+
+| Change | Value |
+|--------|-------|
+| Ranged pierce cap | **2** hits (`Constants.RANGED_PIERCE_HITS`); thrown remains **1** |
+| BonfireEmber | `special=ember` → **+25%** damage for **2.5s** after dodge |
+| GREASY set | Still **+15 HP**; now real oil resist (milder slick slow `0.88`, half fryer/slick/pipe hazard dmg) |
+| HUMID set | Text matches **+5% dodge CDR** (`dodgeBonus=0.05`) + **+8 HP** |
+| hoaCone | Damage tick **3** / ~0.85s (was décor-only) |
+| Weapon unlocks | All **28** catalog ids reachable in-run (stage clear table) |
+| Act 3–4 density | MaxHostiles **3** through stage 12, **4** from 13+ — telegraph budget unchanged |
+

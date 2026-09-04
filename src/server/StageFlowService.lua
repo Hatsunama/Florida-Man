@@ -270,31 +270,39 @@ function StageFlowService.FinishStage(player: Player)
 		RunContext.UnlockPersona(player, "GolfCartBandit")
 	end
 
-	local weaponDrops = {
-		DaytonaHangover = "FlipFlopSlap",
-		BoardwalkChaos = "PoolNoodle",
-		GasStationLegends = "GolfClub",
-		StripMallShowdown = "HOAClipboard",
-		DriveThruDisaster = "GatorWrestleGloves",
-		CanalRun = "KayakPaddle",
-		SwampShift = "SnakeLasso",
-		CypressCathedral = "TikiTorch",
-		SludgeBayou = "SpillSkimmer",
-		TurtleBeach = "NetGun",
-		GulfGulpGate = "FireExtinguisher",
-		LabWing = "BugZapper",
-		PipeGauntlet = "OilBarrelLid",
-		BargeCrossing = "BoogieBoard",
-		OilPlatformApproach = "SludgeHose",
-		HelipadHysteria = "RomanCandle",
-		GulfGulpRig = "FinaleRocket",
+	-- N3: every Weapons.List id unlocks in-run (BareHands starter; rest stage-gated)
+	local weaponDrops: { [string]: { string } } = {
+		DaytonaHangover = { "FlipFlopSlap", "CoolerLid" },
+		BoardwalkChaos = { "PoolNoodle", "NewspaperRoll" },
+		GasStationLegends = { "GolfClub", "TrafficCone" },
+		StripMallShowdown = { "HOAClipboard", "BeachUmbrella" },
+		DriveThruDisaster = { "GatorWrestleGloves", "ShoppingCart" },
+		CanalRun = { "KayakPaddle", "WaterBalloonSling" },
+		SwampShift = { "SnakeLasso", "FishSmack" },
+		CypressCathedral = { "TikiTorch", "LawnDart" },
+		SludgeBayou = { "SpillSkimmer" },
+		ConspiracyShack = { "Skateboard", "PelicanBeakReplica" },
+		TurtleBeach = { "NetGun" },
+		GulfGulpGate = { "FireExtinguisher" },
+		LabWing = { "BugZapper" },
+		PipeGauntlet = { "OilBarrelLid" },
+		BargeCrossing = { "BoogieBoard" },
+		OilPlatformApproach = { "SludgeHose" },
+		HelipadHysteria = { "RomanCandle" },
+		GulfGulpRig = { "FinaleRocket" },
 	}
-	local wid = weaponDrops[stage.id]
-	if wid and not s.unlockedWeapons[wid] then
-		s.unlockedWeapons[wid] = true
-		s.weaponId = wid
-		local wdef = Weapons.Get(wid)
-		RunContext.Toast(player, "Weapon unlocked: " .. (if wdef then wdef.name else wid))
+	local drops = weaponDrops[stage.id]
+	if drops then
+		for _, wid in drops do
+			if not s.unlockedWeapons[wid] and Weapons.Get(wid) then
+				s.unlockedWeapons[wid] = true
+				s.weaponId = wid
+				local wdef = Weapons.Get(wid)
+				RunContext.Toast(player, "Weapon unlocked: " .. (if wdef then wdef.name else wid))
+			end
+		end
+	end
+		end
 	end
 
 	local nextStage = Stages.NextAfter(stage.id)

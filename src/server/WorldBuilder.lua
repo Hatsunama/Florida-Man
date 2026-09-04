@@ -314,6 +314,7 @@ local function makeHazard(world: Folder, kind: string, x: number, laneZ: number,
 		h.Material = Enum.Material.SmoothPlastic
 		h.Transparency = 0
 		h.CanCollide = false
+		h:SetAttribute("HazardDamage", Constants.HOA_CONE_DAMAGE)
 		label(h, "HOA", Color3.fromRGB(255, 220, 80), 2)
 	elseif kind == "redTide" then
 		h.Color = Color3.fromRGB(180, 40, 70)

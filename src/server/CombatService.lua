@@ -286,6 +286,7 @@ function CombatService.SpawnProjectile(opts: ProjectileOpts)
 	part.Parent = Workspace
 
 	local hitSet: { [Model]: boolean } = {}
+	local pierceLeft = if kind == "ranged" then Constants.RANGED_PIERCE_HITS else 1
 	local traveled = 0
 	local t0 = os.clock()
 	local x0 = opts.origin.X
@@ -328,10 +329,8 @@ function CombatService.SpawnProjectile(opts: ProjectileOpts)
 			if dx < 3.2 and dy < 4.5 then
 				hitSet[model] = true
 				opts.onHit(model, opts.damage, opts.knockback, opts.heavy == true)
-				if kind == "ranged" then
-
-				end
-				if kind == "thrown" then
+				pierceLeft -= 1
+				if pierceLeft <= 0 then
 					part:Destroy()
 					if conn then
 						conn:Disconnect()

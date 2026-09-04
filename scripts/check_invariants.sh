@@ -77,4 +77,16 @@ else
   echo "FAIL GameService <=400 ($GS_LINES)"
   fail=1
 fi
+
+# N3 catalog honesty
+check "BonfireEmber ember special" 'special="ember"' src/shared/Items.lua
+check "Ranged pierce cap" 'RANGED_PIERCE_HITS' src/shared/Constants.lua
+check "PierceLeft combat" 'pierceLeft' src/server/CombatService.lua
+check "hoaCone damage tick" 'hk == "hoaCone"' src/server/HazardService.lua
+check "HOA_CONE_DAMAGE" 'HOA_CONE_DAMAGE' src/shared/Constants.lua
+check "GREASY oilResist set" 'oilResist' src/shared/Items.lua
+check "OilResist attr" 'OilResist' src/server/RunContext.lua
+check "Ember dodge buff" 'EMBER_BUFF_DURATION' src/server/CombatFacade.lua
+check "Weapon drops table N3" 'ConspiracyShack' src/server/StageFlowService.lua
+
 exit $fail

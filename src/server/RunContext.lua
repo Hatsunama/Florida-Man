@@ -148,6 +148,11 @@ function RunContext.HasHeroicLifesteal(s: RunState): boolean
 	return (counts.HEROIC or 0) >= Constants.INSCRIPTION_SET_SIZE
 end
 
+function RunContext.HasGreasyOilResist(s: RunState): boolean
+	local counts = Items.CountInscriptions(s.items)
+	return (counts.GREASY or 0) >= Constants.INSCRIPTION_SET_SIZE
+end
+
 function RunContext.NewRunState(deaths: number): RunState
 	return {
 		stageId = "Hub",
@@ -184,6 +189,7 @@ function RunContext.NewRunState(deaths: number): RunState
 		skillReadyAt = 0,
 		swapReadyAt = 0,
 		dodgeReadyAt = 0,
+		emberUntil = 0,
 		facing = 1,
 		unlockedFireworks = false,
 		weaponId = Constants.STARTING_WEAPON,
@@ -272,8 +278,10 @@ function RunContext.ApplyCharacterSpeed(player: Player)
 	end
 	local oilUntil = if char then char:GetAttribute("OilSlowUntil") else nil
 	local oiled = typeof(oilUntil) == "number" and os.clock() < oilUntil
+	local greasy = RunContext.HasGreasyOilResist(s)
 	if oiled then
-		mult = math.min(mult, Constants.OIL_SLOW_MULT)
+		local oilMult = if greasy then Constants.OIL_SLOW_MULT_RESIST else Constants.OIL_SLOW_MULT
+		mult = math.min(mult, oilMult)
 	end
 	base *= mult
 	s.moveSpeed = base
@@ -288,6 +296,7 @@ function RunContext.ApplyCharacterSpeed(player: Player)
 		if not oiled then
 			char:SetAttribute("OilSlowUntil", nil)
 		end
+		char:SetAttribute("OilResist", greasy)
 		char:SetAttribute("AggroPull", RunContext.HasItemSpecial(s, "aggro"))
 	end
 	RunContext.ApplyPersonaLook(player)

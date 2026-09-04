@@ -50,6 +50,11 @@ local Constants = {
 	SUMMON_TICK = 0.35,
 	PROJECTILE_SPEED_RANGED = 78,
 	PROJECTILE_SPEED_THROWN = 44,
+	RANGED_PIERCE_HITS = 2, -- ranged caps pierce; thrown stays single-hit
+	EMBER_BUFF_DURATION = 2.5,
+	EMBER_DAMAGE_MULT = 1.25,
+	OIL_SLOW_MULT_RESIST = 0.88, -- GREASY set milder slick slow
+	HOA_CONE_DAMAGE = 3,
 	CART_DASH_IFRAME = 0.55, -- Golf Cart Bandit skill armor frames
 }
 

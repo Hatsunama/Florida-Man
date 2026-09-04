@@ -79,7 +79,8 @@ local function scanHazards(
 					end
 					charH:SetAttribute("OilSlow", true)
 				elseif hk == "oilSlick" or hk == "sandSlow" or hk == "redTide" then
-					local until = os.clock() + 1.2
+					local resist = charH:GetAttribute("OilResist") == true
+					local until = os.clock() + (if resist then 0.55 else 1.2)
 					local prev = charH:GetAttribute("OilSlowUntil")
 					if typeof(prev) ~= "number" or until > prev then
 						charH:SetAttribute("OilSlowUntil", until)
@@ -89,6 +90,9 @@ local function scanHazards(
 					if not CombatService.HasIFrames(player) and hrpH.Position.Y < child.Position.Y + 3.5 then
 						local last = charH:GetAttribute("LastHazardAt")
 						local dmg = (child:GetAttribute("HazardDamage") :: number?) or 5
+						if charH:GetAttribute("OilResist") == true and (hk == "fryerOil" or hk == "slickRing" or hk == "pipeSpray") then
+							dmg = math.max(1, math.floor(dmg * 0.5))
+						end
 						if typeof(last) ~= "number" or os.clock() - last > 0.75 then
 							charH:SetAttribute("LastHazardAt", os.clock())
 							applyDamage(player, dmg)
@@ -115,6 +119,13 @@ local function scanHazards(
 					if typeof(last) ~= "number" or os.clock() - last > 0.8 then
 						charH:SetAttribute("LastHazardAt", os.clock())
 						applyDamage(player, 4)
+					end
+				elseif hk == "hoaCone" and not CombatService.HasIFrames(player) then
+					local last = charH:GetAttribute("LastHazardAt")
+					local dmg = (child:GetAttribute("HazardDamage") :: number?) or Constants.HOA_CONE_DAMAGE
+					if typeof(last) ~= "number" or os.clock() - last > 0.85 then
+						charH:SetAttribute("LastHazardAt", os.clock())
+						applyDamage(player, dmg)
 					end
 				elseif hk == "windPush" then
 					local dir = (child:GetAttribute("WindDir") :: number?) or -1

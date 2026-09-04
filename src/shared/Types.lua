@@ -66,6 +66,7 @@ export type RunState = {
 	skillReadyAt: number,
 	swapReadyAt: number,
 	dodgeReadyAt: number,
+	emberUntil: number,
 	facing: number,
 	unlockedFireworks: boolean,
 	weaponId: string,

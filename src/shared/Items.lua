@@ -35,7 +35,7 @@ local list: { ItemDef } = {
 	{ id="NoveltyMug", name="Novelty Mug", description="Says WORLD'S OKAYEST FLORIDA MAN. Holds Florida Dew vibes.", rarity="Rare", inscription="HUMID",
 		statText="Heal on stage clear", hpBonus=5, damageBonus=0, speedBonus=0, luckBonus=0, dodgeBonus=0, healOnPickup=0, special="stageHeal" },
 	{ id="TurtleSticker", name="Turtle Sticker", description="Never harm turtles. This sticker agrees.", rarity="Rare", inscription="HEROIC",
-		statText="+Damage vs GulfGulp", hpBonus=0, damageBonus=2, speedBonus=0, luckBonus=0, dodgeBonus=0, healOnPickup=5, special="antiCorp" },
+		statText="+Damage (corp tax)", hpBonus=0, damageBonus=2, speedBonus=0, luckBonus=0, dodgeBonus=0, healOnPickup=5, special="antiCorp" },
 	{ id="GasStationTaquito", name="Gas-Station Taquito", description="Rolling since Tuesday. Heal now, regret never (cartoon).", rarity="Common", inscription="GREASY",
 		statText="Instant heal", hpBonus=0, damageBonus=0, speedBonus=0, luckBonus=0, dodgeBonus=0, healOnPickup=25, special="" },
 	{ id="LawnDartCharm", name="Lawn Dart Charm", description="Banned in 12 HOAs. Still flies true.", rarity="Rare", inscription="CHAOS",
@@ -51,13 +51,13 @@ local list: { ItemDef } = {
 	{ id="SpillAbsorbent", name="Spill Absorbent", description="Pads that drink sludge so turtles don't have to.", rarity="Unique", inscription="HEROIC",
 		statText="+Resist oil spit", hpBonus=15, damageBonus=0, speedBonus=0, luckBonus=0, dodgeBonus=0.05, healOnPickup=0, special="absorb" },
 	{ id="LabBadge", name="Lab Badge", description="GulfGulp Energy — TEMPORARY. Very temporary.", rarity="Legendary", inscription="GREASY",
-		statText="+All stats vs finale", hpBonus=20, damageBonus=6, speedBonus=1, luckBonus=0.1, dodgeBonus=0, healOnPickup=0, special="badge" },
+		statText="+HP +Damage (badge privilege)", hpBonus=20, damageBonus=6, speedBonus=1, luckBonus=0.1, dodgeBonus=0, healOnPickup=0, special="badge" },
 	{ id="SeashellShield", name="Seashell Shield", description="Borrowed from a hermit. Refund denied.", rarity="Common", inscription="HEROIC",
 		statText="+HP + slight knock resist", hpBonus=18, damageBonus=0, speedBonus=0, luckBonus=0, dodgeBonus=0.03, healOnPickup=0, special="" },
 	{ id="MosquitoNet", name="Mosquito Net Cape", description="Fashionable. Buzz-proof-ish.", rarity="Common", inscription="HUMID",
 		statText="+Dodge", hpBonus=5, damageBonus=0, speedBonus=1, luckBonus=0, dodgeBonus=0.08, healOnPickup=0, special="" },
 	{ id="PelicanWhistle", name="Pelican Whistle", description="Captain Steve merch. Summons confidence.", rarity="Rare", inscription="LUCKY",
-		statText="+Luck +Skill feel", hpBonus=0, damageBonus=2, speedBonus=0, luckBonus=0.12, dodgeBonus=0, healOnPickup=0, special="" },
+		statText="+Luck +Damage", hpBonus=0, damageBonus=2, speedBonus=0, luckBonus=0.12, dodgeBonus=0, healOnPickup=0, special="" },
 	{ id="MustardPacket", name="Industrial Mustard", description="From the runaway cart. Greasy power.", rarity="Common", inscription="GREASY",
 		statText="+Damage", hpBonus=0, damageBonus=4, speedBonus=0, luckBonus=0, dodgeBonus=0, healOnPickup=8, special="" },
 	{ id="RedTideFilter", name="Red Tide Filter Mask", description="Looks ridiculous. Works anyway.", rarity="Rare", inscription="HEROIC",
@@ -68,16 +68,16 @@ local list: { ItemDef } = {
 		statText="+Speed +Dodge", hpBonus=0, damageBonus=1, speedBonus=4, luckBonus=0, dodgeBonus=0.06, healOnPickup=0, special="" },
 	{ id="CypressCharm", name="Cypress Knee Charm", description="Swamp luck carved wrong on purpose.", rarity="Common", inscription="FERAL",
 		statText="+Damage +HP", hpBonus=8, damageBonus=2, speedBonus=0, luckBonus=0, dodgeBonus=0, healOnPickup=0, special="" },
-	{ id="BonfireEmber", name="Bonfire Ember", description="Still warm from the hub.", rarity="Rare", inscription="FERAL",
-		statText="+Damage after dodge", hpBonus=0, damageBonus=5, speedBonus=0, luckBonus=0, dodgeBonus=0.02, healOnPickup=0, special="" },
+	{ id="BonfireEmber", name="Bonfire Ember", description="Still warm from the hub. Dodge fans the coals.", rarity="Rare", inscription="FERAL",
+		statText="+Damage after dodge", hpBonus=0, damageBonus=5, speedBonus=0, luckBonus=0, dodgeBonus=0.02, healOnPickup=0, special="ember" },
 	{ id="TurtleSnack", name="Turtle Snack Pack", description="For turtles. You may have one crumb.", rarity="Common", inscription="HEROIC",
 		statText="Heal + turtle empathy", hpBonus=0, damageBonus=0, speedBonus=0, luckBonus=0.05, dodgeBonus=0, healOnPickup=20, special="" },
 	{ id="OilProofBoots", name="Oil-Proof Boots", description="Slick floors hate these.", rarity="Unique", inscription="GREASY",
-		statText="+Speed on slicks +HP", hpBonus=12, damageBonus=0, speedBonus=2, luckBonus=0, dodgeBonus=0.05, healOnPickup=0, special="absorb" },
+		statText="+Speed +HP, absorb hits", hpBonus=12, damageBonus=0, speedBonus=2, luckBonus=0, dodgeBonus=0.05, healOnPickup=0, special="absorb" },
 	{ id="HeadlinePressPass", name="Headline Press Pass", description="BREAKING: you are the story.", rarity="Legendary", inscription="CHAOS",
 		statText="+Damage +Luck +swagger", hpBonus=10, damageBonus=8, speedBonus=1, luckBonus=0.15, dodgeBonus=0, healOnPickup=0, special="paperCut" },
 	{ id="DewKoozie", name="Florida Dew Koozie", description="Keeps vibes cold. Not a drink brand ad.", rarity="Rare", inscription="HUMID",
-		statText="+HP regen feel on pickup heals", hpBonus=10, damageBonus=0, speedBonus=0, luckBonus=0, dodgeBonus=0, healOnPickup=12, special="stageHeal" },
+		statText="+HP, heal on pickup + stage clear", hpBonus=10, damageBonus=0, speedBonus=0, luckBonus=0, dodgeBonus=0, healOnPickup=12, special="stageHeal" },
 }
 
 Items.List = list
@@ -87,12 +87,12 @@ for _, it in list do
 end
 
 Items.SetBonuses = {
-	HUMID = { name = "Swamp Sweat", text = "+10% dodge window feel / +8 HP", hpBonus = 8, dodgeBonus = 0.05 },
+	HUMID = { name = "Swamp Sweat", text = "+5% dodge CDR / +8 HP", hpBonus = 8, dodgeBonus = 0.05 },
 	FERAL = { name = "Bite Back", text = "+12% damage", damageBonus = 0.12 },
 	LUCKY = { name = "Pelican Favor", text = "+better draft rarity", luckBonus = 0.2 },
-	GREASY = { name = "Deep Fry Defense", text = "+15 HP, oil resist", hpBonus = 15 },
-	HEROIC = { name = "Turtle Oath", text = "+heal 2 HP on hit", special = "lifesteal" },
-	CHAOS = { name = "Headline Energy", text = "+skill damage burst", damageBonus = 0.08 },
+	GREASY = { name = "Deep Fry Defense", text = "+15 HP, oil resist (milder slicks / half oil hazard dmg)", hpBonus = 15, special = "oilResist" },
+	HEROIC = { name = "Turtle Oath", text = "+heal ~2 HP on hit", special = "lifesteal" },
+	CHAOS = { name = "Headline Energy", text = "+8% damage", damageBonus = 0.08 },
 }
 
 function Items.Get(id: string): ItemDef?

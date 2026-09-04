@@ -36,6 +36,10 @@ local function applyOnHitSpecials(player: Player, s: RunContext.RunState, model:
 	local dmg = baseDamage
 	local rng = RunContext.GetRng()
 
+	if s.emberUntil > 0 and os.clock() < s.emberUntil then
+		dmg *= Constants.EMBER_DAMAGE_MULT
+	end
+
 	if RunContext.HasItemSpecial(s, "paperCut") and rng:NextNumber() < (0.18 + s.luck * 0.25) then
 		dmg *= 1.45
 		RunContext.Toast(player, "Paper cut crit!")
@@ -370,6 +374,9 @@ function CombatFacade.DoDodge(player: Player, facingArg: number?)
 	local char = player.Character
 
 	CombatService.SetIFrames(player, Constants.DODGE_IFRAME)
+	if RunContext.HasItemSpecial(s, "ember") then
+		s.emberUntil = now + Constants.EMBER_BUFF_DURATION
+	end
 	if char then
 		char:SetAttribute("IFrameVFX", true)
 		task.delay(Constants.DODGE_IFRAME, function()
