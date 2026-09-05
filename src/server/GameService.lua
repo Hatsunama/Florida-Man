@@ -22,6 +22,7 @@ local DraftService = require(script.Parent:WaitForChild("DraftService"))
 local HubService = require(script.Parent:WaitForChild("HubService"))
 local StageFlowService = require(script.Parent:WaitForChild("StageFlowService"))
 local CombatFacade = require(script.Parent:WaitForChild("CombatFacade"))
+local FunnelService = require(script.Parent:WaitForChild("FunnelService"))
 
 local GameService = {}
 
@@ -69,6 +70,7 @@ end
 
 function GameService.InitPlayer(player: Player)
 	local profile = MetaService.Load(player)
+	FunnelService.OnJoin(player)
 	Settings.EnsureDefaults(player)
 	MetaService.ApplySettingsAttrs(player, profile)
 	RunContext.SetState(player, RunContext.NewRunState(profile.deaths))
@@ -275,6 +277,7 @@ function GameService.SetupRemotes()
 			for _, player in Players:GetPlayers() do
 				StageFlowService.TickWaves(player)
 				StageFlowService.TryColdOnePickup(player)
+				FunnelService.WatchSoftlocks(player)
 
 				local stH = RunContext.GetState(player)
 				if stH then
@@ -299,6 +302,7 @@ Players.PlayerRemoving:Connect(function(player)
 	-- N2: MetaService.Unload (registered first) runs capturer+Save; we only clear run memory
 	RunContext.ClearState(player)
 	combatBuckets[player] = nil
+	FunnelService.Unload(player)
 end)
 
 return GameService

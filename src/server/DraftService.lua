@@ -10,6 +10,7 @@ local Remotes = require(Shared:WaitForChild("Remotes"))
 local Balance = require(Shared:WaitForChild("Balance"))
 
 local RunContext = require(script.Parent:WaitForChild("RunContext"))
+local FunnelService = require(script.Parent:WaitForChild("FunnelService"))
 
 local DraftService = {}
 
@@ -43,6 +44,7 @@ local function beginDraftOrSkip(player: Player)
 	if #s.items >= s.itemSlots then
 		RunContext.Toast(player, "Item slots full — draft skipped")
 		s.awaitingDraft = false
+		FunnelService.Mark(player, "draft_pick", { item = "skip_full" })
 		advanceAfterDraft(player)
 		return
 	end
@@ -65,6 +67,7 @@ local function beginDraftOrSkip(player: Player)
 		})
 	end
 	Remotes.Get("ShowDraft"):FireClient(player, payload)
+	FunnelService.Mark(player, "draft_open", { stage = s.stageId })
 	RunContext.PushState(player)
 end
 
@@ -102,6 +105,7 @@ function DraftService.PickDraftItem(player: Player, itemId: unknown)
 		RunContext.ComputeStats(s)
 	end
 	s.awaitingDraft = false
+	FunnelService.Mark(player, "draft_pick", { item = itemId })
 	advanceAfterDraft(player)
 end
 

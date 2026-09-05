@@ -1,6 +1,7 @@
 --!strict
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 local Credits = {}
 
 function Credits.Show(payload: any)
@@ -123,10 +124,46 @@ function Credits.Show(payload: any)
 		AudioDirector.Duck(3)
 	end)
 
-	task.delay(scrollSec + 3, function()
+
+	local hint = Instance.new("TextLabel")
+	hint.Name = "SkipHint"
+	hint.Size = UDim2.new(1, 0, 0, 24)
+	hint.Position = UDim2.new(0, 0, 1, -36)
+	hint.BackgroundTransparency = 1
+	hint.Font = Enum.Font.Gotham
+	hint.TextSize = 16
+	hint.TextColor3 = Color3.fromRGB(200, 210, 230)
+	hint.Text = "tap / click to dismiss · dialogue was popup-only this run"
+	hint.Parent = gui
+
+	local dismissed = false
+	local conn: RBXScriptConnection? = nil
+	local function dismiss()
+		if dismissed then
+			return
+		end
+		dismissed = true
+		if conn then
+			conn:Disconnect()
+			conn = nil
+		end
 		if gui.Parent then
 			gui:Destroy()
 		end
+	end
+	conn = UserInputService.InputBegan:Connect(function(input, gp)
+		if gp then
+			return
+		end
+		local t = input.UserInputType
+		if t == Enum.UserInputType.MouseButton1 or t == Enum.UserInputType.Touch then
+			dismiss()
+		elseif input.KeyCode == Enum.KeyCode.Escape or input.KeyCode == Enum.KeyCode.ButtonB then
+			dismiss()
+		end
+	end)
+	task.delay(scrollSec + 3, function()
+		dismiss()
 	end)
 end
 

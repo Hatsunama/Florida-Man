@@ -55,21 +55,32 @@ function LoadingGui.Init()
 	sub.Position = UDim2.new(0.15, 0, 0.5, 0)
 	sub.BackgroundTransparency = 1
 	sub.Font = Enum.Font.Gotham
-	sub.Text = "Bonfire to Boardwalk"
+	sub.Text = "It IS Florida… Anything is possible in the swamp I guess."
 	sub.TextColor3 = Color3.fromRGB(200, 220, 255)
 	sub.TextScaled = true
 	sub.Parent = bg
 
 	local tip = Instance.new("TextLabel")
 	tip.Name = "Tip"
-	tip.Size = UDim2.new(0.6, 0, 0, 24)
-	tip.Position = UDim2.new(0.2, 0, 0.72, 0)
+	tip.Size = UDim2.new(0.72, 0, 0, 28)
+	tip.Position = UDim2.new(0.14, 0, 0.68, 0)
 	tip.BackgroundTransparency = 1
 	tip.Font = Enum.Font.Gotham
-	tip.Text = "Press E at the bonfire · talk to Captain Steve"
+	tip.Text = "Press E at the bonfire · Options for mute / text speed · dialogue is on-screen text only"
 	tip.TextColor3 = Color3.fromRGB(160, 170, 190)
 	tip.TextScaled = true
 	tip.Parent = bg
+
+	local policy = Instance.new("TextLabel")
+	policy.Name = "Policy"
+	policy.Size = UDim2.new(0.7, 0, 0, 20)
+	policy.Position = UDim2.new(0.15, 0, 0.78, 0)
+	policy.BackgroundTransparency = 1
+	policy.Font = Enum.Font.Gotham
+	policy.Text = "Florida Dew = heal soda (not alcohol) · Soft launch N8 · InEngine_v3"
+	policy.TextColor3 = Color3.fromRGB(120, 140, 160)
+	policy.TextScaled = true
+	policy.Parent = bg
 
 	-- Accent circle (persona-colored stand-in for logo)
 	local badge = Instance.new("Frame")
@@ -96,6 +107,7 @@ function LoadingGui.Init()
 		TweenService:Create(title, TweenInfo.new(0.55), { TextTransparency = 1, TextStrokeTransparency = 1 }):Play()
 		TweenService:Create(sub, TweenInfo.new(0.55), { TextTransparency = 1 }):Play()
 		TweenService:Create(tip, TweenInfo.new(0.55), { TextTransparency = 1 }):Play()
+		TweenService:Create(policy, TweenInfo.new(0.55), { TextTransparency = 1 }):Play()
 		TweenService:Create(badge, TweenInfo.new(0.55), { BackgroundTransparency = 1 }):Play()
 		TweenService:Create(stroke, TweenInfo.new(0.55), { Transparency = 1 }):Play()
 		TweenService:Create(frame, TweenInfo.new(0.55), { ImageTransparency = 1 }):Play()

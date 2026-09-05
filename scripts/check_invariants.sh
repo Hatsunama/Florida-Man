@@ -201,4 +201,29 @@ else
   echo "OK  N7 no MeshId rbxassetid in src"
 fi
 
+
+# N8 soft launch / KPIs
+check "FunnelService module" 'LogCustomEvent' src/server/FunnelService.lua
+check "FunnelService FM_FUNNEL" 'FM_FUNNEL' src/server/FunnelService.lua
+check "Funnel hub_start" 'hub_start' src/server/HubService.lua
+check "Funnel cold_one" 'cold_one' src/server/StageFlowService.lua
+check "Funnel stage3_clear" 'stage3_clear' src/server/StageFlowService.lua
+check "Funnel death" '"death"' src/server/CombatFacade.lua
+check "Funnel draft_open" 'draft_open' src/server/DraftService.lua
+check "Funnel softlock watch" 'WatchSoftlocks' src/server/GameService.lua
+check "Funnel OnJoin" 'FunnelService.OnJoin' src/server/GameService.lua
+check "KPI doc no secrets" 'no fake telemetry secrets' docs/KPI.md
+check "KPI.md exists markers" 'ftue_60s' docs/KPI.md
+check "PUBLISH Community Standards" 'Community Standards' docs/PUBLISH_CHECKLIST.md
+check "PUBLISH Florida Dew" 'Florida Dew' docs/PUBLISH_CHECKLIST.md
+check "PUBLISH dialogue popup" 'popup text only' docs/PUBLISH_CHECKLIST.md
+check "PUBLISH InEngine_v3 soft launch" 'InEngine_v3' docs/PUBLISH_CHECKLIST.md
+check "SMOKE N8 funnel" 'FM_FUNNEL' docs/SMOKE_CHECKLIST.md
+check "Playability N8 Funnel" 'FunnelService' docs/PlayabilityInvariants.md
+check "AUDIT_N8" 'FunnelService' docs/AUDIT_N8.md
+check "AUDIT_PLAN_NEXT_FINAL" 'N8' docs/AUDIT_PLAN_NEXT_FINAL.md
+check "LoadingGui soft launch tip" 'Soft launch N8' src/client/UI/LoadingGui.lua
+check "Credits dismiss" 'UserInputService' src/client/UI/Credits.lua
+absent "No telemetry API key literals" 'TELEMETRY_API_KEY\|telemetry_secret\|webhook\.discord' src/
+
 exit $fail

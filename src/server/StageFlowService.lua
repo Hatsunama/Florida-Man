@@ -17,6 +17,7 @@ local Story = require(Shared:WaitForChild("Story"))
 local WorldBuilder = require(script.Parent:WaitForChild("WorldBuilder"))
 local EnemyService = require(script.Parent:WaitForChild("EnemyService"))
 local TutorialService = require(script.Parent:WaitForChild("TutorialService"))
+local FunnelService = require(script.Parent:WaitForChild("FunnelService"))
 local MetaService = require(script.Parent:WaitForChild("MetaService"))
 local RunContext = require(script.Parent:WaitForChild("RunContext"))
 
@@ -320,6 +321,9 @@ function StageFlowService.FinishStage(player: Player)
 	end
 
 	local nextStage = Stages.NextAfter(stage.id)
+	if stage.index == 3 then
+		FunnelService.Mark(player, "stage3_clear", { stage = stage.id })
+	end
 	s.awaitingNewspaper = true
 	s.runActive = false
 	EnemyService.Clear()
@@ -353,6 +357,10 @@ function StageFlowService.FinishRun(player: Player)
 	table.insert(creditLines, "")
 	table.insert(creditLines, "Deaths this legend: " .. tostring(s.deaths))
 	table.insert(creditLines, "Turtles rescued forever: " .. tostring(s.turtlesRescued))
+	table.insert(creditLines, "")
+	table.insert(creditLines, "Soft launch — InEngine_v3 art · dialogue = popup text only")
+	table.insert(creditLines, "Florida Dew is soda/heal — not alcohol. SFX = combat (+ optional UI click).")
+	FunnelService.Mark(player, "run_credits", { deaths = s.deaths })
 	Remotes.Get("ShowCredits"):FireClient(player, {
 		title = "FLORIDA MAN",
 		subtitle = "Sunrise over a swamp that gets to stay wild",
@@ -383,6 +391,7 @@ function StageFlowService.TryColdOnePickup(player: Player)
 		RunContext.ApplyCharacterSpeed(player)
 		RunContext.Toast(player, "Walked into The Cold One (Florida Dew)! Hangover cleared. +" .. Constants.COLD_ONE_HEAL .. " HP")
 		TutorialService.OnColdOne(player, s.tutorial)
+		FunnelService.Mark(player, "cold_one", { stage = s.stageId })
 		if not s.steveEvents["coldOne"] then
 			s.steveEvents["coldOne"] = true
 			s.pendingSteveEvent = "afterColdOneHub"
@@ -468,6 +477,7 @@ function StageFlowService.TickWaves(player: Player)
 			local inZone = (hrp.Position - zone.Position).Magnitude < 10
 			if s.midRoomState == "idle" and inZone and mid:GetAttribute("Locked") and stage.waves and #stage.waves > 0 then
 				s.midRoomState = "locked"
+				FunnelService.Mark(player, "midgate_lock", { stage = s.stageId })
 				if barrier and barrier:IsA("BasePart") then
 					barrier.CanCollide = true
 					barrier.Transparency = 0.4
@@ -504,6 +514,7 @@ function StageFlowService.TickWaves(player: Player)
 				end
 			elseif s.midRoomState == "locked" and EnemyService.CountHostile() == 0 then
 				s.midRoomState = "cleared"
+				FunnelService.Mark(player, "midgate_clear", { stage = s.stageId })
 				mid:SetAttribute("Locked", false)
 				mid.CanCollide = false
 				mid.Transparency = 0.85

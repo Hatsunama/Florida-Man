@@ -11,6 +11,7 @@ local Balance = require(Shared:WaitForChild("Balance"))
 local Story = require(Shared:WaitForChild("Story"))
 
 local RunContext = require(script.Parent:WaitForChild("RunContext"))
+local FunnelService = require(script.Parent:WaitForChild("FunnelService"))
 
 local HubService = {}
 
@@ -56,6 +57,7 @@ function HubService.StartRun(player: Player)
 	end
 	RunContext.ComputeStats(s)
 	s.hp = s.maxHp
+	FunnelService.Mark(player, "hub_start", { stage = "DaytonaHangover" })
 	deps.StageFlow.LoadStage(player, "DaytonaHangover")
 	RunContext.Toast(player, "You wake after the last honest night of your life. The crabs stole your Cold One.")
 end

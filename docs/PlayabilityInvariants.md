@@ -22,3 +22,14 @@ These must never regress. Smoke with `scripts/check_invariants.sh` + Studio chec
 | MetaService | `DataStoreService` pcall + memory fallback; required by GameService |
 | Daily luck | `Balance.DailyLuckBonus` exists; draft uses luck + daily |
 | Telegraph pool | `FM_TelegraphPool` in EnemyService |
+
+## N8 soft launch
+
+| Invariant | Expected |
+|-----------|----------|
+| Dialogue | Tagline / Toast / Newspaper only — no dialogue VO / Steve beep / typewriter SFX |
+| Audio policy | SFX combat only (+ optional UI click); ambience optional, never story |
+| Florida Dew | Heal soda framing — not alcohol (maturity + Community Standards) |
+| FunnelService | Server markers only; no client-trusted KPI grants; no telemetry secrets |
+| Art soft launch | `InEngine_v3` Part kits OK; Mesh_v1 optional; no fake rbxassetid |
+| Meta rejoin | DataStore v2 or memory fallback; cloud-offline toast once |

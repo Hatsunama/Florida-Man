@@ -14,6 +14,7 @@ local AttackService = require(script.Parent:WaitForChild("AttackService"))
 local SkillService = require(script.Parent:WaitForChild("SkillService"))
 local SwapService = require(script.Parent:WaitForChild("SwapService"))
 local RunContext = require(script.Parent:WaitForChild("RunContext"))
+local FunnelService = require(script.Parent:WaitForChild("FunnelService"))
 
 local CombatFacade = {}
 
@@ -40,6 +41,7 @@ function CombatFacade.KillPlayer(player: Player)
 	s.deaths += 1
 	s.hp = 0
 	s.runActive = false
+	FunnelService.Mark(player, "death", { deaths = s.deaths, stage = s.stageId, stageIndex = s.stageIndex })
 	RunContext.Toast(player, Story.DeathLine(s.deaths) .. " (+1 item slot after first death)")
 	local deaths = s.deaths
 	local unlocked = s.unlockedPersonas

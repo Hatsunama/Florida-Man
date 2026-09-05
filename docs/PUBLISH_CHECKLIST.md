@@ -1,7 +1,9 @@
-# Florida Man — Publish Checklist (Phase 6)
+# Florida Man — Publish Checklist (N8 soft launch)
 
 **Experience name:** Florida Man  
-**Tagline:** *It IS Florida… Anything is possible in the swamp I guess.*
+**Tagline:** *It IS Florida… Anything is possible in the swamp I guess.*  
+**Soft-launch art:** **InEngine_v3** (Mesh_v1 optional — see `AUDIT_N7.md` asset gap list)  
+**Plan:** [`PLAN_NEXT.md`](PLAN_NEXT.md) Phase N8 · KPIs: [`KPI.md`](KPI.md)
 
 ## Marketplace / Creator Hub
 
@@ -12,7 +14,7 @@
 | Icon | **512×512** | Bonfire + flip-flop silhouette, Florida Dew green accent |
 | Thumbnails | **1920×1080** (up to 10) | Hub dawn, Crab King tele, Spillfather, turtle rescue, newspaper card |
 | Feature graphic (optional) | 1920×1080 | Same as primary thumb |
-| Loading / splash | Match game LoadingGui colors | Procedural OK until art pack |
+| Loading / splash | Match `LoadingGui` colors | Procedural OK until art pack |
 
 Repo has no final marketplace PNGs yet — author in Studio or Blender per `ART_PIPELINE.md`, then upload. Placeholder: capture Play screenshots after `rojo serve`.
 
@@ -22,7 +24,7 @@ Repo has no final marketplace PNGs yet — author in Studio or Blender per `ART_
 >
 > Fight Beach Crabs, Drive-Thru Gators, and the Spillfather. Unlock personas, smash extras for **Sunburn** upgrades, and chase the sunrise credits.
 >
-> Keyboard + gamepad + touch. Soft launch KPIs: first-run tutorial ≤60s; aim D1 return with meta unlocks.
+> Keyboard + gamepad + touch. Soft launch KPIs: first-run tutorial ≤60s; aim D1 return with meta unlocks. Dialogue is on-screen popup text only (no VO).
 
 ### Maturity / content notes (Roblox questionnaire)
 
@@ -30,7 +32,7 @@ Repo has no final marketplace PNGs yet — author in Studio or Blender per `ART_
 |-------|--------|
 | Violence | **Cartoon / stylized combat** — neon telegraphs, Part silhouettes, no gore |
 | Blood | None |
-| Alcohol | **No** — Cold One is **Florida Dew** (soda/heal buff). Explicit copy in-game |
+| Alcohol | **No** — Cold One is **Florida Dew** (soda/heal buff). Explicit copy in-game + loading tip |
 | Drugs / controlled substances | **No** |
 | Gambling | No real-money gambling; roguelite drafts only |
 | Strong language | Mild absurdist comedy; keep Teen-friendly |
@@ -39,23 +41,27 @@ Repo has no final marketplace PNGs yet — author in Studio or Blender per `ART_
 ### Community Standards
 
 - No phishing, scams, or paid random items that violate Policy.
-- No real-world alcohol/drug glorification (Florida Dew framing required).
+- No real-world alcohol/drug glorification (**Florida Dew** framing required).
 - Respect IP: all characters/story original; no scraped assets.
 - DataStore meta only (deaths, sunburn, unlocks, settings) — no selling meta currency for Robux without compliance review.
+- **Dialogue = popup text only** (Tagline / Toast / Newspaper). No dialogue VO. Combat SFX + optional UI click only.
+- No invented Mesh/Sound asset IDs; soft launch ships **InEngine_v3** procedural kits.
 
 ## Rojo → publish steps
 
 1. `git pull` on your machine; repo path e.g. `…/Florida-Man`
-2. `rojo serve` (default `localhost:34872`) **or** rebuild place:
+2. `./scripts/check_invariants.sh` must be green
+3. `rojo serve` (default `localhost:34872`) **or** rebuild place:
    ```bash
    rojo build -o FloridaMan.rbxlx
    ```
-3. Open `FloridaMan.rbxlx` in Roblox Studio (or connect Rojo plugin live).
-4. File → Publish to Roblox → create/update Experience.
-5. Enable **Studio Access to API Services** for DataStore testing; published places get real DataStores.
-6. Set Experience settings: genre Adventure, devices Phone/Tablet/Computer/Console as tested.
-7. **StreamingEnabled:** recommended `true` on Workspace for long stages (document only if not flipped in place file — enable in Studio before public).
-8. Soft launch: private/friends → measure FTUE → public.
+4. Open `FloridaMan.rbxlx` in Roblox Studio (or connect Rojo plugin live). **Do not** expect CI agents to open Studio.
+5. File → Publish to Roblox → create/update Experience.
+6. Enable **Studio Access to API Services** for DataStore testing; published places get real DataStores.
+7. Set Experience settings: genre Adventure, devices Phone/Tablet/Computer/Console as tested.
+8. **StreamingEnabled:** recommended `true` on Workspace for long stages (enable in Studio before public).
+9. Soft launch: **friends-only / private** → measure FTUE funnel (`FM_FUNNEL`) → public.
+10. Verify Meta rejoin (settings + sunburn/deaths) on the published place.
 
 ## Performance notes
 
@@ -65,28 +71,33 @@ Repo has no final marketplace PNGs yet — author in Studio or Blender per `ART_
 | Enemy pooling | **`FM_EnemyPool`** parks common trash on Clear/death; bosses destroyed |
 | StreamingEnabled | **Recommend ON** for Act4 barge length / part count |
 | Part budgets | See `ART_PIPELINE.md` LOD sheet — procedural Parts still heavy on low-end |
-| SoundGroups | Phase 5 AudioDirector buses — keep Master ≤1 |
+| SoundGroups | AudioDirector buses — keep Master ≤1; Mute* settings honor combat-SFX policy |
+| Art kit | Soft launch **InEngine_v3**; Mesh_v1 when real kits uploaded under `Assets.Meshes` |
 
 ## Soft launch KPIs
 
 | KPI | Target | How to read |
 |-----|--------|-------------|
-| **FTUE 60s** | ≥70% reach first crab kill + Cold One awareness without coaching | Session length to stage1 progress / funnel toast markers |
+| **FTUE 60s** | ≥70% reach Cold One within 60s of hub_start | `ftue_60s` custom event / `[FM_FUNNEL]` Output — see [`KPI.md`](KPI.md) |
+| **Stages 1–3** | External player ≤15 min uncoached | Friends playtest + `stage3_clear` |
 | **D1 return** | Track unique players returning next UTC day | Creator analytics + MetaService `bestStageIndex` / deaths |
-| Softlocks / run | ≤3 per full clear (Phase 5 hunt) | Bug reports |
-| Crash / disconnect | Investigate if >2% sessions | Analytics |
+| Softlocks / run | Investigate `softlock_suspect` (MidGate ≥90s / draft ≥120s) | FunnelService watch |
+| Crash / disconnect | Investigate if >2% sessions | Creator Analytics |
 
-Instrument later: remote `TelemetryBeat` optional; for soft launch, Creator Dashboard retention + manual playtests suffice.
+**Instrumentation (N8):** `FunnelService` — Roblox `AnalyticsService:LogCustomEvent` (pcall) + Output prints. **No** fake telemetry secrets / third-party keys.
 
 ## Pre-flight smoke
 
 - [ ] `./scripts/check_invariants.sh` green
 - [ ] Hub spawn at Flame; E starts run
 - [ ] Cold One walkover; mobile buttons if TouchEnabled
-- [ ] Shake toggle persists after rejoin (DataStore or memory)
+- [ ] Options (mute / text speed / shake / reduce motion) persist after rejoin
 - [ ] Draft shows Florida Forecast toast when |daily luck| ≥1%
+- [ ] Funnel markers visible in Output for hub_start / cold_one
 - [ ] No Studio left open by automation agents
+
+Full manual list: [`SMOKE_CHECKLIST.md`](SMOKE_CHECKLIST.md).
 
 ## Credits line for page
 
-Built with Rojo + Luau. Inspired by *Skul: The Hero Slayer* combat readability — original Florida Man story/setting.
+Built with Rojo + Luau. Inspired by *Skul: The Hero Slayer* combat readability — original Florida Man story/setting. Soft launch art: InEngine_v3. Dialogue: on-screen popups only.
