@@ -1,0 +1,84 @@
+from pathlib import Path
+
+# MovementController fix
+p = Path(r"C:\Users\1thea\Projects\Florida-Man\src\client\Controllers\MovementController.lua")
+t = p.read_text(encoding="utf-8")
+t = t.replace("\thrp:SetNetworkOwner(player)\n", "\t-- network ownership is server-side\n")
+p.write_text(t, encoding="utf-8")
+print("movement fixed", "SetNetworkOwner" in t)
+
+# Weapons rarity
+wp = Path(r"C:\Users\1thea\Projects\Florida-Man\src\shared\Weapons.lua")
+wt = wp.read_text(encoding="utf-8")
+wt = wt.replace('rarity="Heroic"', 'rarity="Unique"')
+wp.write_text(wt, encoding="utf-8")
+
+# HUD
+hp = Path(r"C:\Users\1thea\Projects\Florida-Man\src\client\UI\HUD.lua")
+h = hp.read_text(encoding="utf-8")
+if "Weapons" not in h:
+    h = h.replace(
+        'local Items = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Items"))',
+        'local Items = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Items"))\nlocal Weapons = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Weapons"))',
+    )
+if "weaponLbl" not in h:
+    h = h.replace("local sunburnLbl: TextLabel", "local sunburnLbl: TextLabel\nlocal weaponLbl: TextLabel")
+    marker = '\tsunburnLbl.Parent = gui\n'
+    inject = marker + '''
+	weaponLbl = Instance.new("TextLabel")
+	weaponLbl.Size = UDim2.new(0, 280, 0, 24)
+	weaponLbl.Position = UDim2.new(0, 20, 1, -60)
+	weaponLbl.BackgroundTransparency = 1
+	weaponLbl.Font = Enum.Font.GothamBold
+	weaponLbl.TextSize = 16
+	weaponLbl.TextXAlignment = Enum.TextXAlignment.Left
+	weaponLbl.TextColor3 = Color3.fromRGB(180, 220, 255)
+	weaponLbl.Text = "Weapon: Bare Hands"
+	weaponLbl.Parent = gui
+
+	local bossBar = Instance.new("Frame")
+	bossBar.Name = "BossBar"
+	bossBar.Size = UDim2.new(0.5, 0, 0, 18)
+	bossBar.Position = UDim2.new(0.25, 0, 0, 60)
+	bossBar.BackgroundColor3 = Color3.fromRGB(40, 20, 20)
+	bossBar.Visible = false
+	bossBar.Parent = gui
+	corner(bossBar, 6)
+	local bossFill = Instance.new("Frame")
+	bossFill.Name = "Fill"
+	bossFill.Size = UDim2.fromScale(1, 1)
+	bossFill.BackgroundColor3 = Color3.fromRGB(255, 80, 60)
+	bossFill.Parent = bossBar
+	corner(bossFill, 6)
+	local bossText = Instance.new("TextLabel")
+	bossText.Name = "BossName"
+	bossText.Size = UDim2.fromScale(1, 1)
+	bossText.BackgroundTransparency = 1
+	bossText.Font = Enum.Font.GothamBold
+	bossText.TextScaled = true
+	bossText.TextColor3 = Color3.new(1, 1, 1)
+	bossText.Text = "BOSS"
+	bossText.ZIndex = 2
+	bossText.Parent = bossBar
+'''
+    if marker in h:
+        h = h.replace(marker, inject, 1)
+        print("hud inject ok")
+    else:
+        print("marker missing")
+
+needle = 'sunburnLbl.Text = string.format("☀️ Sunburn: %d", s.sunburn or 0)'
+if needle in h and "weaponLbl.Text" not in h:
+    h = h.replace(
+        needle,
+        needle
+        + '\n\tif weaponLbl then\n\t\tlocal w = Weapons.Get(s.weaponId or "BareHands")\n\t\tweaponLbl.Text = "Weapon: " .. (if w then w.name else tostring(s.weaponId))\n\tend',
+    )
+    print("update hook ok")
+
+h = h.replace(
+    "WASD move · Shift dodge · Click/J attack · K skill · Q swap · E interact · Xbox: A dodge X attack Y skill B swap",
+    "A/D lane · Space jump · Shift dash · Click/J attack · K skill · Q swap · E interact",
+)
+hp.write_text(h, encoding="utf-8")
+print("HUD", hp.stat().st_size)

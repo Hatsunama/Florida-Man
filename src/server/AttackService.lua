@@ -7,6 +7,8 @@ local Constants = require(Shared:WaitForChild("Constants"))
 local Weapons = require(Shared:WaitForChild("Weapons"))
 local Remotes = require(Shared:WaitForChild("Remotes"))
 local Balance = require(Shared:WaitForChild("Balance"))
+local Geometry = require(Shared:WaitForChild("CombatGeometry"))
+local CharacterGeometry = require(Shared:WaitForChild('CharacterGeometry'))
 
 local EnemyService = require(script.Parent:WaitForChild("EnemyService"))
 local CombatService = require(script.Parent:WaitForChild("CombatService"))
@@ -24,15 +26,11 @@ local function isFireEnemy(model: Model): boolean
 	return eid == "FireLizard" or eid == "EmberSkink" or eid == "RigWelder" or eid == "Spillfather"
 end
 
-local function applyWeaponSecondary(player: Player, model: Model, weapon: any, baseDamage: number): number
+local function applyWeaponSecondary(model: Model, weapon: any, baseDamage: number): number
 	local dmg = baseDamage
-	local vfx = weapon.vfx
-	if vfx == "foam" and isFireEnemy(model) then
+	local effect = weapon.secondaryEffect
+	if effect == "foamFire" and isFireEnemy(model) then
 		dmg *= Constants.FOAM_FIRE_MULT
-	elseif vfx == "net" then
-		if not model:GetAttribute("IsBoss") then
-			model:SetAttribute("RootedUntil", os.clock() + Constants.NET_ROOT_DURATION)
-		end
 	end
 	return dmg
 end
@@ -54,22 +52,36 @@ local function applyOnHitSpecials(player: Player, s: RunContext.RunState, model:
 		dmg *= 1.35
 	end
 
-	if RunContext.HasHeroicLifesteal(s) then
-		local heal = math.max(2, math.floor(dmg * 0.06))
-		s.hp = math.min(s.maxHp, s.hp + heal)
-	end
 	return dmg
 end
 
-function AttackService.HitEnemy(player: Player, s: RunContext.RunState, model: Model, amount: number, knock: number, heavy: boolean, weapon: any?): boolean
+function AttackService.HitEnemy(player: Player, s: RunContext.RunState, model: Model, amount: number, knock: number, heavy: boolean, weapon: any?): EnemyService.DamageResult
+	if RunContext.GetState(player) ~= s or not s.runActive or not EnemyService.CanDamage(model) then
+		return { accepted = false, damageApplied = 0, killed = false }
+	end
 	local dmg = applyOnHitSpecials(player, s, model, amount)
 	if weapon then
-		dmg = applyWeaponSecondary(player, model, weapon, dmg)
+		dmg = applyWeaponSecondary(model, weapon, dmg)
 	end
-	return EnemyService.ApplyDamage(model, dmg, player, knock, heavy)
+	local result = EnemyService.ApplyDamage(model, dmg, player, knock, heavy)
+	if result.accepted and RunContext.GetState(player) == s then
+		if RunContext.HasHeroicLifesteal(s) then
+			local healed = Geometry.HealFromDamage(s.hp, s.maxHp, result.damageApplied, 0.06)
+			if healed ~= s.hp then
+				s.hp = healed
+				-- Projectile/coil hits happen after the command's initial snapshot.
+				RunContext.PushState(player)
+			end
+		end
+		if weapon and weapon.secondaryEffect == "netRoot" and not result.killed and not model:GetAttribute("IsBoss") then
+			model:SetAttribute("RootedUntil", os.clock() + Constants.NET_ROOT_DURATION)
+			model:SetAttribute("AttackRevision", ((model:GetAttribute("AttackRevision") :: number?) or 0) + 1)
+		end
+	end
+	return result
 end
 
-function AttackService.DoAttack(player: Player)
+function AttackService.DoAttack(player: Player, facingArg: number?)
 	local s = RunContext.GetState(player)
 	if not s or not s.runActive or s.awaitingDraft then
 		return
@@ -87,15 +99,12 @@ function AttackService.DoAttack(player: Player)
 	if not persona then
 		return
 	end
-	if now - s.lastAttackAt > Constants.COMBO_WINDOW then
-		s.combo = 0
-	end
-	s.combo = (s.combo % 3) + 1
+	s.combo = Geometry.NextCombo(s.combo, now, CombatService.GetAttackReadyAt(player), Constants.COMBO_WINDOW)
 	s.lastAttackAt = now
-	s.facing = if hrp.CFrame.LookVector.X >= 0 then 1 else -1
-	local move = hrp.AssemblyLinearVelocity
-	if math.abs(move.X) > 1 then
-		s.facing = if move.X >= 0 then 1 else -1
+	s.facing = CombatService.ResolveFacing(player, facingArg, s.facing)
+	local generation = EnemyService.GetGeneration()
+	local function isCurrent(): boolean
+		return generation == EnemyService.GetGeneration() and RunContext.GetState(player) == s and s.runActive and player.Character == char
 	end
 
 	local weapon = Weapons.Get(s.weaponId) or Weapons.GetStarter()
@@ -112,18 +121,21 @@ function AttackService.DoAttack(player: Player)
 	local range = (weapon.range or Constants.ATTACK_RANGE) * moveHit.rangeMul
 	local knock = (weapon.knockback or Constants.KNOCKBACK_BASE) * moveHit.knockMul
 	local origin = hrp.Position
+	local humanoid = char and char:FindFirstChildOfClass("Humanoid")
+	-- Low lane muzzle reaches small grounded enemies; jumping raises the shot too.
+	local feetDistance = if char and humanoid then CharacterGeometry.FeetDistance(char,hrp,humanoid) else hrp.Size.Y*0.5+2
+	local projectileOrigin = Vector3.new(origin.X, Geometry.MuzzleY(origin.Y, feetDistance), origin.Z)
 	local hits = 0
 	local heavy = s.combo == 3
 	local wkind = weapon.kind or "melee"
 
 	local function applyHit(model: Model, dmg: number, kb: number, hv: boolean)
-		AttackService.HitEnemy(player, s, model, dmg, kb, hv, weapon)
-		hits += 1
+		if isCurrent() and AttackService.HitEnemy(player, s, model, dmg, kb, hv, weapon).accepted then hits += 1 end
 	end
 
 	if wkind == "ranged" then
 		CombatService.SpawnProjectile({
-			origin = origin,
+			origin = projectileOrigin,
 			facing = s.facing,
 			range = range,
 			damage = base,
@@ -132,13 +144,14 @@ function AttackService.DoAttack(player: Player)
 			kind = "ranged",
 			vfx = weapon.vfx,
 			attacker = player,
+			isCurrent = isCurrent,
 			onHit = function(model, dmg, kb, hv)
 				applyHit(model, dmg, kb, hv)
 			end,
 		})
 	elseif wkind == "thrown" then
 		CombatService.SpawnProjectile({
-			origin = origin,
+			origin = projectileOrigin,
 			facing = s.facing,
 			range = range,
 			damage = base * 1.05,
@@ -147,6 +160,7 @@ function AttackService.DoAttack(player: Player)
 			kind = "thrown",
 			vfx = weapon.vfx,
 			attacker = player,
+			isCurrent = isCurrent,
 			onHit = function(model, dmg, kb, hv)
 				applyHit(model, dmg, kb, hv)
 			end,
@@ -160,10 +174,8 @@ function AttackService.DoAttack(player: Player)
 			if not root then
 				continue
 			end
-			if CombatService.InLaneMelee(origin.X, s.facing, root.Position.X, range) then
-				if math.abs(root.Position.Z - Constants.LANE_Z) < 6 then
-					applyHit(model, base, knock * 0.45, heavy)
-				end
+			if CombatService.InHitVolume(origin, s.facing, root, range, 2, player) then
+				applyHit(model, base, knock * 0.45, heavy)
 			end
 		end
 	end
@@ -182,7 +194,7 @@ function AttackService.DoAttack(player: Player)
 		weapon = s.weaponId,
 		weaponKind = wkind,
 		weaponVfx = weapon.vfx,
-		hit = hits > 0,
+		hit = if wkind == "melee" then hits > 0 else nil,
 		heavy = heavy,
 		moveLabel = moveHit.label,
 		attackReadyAt = readyAt,
@@ -191,7 +203,7 @@ function AttackService.DoAttack(player: Player)
 		recovery = recovery,
 	})
 	task.delay(math.max(0.05, cancelAfter), function()
-		if CombatService.InCancelWindow(player) then
+		if isCurrent() and CombatService.GetAttackReadyAt(player) == readyAt and CombatService.InCancelWindow(player) then
 			Remotes.Get("CombatEvent"):FireClient(player, {
 				kind = "cancelWindow",
 				label = moveHit.label,
@@ -199,8 +211,6 @@ function AttackService.DoAttack(player: Player)
 			})
 		end
 	end)
-	local sfx = if (wkind == "melee" and hits > 0) then "SFX_Hit" else "SFX_Swing"
-	Remotes.Get("PlaySound"):FireClient(player, sfx)
 	if s.stageIndex == 1 then
 		TutorialService.OnAttack(player, s.tutorial)
 	end

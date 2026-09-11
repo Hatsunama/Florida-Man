@@ -15,7 +15,7 @@
 	 20    Spillfather: 3 phases (slam → summon → arena slick). Phase HP chunks.
 
 	ENEMY SCALING (stageIndex = 1..20)
-	  HP  *= 1 + 0.10 * idx   (was 0.12 — less sponge late)
+	  HP  *= 1 + 0.09 * idx
 	  DMG *= 1 + 0.075 * idx
 	  Elites (miniboss/boss) get +phase tools, not +200% HP.
 
@@ -108,19 +108,6 @@ function Balance.ActNumber(stageIndex: number): number
 		return 5
 	end
 end
-
--- Wave density hint used by GameService (early teach, late elite)
-function Balance.WaveSpawnCap(stageIndex: number, requested: number): number
-	local maxH = Balance.MaxHostiles(stageIndex)
-	if stageIndex <= 2 then
-		return math.min(requested, 2, maxH)
-	elseif stageIndex <= 5 then
-		return math.min(requested, 2, maxH)
-	else
-		return math.min(requested, maxH)
-	end
-end
-
 
 -- Phase 5: Act1–2 minibosses slightly softer so pacing teaches, not sponges
 Balance.MINIBOSS_HP_ACT = {

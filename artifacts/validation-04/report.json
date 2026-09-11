@@ -1,0 +1,455 @@
+{
+  "started": 1788571169.5079744,
+  "tools": {
+    "luau": {
+      "version": "0.737",
+      "url": "https://github.com/luau-lang/luau/releases/download/0.737/luau-windows.zip",
+      "sha256": "8cd28be648f3e5cc4bfc977d2344e43540ade5f3524440b171eecf54d3a4fb7c",
+      "directory": "luau-0.737"
+    },
+    "rojo": {
+      "version": "7.7.0",
+      "url": "https://github.com/rojo-rbx/rojo/releases/download/v7.7.0/rojo-7.7.0-windows-x86_64.zip",
+      "sha256": "2179c44862a10ecbd725bdfeb4abc64e16dc4aad9b6c8f3e1a7c46a87280b949",
+      "directory": "rojo"
+    },
+    "luau-lsp": {
+      "version": "1.69.0",
+      "url": "https://github.com/JohnnyMorganz/luau-lsp/releases/download/1.69.0/luau-lsp-win64.zip",
+      "sha256": "faea1b177f4761e4c34e0dab72009a2fdd00f21d61f3f7b7c1fe1ac3f38a05d2",
+      "directory": "luau-lsp-1.69.0"
+    },
+    "roblox-definitions": {
+      "version": "2f42ede46764cfcc6ad569a395c38bbfd3878342",
+      "url": "https://raw.githubusercontent.com/JohnnyMorganz/luau-lsp/2f42ede46764cfcc6ad569a395c38bbfd3878342/scripts/globalTypes.d.luau",
+      "sha256": "7db9cd4fe55a4d26f3f7d5a39b6279a376f95a6c055c71d5591c26a1d525aaf2",
+      "file": "luau-lsp-1.69.0/globalTypes.d.luau"
+    }
+  },
+  "checks": [
+    {
+      "name": "compile_src\\character\\RbxCharacterSounds.client.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\client\\Controllers\\AccessibilityController.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\client\\Controllers\\AnimController.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\client\\Controllers\\CameraController.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\client\\Controllers\\EquipmentController.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\client\\Controllers\\InputController.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\client\\Controllers\\MovementController.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\client\\Controllers\\PresentationState.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\client\\Controllers\\SilenceController.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\client\\Controllers\\VFX.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\client\\init.client.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\client\\UI\\CaptainSteveUI.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\client\\UI\\Credits.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\client\\UI\\HUD.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\client\\UI\\ItemDraft.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\client\\UI\\LoadingGui.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\client\\UI\\MobileControls.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\client\\UI\\Newspaper.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\client\\UI\\Tagline.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\client\\UI\\UiKit.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\server\\AnalyticsAdapter.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\server\\AttackService.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\server\\CharacterStatePublisher.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\server\\CombatFacade.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\server\\CombatService.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\server\\DraftService.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\server\\EnemyFactory.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\server\\EnemyService.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\server\\FunnelService.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\server\\GameService.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\server\\HazardService.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\server\\HubService.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\server\\init.server.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\server\\ItemGrantRules.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\server\\MetaService.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\server\\ProfileAdapter.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\server\\ProfileQueue.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\server\\ProfileRules.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\server\\RunContext.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\server\\RunStats.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\server\\SessionService.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\server\\SkillService.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\server\\StageFlowService.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\server\\SwapService.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\server\\TutorialService.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\server\\WorldBuilder.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\shared\\ArtAssets.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\shared\\Balance.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\shared\\BuildRules.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\shared\\CombatGeometry.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\shared\\Constants.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\shared\\Enemies.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\shared\\HazardDefinitions.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\shared\\Items.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\shared\\LayoutPlan.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\shared\\MovementEnvelope.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\shared\\Movesets.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\shared\\Personas.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\shared\\ProgressionCatalog.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\shared\\ProgressionRules.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\shared\\Remotes.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\shared\\Settings.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\shared\\Stages.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\shared\\Story.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\shared\\TelemetryRules.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\shared\\Types.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\shared\\Util.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_src\\shared\\Weapons.lua",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_tests\\combat-geometry.test.luau",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_tests\\inventory.test.luau",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_tests\\layout-plan.test.luau",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_tests\\movement-envelope.test.luau",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_tests\\profiles.test.luau",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_tests\\progression.test.luau",
+      "exitCode": 0
+    },
+    {
+      "name": "compile_tests\\telemetry.test.luau",
+      "exitCode": 0
+    },
+    {
+      "name": "contracts",
+      "exitCode": 0
+    },
+    {
+      "name": "sourcemap",
+      "exitCode": 0
+    },
+    {
+      "name": "roblox_types",
+      "exitCode": 1
+    },
+    {
+      "name": "test_combat-geometry.test",
+      "exitCode": 0
+    },
+    {
+      "name": "test_inventory.test",
+      "exitCode": 0
+    },
+    {
+      "name": "test_layout-plan.test",
+      "exitCode": 0
+    },
+    {
+      "name": "test_movement-envelope.test",
+      "exitCode": 0
+    },
+    {
+      "name": "test_profiles.test",
+      "exitCode": 0
+    },
+    {
+      "name": "test_progression.test",
+      "exitCode": 0
+    },
+    {
+      "name": "test_telemetry.test",
+      "exitCode": 0
+    }
+  ],
+  "sourceHashes": {
+    "src/character/RbxCharacterSounds.client.lua": "c2401b07e97f5d8157f8d2d30353af6247d9a6924756d1031079303f185c1c7b",
+    "src/client/Controllers/AccessibilityController.lua": "fc29b92de50cc9bed3827069a2045d551094810f9d8bb47fa1d77bd31c806ef2",
+    "src/client/Controllers/AnimController.lua": "0fcacc45da6da735e38cd3d30559ae3df977ff0eac415778b0a98cd79cf8bc18",
+    "src/client/Controllers/CameraController.lua": "f8db5b50132e7d19ff3f88f405d60b3afce1bf062d7d1a16917d284e5ede0487",
+    "src/client/Controllers/EquipmentController.lua": "65142641403346bc8052833f3dd86b55d8c6a034ac564386bdb872cc6d0bbebd",
+    "src/client/Controllers/InputController.lua": "67550b838f14da96298afb4159b8c23d157e492e21068014a92551aee296dc3d",
+    "src/client/Controllers/MovementController.lua": "bcdf0186a41b35b8b48c7aeae1157ae5a12fc35f11dca6e573623e9e6962eb70",
+    "src/client/Controllers/PresentationState.lua": "f2b86a11490b0fc975d653bf68c4361c0e4ec8d5214534fcadc0128f35137571",
+    "src/client/Controllers/SilenceController.lua": "9d7539a0e1a019140d80509c5100905d657453e483215f5a993c293fb92a75ae",
+    "src/client/Controllers/VFX.lua": "21f63e10e7be6ed739446dfa70d2ec0cadb47343997dbdc89971019a1cd2e979",
+    "src/client/init.client.lua": "2fff5d60a57104513f103d653e86293a7406295126910eb533f76b5ba985a104",
+    "src/client/UI/CaptainSteveUI.lua": "7ccd2bc6a9070e26ce08c31bf7f2049fcfe817dd972f96448395c05a7077e093",
+    "src/client/UI/Credits.lua": "e3cea50056e98b5629001fa189e5af3b302265dc7145c786b96dbdfe29ff214c",
+    "src/client/UI/HUD.lua": "654589d598e8c4b6836f4c408860f4b60ddb2daf0cdfc67412034d6a2cd5f128",
+    "src/client/UI/ItemDraft.lua": "a8734daeac98e3071ef2e8804870b370ac38cff04a6095083b0f981593897f27",
+    "src/client/UI/LoadingGui.lua": "b99da903c87e66bdd13e245137d63162d86971a97b270c08565a8ead41cb7081",
+    "src/client/UI/MobileControls.lua": "6a2582c2b883d30c67a5d5f8406b9c3c0842b3d8dee84e73e20f6af9c27a11fd",
+    "src/client/UI/Newspaper.lua": "f050d4b3f7b36d0271f1dd4db380bb36fee20f80d397730f82df262239a23880",
+    "src/client/UI/Tagline.lua": "b8e66699c08c74966b9274ef052aa4aef36a81f4029be6502f959a853cad0c76",
+    "src/client/UI/UiKit.lua": "876239af3c1009c21a111672be1cc22c0250d01b15e3de0d234e6acf89f874a3",
+    "src/server/AnalyticsAdapter.lua": "d8eb283fcbd19e2cd07ae58294d0023877393339e9e8b733758e0a230a0a84bf",
+    "src/server/AttackService.lua": "74d67899dd22f9f45a76ecc7e99da585ab825888ad063ec2dca20eec20a9f69c",
+    "src/server/CharacterStatePublisher.lua": "b3c975c5a4d3f6befa33970e7dd6af19bb1c7a5e72259b1ae866b7b20ea215d9",
+    "src/server/CombatFacade.lua": "00ca7dd394da07b9d1e395ac8541a00ebc8fb01d27747f7e7baf9e714a13c34e",
+    "src/server/CombatService.lua": "2503450ce0717670c421666067175d6f0d0438c0e0375c7c1a761256d12eef2f",
+    "src/server/DraftService.lua": "35488cf478736d7491982ede43911d65f5dadd816a997c602310913a3b1d7dfc",
+    "src/server/EnemyFactory.lua": "ee8efde1fbdf0a20b8b78b731b64ab0a8456621dec87c6b8b1442a870ec18f2c",
+    "src/server/EnemyService.lua": "728d1de70a58ce63a18a0b5723e2b72e4897d47eb23003a0973df77cf85ffbaf",
+    "src/server/FunnelService.lua": "e348d9bf10db1d094fca19302af9ac0a95f633f6b45b0406f69ed901987b03f2",
+    "src/server/GameService.lua": "d372b58b6285d3f6cf61c75e5844925a3e7be7a1960f4aa75c652577145dfce1",
+    "src/server/HazardService.lua": "6c2b4fbca541e04a56d4991c4de665d52d1a3d73c3eb4bac43cd5b2f6484093c",
+    "src/server/HubService.lua": "7e7164f51e0ffeb98c0ac67fa2f2de70072fbe7c3a2db6f73f7e15c41241fef6",
+    "src/server/init.server.lua": "f4ca940d1462c32ce702913d6c1169b55f9d393b2f0db91161e0a10372b1d274",
+    "src/server/ItemGrantRules.lua": "71a80fecd168a7fa5505e8f87e9898d76e5efc65174048291db061d753d0702f",
+    "src/server/MetaService.lua": "3160906cf9938bd4821ac441772be8f23c07547b9130c0cf270654d8078b84cd",
+    "src/server/ProfileAdapter.lua": "b4e75c9b653853e45a44cafb6dfaef1f66a617383e9c17df4c0dcc90cfcc3601",
+    "src/server/ProfileQueue.lua": "89e229d9c1442f3b12ebf639767f992d006aba194cdc9fa2bcc02d14c0dcf789",
+    "src/server/ProfileRules.lua": "4ca3f9d980091462565c094f9d3d2285baedf6416cef3104d4b1120795468c03",
+    "src/server/RunContext.lua": "ea64bf4bf824ec8a58f2b5999fe3943244499b2dee11c97169f1d5ca0aca39d2",
+    "src/server/RunStats.lua": "0f665d8b19fe0b257fbbfc5036641106b88bcc7b6d49e11d6d0117f81228b708",
+    "src/server/SessionService.lua": "a65c8d33ea73f14c814f86004543fe020608b24962a6586ab6911bedd0ec236b",
+    "src/server/SkillService.lua": "2fd035e9ba40ab0d6e4cde9cde0439719b57d58048f41a4a63e75ef22ca5758b",
+    "src/server/StageFlowService.lua": "fb6ef7c3b61a07e3b04221d1b7b69ea4a75372098acd10dcbc300cc6342ad896",
+    "src/server/SwapService.lua": "c8e4298e08420b16c85ed4dddea4c27ba1371cc4539bd839badc433ddec337d7",
+    "src/server/TutorialService.lua": "df6819267dcfcda772ccd86b31f070654a678c78b4ddf3b7b00de7d27cca225a",
+    "src/server/WorldBuilder.lua": "c718395ee517e33c98e58f29dd79dd9a5dafde4a56e5a617a8fb2f2a4485a07d",
+    "src/shared/ArtAssets.lua": "6936911df7e294b0ad25b95bd51448044d2f68ddd7b6f2675e88a8544df80a7c",
+    "src/shared/Balance.lua": "c2ba04cd11d7a0968d2383455d4617393827db8e325d15b9bb30e828e96751df",
+    "src/shared/BuildRules.lua": "78da0754638bad64f4c2d96b37212f8683c116f4a21a6ae8cc31b3f118160b3b",
+    "src/shared/CombatGeometry.lua": "22b3dae65bd86be4921e6ca8256e8cb5950a7c46475c7c2a3b80a395855b0458",
+    "src/shared/Constants.lua": "f86d666285504cd7987ed528667cc178c99fd56b9f816ee2d678d970d26d1157",
+    "src/shared/Enemies.lua": "c77bedeaa579928c0550c0433a85b7e1f75225d8f802bbe194b2b716dd2d8b71",
+    "src/shared/HazardDefinitions.lua": "76b92fa536a89a9c78a7d63ae346102e6295bfb5b938db1bab937e673634f19a",
+    "src/shared/Items.lua": "6c9e3be9e4f7d573f9680c3b7904ef5135012435c836f16ec826e3282ff19aa6",
+    "src/shared/LayoutPlan.lua": "28f6bf903ade1180f92239b3951faa369e1eaa0bbb36bcd7bb96094e28ad04e0",
+    "src/shared/MovementEnvelope.lua": "42905f0c1389fb3ec595fd5ff4bf8c894e24036c38e103609c38ba91bd59aab1",
+    "src/shared/Movesets.lua": "41956ad39203172bd0784e75c40c76f02bd06dda86d0fba242e9060b78e09c97",
+    "src/shared/Personas.lua": "c86598c9a235eb672492e0c2cdf60c012d68683e51b8eee9dbd198587c1f0e9a",
+    "src/shared/ProgressionCatalog.lua": "bbccc48b32f192a8da9c7fba45af27a9d0787277cfadb68b86fd9741fc6a095a",
+    "src/shared/ProgressionRules.lua": "274f1901afab7c245f682fd6560964f3803b63abba1ca3587b48ac1b793e5389",
+    "src/shared/Remotes.lua": "1b4d5f3fca078431973558112e1c18b5512591bcb9e81387e89c5a94bd6dd434",
+    "src/shared/Settings.lua": "3d8ab9ea0bede92066cfd98ba806569f15738884b1608dc951b0b1b6137a19f6",
+    "src/shared/Stages.lua": "55ffbb56d5da2714302d9f698210ec5327b4d1d7155ac56b50528c86cd63369f",
+    "src/shared/Story.lua": "666c6486c28a401ef7aeb4c757f1964701343110465de1c48bb33b4ceb18695b",
+    "src/shared/TelemetryRules.lua": "0d1923d346ac7c24ad83990028f6a98d0a62e3791ea71eceb83ec27eec39d6d7",
+    "src/shared/Types.lua": "534b4020b0620bb8ce8986da61b84876d0d431416f12c61cdb9015e6de3927d4",
+    "src/shared/Util.lua": "531add71f13f83db81d42cfb0f0999f06bd9fa3f7afa97ef72deb8a6a9705f12",
+    "src/shared/Weapons.lua": "3c05dce24198de851950e33528c627ea6fc3342ccedda6746c56346e0658e995",
+    "tests/combat-geometry.test.luau": "d81e772c7390b1f417d0c9b39b135ecc11007da6667a9b4612cfaa210f8e7909",
+    "tests/inventory.test.luau": "b43522cddc344b63040d9daec868e8ae79834dce73dcfa7dc72cf9b9e7282e8a",
+    "tests/layout-plan.test.luau": "786d714c3aa3944986b415840ae741723d7cc4f97a74388eb9aed3221341cfaf",
+    "tests/movement-envelope.test.luau": "91e93efe4b8e40514030ee774d246226506f866c1583058ab5cdd247e8dfefb7",
+    "tests/profiles.test.luau": "8546161cd554ae663880b146302222d644955d5f5738badbcf2d21cfbf8ab88e",
+    "tests/progression.test.luau": "1dbc2d857d2c361458138a5f12fb67027a4d83db86c9195261e2ff9131cb4853",
+    "tests/telemetry.test.luau": "76bd07a667920e0f949bdb0b00f3fec8cdd7755cd8cc4dc6246e406fc59ad2d0",
+    "default.project.json": "4a54f1f045b9504d1da5778699f9fcf6f3e360801191dc793895f7a939262797",
+    "scripts/toolchain.json": "a5f98db7575c8fa6abf1c60b2b3cce0b3277ffa812ed84e130060018c2cb6fca"
+  },
+  "gitRevision": "1bff8c516fd0dfed08f991e0c23c008c665f707d",
+  "sourceStable": false,
+  "passed": false,
+  "engineAcceptance": "not-performed-by-this-validator",
+  "elapsedSeconds": 4.37
+}

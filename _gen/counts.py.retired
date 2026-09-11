@@ -1,0 +1,25 @@
+from pathlib import Path
+import re
+root = Path(r"C:\Users\1thea\Projects\Florida-Man")
+for p in root.rglob("*.lua"):
+    data = p.read_bytes()
+    if data.startswith(b"\xef\xbb\xbf"):
+        p.write_bytes(data[3:])
+        print("BOM", p)
+for name in ["README.md"]:
+    p = root / name
+    data = p.read_bytes()
+    if data.startswith(b"\xef\xbb\xbf"):
+        p.write_bytes(data[3:])
+        print("BOM", p)
+
+def count(path, *pats):
+    t = (root/path).read_text(encoding="utf-8")
+    return {pat: len(re.findall(pat, t)) for pat in pats}
+
+print("stages false", count("src/shared/Stages.lua", r"isHub = false"))
+print("enemies", count("src/shared/Enemies.lua", r'id = "'))
+print("items", count("src/shared/Items.lua", r'id="'))
+print("weapons", count("src/shared/Weapons.lua", r'id="'))
+print("personas", count("src/shared/Personas.lua", r'id = "'))
+print("rbxlx", (root/"FloridaMan.rbxlx").stat().st_size)

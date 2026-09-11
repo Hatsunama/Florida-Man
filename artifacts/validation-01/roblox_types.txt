@@ -1,0 +1,266 @@
+[INFO] Loading definitions file: @roblox - C:\Users\1thea\AppData\Local\Temp\florida-man-audit-tools-20260904\luau-lsp-1.69.0\globalTypes.d.luau
+[WARN] client does not allow didChangeWatchedFiles registration - automatic updating on sourcemap changes disabled
+c:\Users\1thea\Projects\Florida-Man\src\client\Controllers\PresentationState.lua [game/StarterPlayer/StarterPlayerScripts/Client/Controllers/PresentationState](15,80): TypeError: Expected this to be 'boolean', but got 'boolean?'
+c:\Users\1thea\Projects\Florida-Man\src\client\Controllers\MovementController.lua [game/StarterPlayer/StarterPlayerScripts/Client/Controllers/MovementController](52,2): TypeError: Value of type 'Attachment?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\Controllers\MovementController.lua [game/StarterPlayer/StarterPlayerScripts/Client/Controllers/MovementController](52,35): TypeError: Value of type 'Attachment?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\Controllers\MovementController.lua [game/StarterPlayer/StarterPlayerScripts/Client/Controllers/MovementController](54,2): TypeError: Value of type 'AlignPosition?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\Controllers\MovementController.lua [game/StarterPlayer/StarterPlayerScripts/Client/Controllers/MovementController](54,27): TypeError: Value of type 'AlignPosition?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\Controllers\MovementController.lua [game/StarterPlayer/StarterPlayerScripts/Client/Controllers/MovementController](54,79): TypeError: Value of type 'AlignPosition?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\Controllers\MovementController.lua [game/StarterPlayer/StarterPlayerScripts/Client/Controllers/MovementController](55,2): TypeError: Value of type 'AlignPosition?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\Controllers\MovementController.lua [game/StarterPlayer/StarterPlayerScripts/Client/Controllers/MovementController](55,33): TypeError: Value of type 'AlignPosition?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\Controllers\MovementController.lua [game/StarterPlayer/StarterPlayerScripts/Client/Controllers/MovementController](55,57): TypeError: Value of type 'AlignPosition?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\Controllers\MovementController.lua [game/StarterPlayer/StarterPlayerScripts/Client/Controllers/MovementController](56,2): TypeError: Value of type 'AlignPosition?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\Controllers\MovementController.lua [game/StarterPlayer/StarterPlayerScripts/Client/Controllers/MovementController](56,51): TypeError: Value of type 'AlignPosition?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\Controllers\MovementController.lua [game/StarterPlayer/StarterPlayerScripts/Client/Controllers/MovementController](57,2): TypeError: Value of type 'AlignPosition?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\Controllers\MovementController.lua [game/StarterPlayer/StarterPlayerScripts/Client/Controllers/MovementController](57,77): TypeError: Value of type 'AlignPosition?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\Controllers\MovementController.lua [game/StarterPlayer/StarterPlayerScripts/Client/Controllers/MovementController](59,2): TypeError: Value of type 'AlignOrientation?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\Controllers\MovementController.lua [game/StarterPlayer/StarterPlayerScripts/Client/Controllers/MovementController](59,30): TypeError: Value of type 'AlignOrientation?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\Controllers\MovementController.lua [game/StarterPlayer/StarterPlayerScripts/Client/Controllers/MovementController](59,92): TypeError: Value of type 'AlignOrientation?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\Controllers\MovementController.lua [game/StarterPlayer/StarterPlayerScripts/Client/Controllers/MovementController](60,2): TypeError: Value of type 'AlignOrientation?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\Controllers\MovementController.lua [game/StarterPlayer/StarterPlayerScripts/Client/Controllers/MovementController](60,36): TypeError: Value of type 'AlignOrientation?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\Controllers\MovementController.lua [game/StarterPlayer/StarterPlayerScripts/Client/Controllers/MovementController](60,63): TypeError: Value of type 'AlignOrientation?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\Controllers\MovementController.lua [game/StarterPlayer/StarterPlayerScripts/Client/Controllers/MovementController](60,90): TypeError: Value of type 'AlignOrientation?' could be nil
+src/client/Controllers/MovementController.lua(6,7): ImportUnused: Import 'Settings' is never used; prefix with '_' to silence
+c:\Users\1thea\Projects\Florida-Man\src\client\Controllers\PresentationState.lua [game/StarterPlayer/StarterPlayerScripts/Client/Controllers/PresentationState](15,80): TypeError: Expected this to be 'boolean', but got 'boolean?'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](54,2): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](55,2): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](56,2): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](58,2): TypeError: Value of type 'TextButton?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](59,2): TypeError: Value of type 'TextButton?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](85,5): TypeError: Key 'generation' is missing from '{| speaker: string?, text: string |}' in the type '{- essential: 'a, generation: 'b, id: 'c, priority: 'd, speaker: any, text: 'e -} | {| speaker: string?, text: string |}'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](85,50): TypeError: Key 'generation' is missing from '{| speaker: string?, text: string |}' in the type '{- essential: 'a, generation: 'b, id: 'c, priority: 'd, speaker: any, text: 'e -} | {| speaker: string?, text: string |}'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](86,21): TypeError: Key 'id' is missing from '{| speaker: string?, text: string |}' in the type '{- essential: 'a, generation: 'b, id: 'c, priority: 'd, speaker: any, text: 'e -} | {| speaker: string?, text: string |}'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](86,58): TypeError: Key 'generation' is missing from '{| speaker: string?, text: string |}' in the type '{- essential: 'a, generation: 'b, id: 'c, priority: 'd, speaker: any, text: 'e -} | {| speaker: string?, text: string |}'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](91,95): TypeError: Key 'generation' is missing from '{| speaker: string?, text: string |}' in the type '{- essential: 'a, generation: 'b, id: 'c, priority: 'd, speaker: any, text: 'e -} | {| speaker: string?, text: string |}'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](91,134): TypeError: Key 'priority' is missing from '{| speaker: string?, text: string |}' in the type '{- essential: 'a, generation: 'b, id: 'c, priority: 'd, speaker: any, text: 'e -} | {| speaker: string?, text: string |}'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](91,176): TypeError: Key 'essential' is missing from '{| speaker: string?, text: string |}' in the type '{- essential: 'a, generation: 'b, id: 'c, priority: 'd, speaker: any, text: 'e -} | {| speaker: string?, text: string |}'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\LoadingGui.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/LoadingGui](19,2): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\LoadingGui.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/LoadingGui](20,2): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\LoadingGui.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/LoadingGui](21,2): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Newspaper.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Newspaper](38,2): TypeError: Value of type 'TextButton?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Newspaper.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Newspaper](39,2): TypeError: Value of type 'TextButton?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\HUD.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/HUD](80,2): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\HUD.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/HUD](80,45): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\HUD.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/HUD](81,2): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\HUD.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/HUD](81,40): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\HUD.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/HUD](83,2): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\HUD.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/HUD](83,46): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\HUD.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/HUD](85,2): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\HUD.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/HUD](85,49): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\HUD.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/HUD](87,2): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\HUD.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/HUD](87,48): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\HUD.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/HUD](92,23): TypeError: Expected this to be 'Instance', but got 'ScreenGui?'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\HUD.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/HUD](93,2): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\HUD.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/HUD](93,47): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\HUD.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/HUD](94,2): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\HUD.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/HUD](94,54): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\HUD.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/HUD](95,2): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\HUD.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/HUD](95,55): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\HUD.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/HUD](97,2): TypeError: Value of type 'ScreenGui?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\ItemDraft.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/ItemDraft](26,15): TypeError: Value of type 'ScreenGui?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\ItemDraft.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/ItemDraft](26,15): TypeError: Value of type 'Frame?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\init.client.lua [game/StarterPlayer/StarterPlayerScripts/Client](32,23): TypeError: Unknown require: game/StarterPlayer/StarterPlayerScripts/Client/Controllers/AudioDirector
+c:\Users\1thea\Projects\Florida-Man\src\client\Controllers\PresentationState.lua [game/StarterPlayer/StarterPlayerScripts/Client/Controllers/PresentationState](15,80): TypeError: Expected this to be 'boolean', but got 'boolean?'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](54,2): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](55,2): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](56,2): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](58,2): TypeError: Value of type 'TextButton?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](59,2): TypeError: Value of type 'TextButton?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](85,5): TypeError: Key 'generation' is missing from '{| speaker: string?, text: string |}' in the type '{- essential: 'a, generation: 'b, id: 'c, priority: 'd, speaker: any, text: 'e -} | {| speaker: string?, text: string |}'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](85,50): TypeError: Key 'generation' is missing from '{| speaker: string?, text: string |}' in the type '{- essential: 'a, generation: 'b, id: 'c, priority: 'd, speaker: any, text: 'e -} | {| speaker: string?, text: string |}'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](86,21): TypeError: Key 'id' is missing from '{| speaker: string?, text: string |}' in the type '{- essential: 'a, generation: 'b, id: 'c, priority: 'd, speaker: any, text: 'e -} | {| speaker: string?, text: string |}'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](86,58): TypeError: Key 'generation' is missing from '{| speaker: string?, text: string |}' in the type '{- essential: 'a, generation: 'b, id: 'c, priority: 'd, speaker: any, text: 'e -} | {| speaker: string?, text: string |}'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](91,95): TypeError: Key 'generation' is missing from '{| speaker: string?, text: string |}' in the type '{- essential: 'a, generation: 'b, id: 'c, priority: 'd, speaker: any, text: 'e -} | {| speaker: string?, text: string |}'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](91,134): TypeError: Key 'priority' is missing from '{| speaker: string?, text: string |}' in the type '{- essential: 'a, generation: 'b, id: 'c, priority: 'd, speaker: any, text: 'e -} | {| speaker: string?, text: string |}'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](91,176): TypeError: Key 'essential' is missing from '{| speaker: string?, text: string |}' in the type '{- essential: 'a, generation: 'b, id: 'c, priority: 'd, speaker: any, text: 'e -} | {| speaker: string?, text: string |}'
+c:\Users\1thea\Projects\Florida-Man\src\client\Controllers\PresentationState.lua [game/StarterPlayer/StarterPlayerScripts/Client/Controllers/PresentationState](15,80): TypeError: Expected this to be 'boolean', but got 'boolean?'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](54,2): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](55,2): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](56,2): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](58,2): TypeError: Value of type 'TextButton?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](59,2): TypeError: Value of type 'TextButton?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](85,5): TypeError: Key 'generation' is missing from '{| speaker: string?, text: string |}' in the type '{- essential: 'a, generation: 'b, id: 'c, priority: 'd, speaker: any, text: 'e -} | {| speaker: string?, text: string |}'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](85,50): TypeError: Key 'generation' is missing from '{| speaker: string?, text: string |}' in the type '{- essential: 'a, generation: 'b, id: 'c, priority: 'd, speaker: any, text: 'e -} | {| speaker: string?, text: string |}'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](86,21): TypeError: Key 'id' is missing from '{| speaker: string?, text: string |}' in the type '{- essential: 'a, generation: 'b, id: 'c, priority: 'd, speaker: any, text: 'e -} | {| speaker: string?, text: string |}'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](86,58): TypeError: Key 'generation' is missing from '{| speaker: string?, text: string |}' in the type '{- essential: 'a, generation: 'b, id: 'c, priority: 'd, speaker: any, text: 'e -} | {| speaker: string?, text: string |}'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](91,95): TypeError: Key 'generation' is missing from '{| speaker: string?, text: string |}' in the type '{- essential: 'a, generation: 'b, id: 'c, priority: 'd, speaker: any, text: 'e -} | {| speaker: string?, text: string |}'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](91,134): TypeError: Key 'priority' is missing from '{| speaker: string?, text: string |}' in the type '{- essential: 'a, generation: 'b, id: 'c, priority: 'd, speaker: any, text: 'e -} | {| speaker: string?, text: string |}'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](91,176): TypeError: Key 'essential' is missing from '{| speaker: string?, text: string |}' in the type '{- essential: 'a, generation: 'b, id: 'c, priority: 'd, speaker: any, text: 'e -} | {| speaker: string?, text: string |}'
+c:\Users\1thea\Projects\Florida-Man\src\client\Controllers\PresentationState.lua [game/StarterPlayer/StarterPlayerScripts/Client/Controllers/PresentationState](15,80): TypeError: Expected this to be 'boolean', but got 'boolean?'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](54,2): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](55,2): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](56,2): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](58,2): TypeError: Value of type 'TextButton?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](59,2): TypeError: Value of type 'TextButton?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](85,5): TypeError: Key 'generation' is missing from '{| speaker: string?, text: string |}' in the type '{- essential: 'a, generation: 'b, id: 'c, priority: 'd, speaker: any, text: 'e -} | {| speaker: string?, text: string |}'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](85,50): TypeError: Key 'generation' is missing from '{| speaker: string?, text: string |}' in the type '{- essential: 'a, generation: 'b, id: 'c, priority: 'd, speaker: any, text: 'e -} | {| speaker: string?, text: string |}'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](86,21): TypeError: Key 'id' is missing from '{| speaker: string?, text: string |}' in the type '{- essential: 'a, generation: 'b, id: 'c, priority: 'd, speaker: any, text: 'e -} | {| speaker: string?, text: string |}'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](86,58): TypeError: Key 'generation' is missing from '{| speaker: string?, text: string |}' in the type '{- essential: 'a, generation: 'b, id: 'c, priority: 'd, speaker: any, text: 'e -} | {| speaker: string?, text: string |}'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](91,95): TypeError: Key 'generation' is missing from '{| speaker: string?, text: string |}' in the type '{- essential: 'a, generation: 'b, id: 'c, priority: 'd, speaker: any, text: 'e -} | {| speaker: string?, text: string |}'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](91,134): TypeError: Key 'priority' is missing from '{| speaker: string?, text: string |}' in the type '{- essential: 'a, generation: 'b, id: 'c, priority: 'd, speaker: any, text: 'e -} | {| speaker: string?, text: string |}'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](91,176): TypeError: Key 'essential' is missing from '{| speaker: string?, text: string |}' in the type '{- essential: 'a, generation: 'b, id: 'c, priority: 'd, speaker: any, text: 'e -} | {| speaker: string?, text: string |}'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\HUD.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/HUD](80,2): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\HUD.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/HUD](80,45): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\HUD.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/HUD](81,2): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\HUD.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/HUD](81,40): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\HUD.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/HUD](83,2): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\HUD.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/HUD](83,46): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\HUD.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/HUD](85,2): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\HUD.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/HUD](85,49): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\HUD.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/HUD](87,2): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\HUD.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/HUD](87,48): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\HUD.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/HUD](92,23): TypeError: Expected this to be 'Instance', but got 'ScreenGui?'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\HUD.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/HUD](93,2): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\HUD.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/HUD](93,47): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\HUD.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/HUD](94,2): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\HUD.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/HUD](94,54): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\HUD.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/HUD](95,2): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\HUD.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/HUD](95,55): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\HUD.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/HUD](97,2): TypeError: Value of type 'ScreenGui?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\Controllers\PresentationState.lua [game/StarterPlayer/StarterPlayerScripts/Client/Controllers/PresentationState](15,80): TypeError: Expected this to be 'boolean', but got 'boolean?'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](54,2): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](55,2): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](56,2): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](58,2): TypeError: Value of type 'TextButton?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](59,2): TypeError: Value of type 'TextButton?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](85,5): TypeError: Key 'generation' is missing from '{| speaker: string?, text: string |}' in the type '{- essential: 'a, generation: 'b, id: 'c, priority: 'd, speaker: any, text: 'e -} | {| speaker: string?, text: string |}'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](85,50): TypeError: Key 'generation' is missing from '{| speaker: string?, text: string |}' in the type '{- essential: 'a, generation: 'b, id: 'c, priority: 'd, speaker: any, text: 'e -} | {| speaker: string?, text: string |}'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](86,21): TypeError: Key 'id' is missing from '{| speaker: string?, text: string |}' in the type '{- essential: 'a, generation: 'b, id: 'c, priority: 'd, speaker: any, text: 'e -} | {| speaker: string?, text: string |}'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](86,58): TypeError: Key 'generation' is missing from '{| speaker: string?, text: string |}' in the type '{- essential: 'a, generation: 'b, id: 'c, priority: 'd, speaker: any, text: 'e -} | {| speaker: string?, text: string |}'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](91,95): TypeError: Key 'generation' is missing from '{| speaker: string?, text: string |}' in the type '{- essential: 'a, generation: 'b, id: 'c, priority: 'd, speaker: any, text: 'e -} | {| speaker: string?, text: string |}'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](91,134): TypeError: Key 'priority' is missing from '{| speaker: string?, text: string |}' in the type '{- essential: 'a, generation: 'b, id: 'c, priority: 'd, speaker: any, text: 'e -} | {| speaker: string?, text: string |}'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](91,176): TypeError: Key 'essential' is missing from '{| speaker: string?, text: string |}' in the type '{- essential: 'a, generation: 'b, id: 'c, priority: 'd, speaker: any, text: 'e -} | {| speaker: string?, text: string |}'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\ItemDraft.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/ItemDraft](26,15): TypeError: Value of type 'ScreenGui?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\ItemDraft.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/ItemDraft](26,15): TypeError: Value of type 'Frame?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\Controllers\PresentationState.lua [game/StarterPlayer/StarterPlayerScripts/Client/Controllers/PresentationState](15,80): TypeError: Expected this to be 'boolean', but got 'boolean?'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\LoadingGui.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/LoadingGui](19,2): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\LoadingGui.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/LoadingGui](20,2): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\LoadingGui.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/LoadingGui](21,2): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\Controllers\PresentationState.lua [game/StarterPlayer/StarterPlayerScripts/Client/Controllers/PresentationState](15,80): TypeError: Expected this to be 'boolean', but got 'boolean?'
+c:\Users\1thea\Projects\Florida-Man\src\client\Controllers\PresentationState.lua [game/StarterPlayer/StarterPlayerScripts/Client/Controllers/PresentationState](15,80): TypeError: Expected this to be 'boolean', but got 'boolean?'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](54,2): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](55,2): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](56,2): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](58,2): TypeError: Value of type 'TextButton?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](59,2): TypeError: Value of type 'TextButton?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](85,5): TypeError: Key 'generation' is missing from '{| speaker: string?, text: string |}' in the type '{- essential: 'a, generation: 'b, id: 'c, priority: 'd, speaker: any, text: 'e -} | {| speaker: string?, text: string |}'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](85,50): TypeError: Key 'generation' is missing from '{| speaker: string?, text: string |}' in the type '{- essential: 'a, generation: 'b, id: 'c, priority: 'd, speaker: any, text: 'e -} | {| speaker: string?, text: string |}'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](86,21): TypeError: Key 'id' is missing from '{| speaker: string?, text: string |}' in the type '{- essential: 'a, generation: 'b, id: 'c, priority: 'd, speaker: any, text: 'e -} | {| speaker: string?, text: string |}'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](86,58): TypeError: Key 'generation' is missing from '{| speaker: string?, text: string |}' in the type '{- essential: 'a, generation: 'b, id: 'c, priority: 'd, speaker: any, text: 'e -} | {| speaker: string?, text: string |}'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](91,95): TypeError: Key 'generation' is missing from '{| speaker: string?, text: string |}' in the type '{- essential: 'a, generation: 'b, id: 'c, priority: 'd, speaker: any, text: 'e -} | {| speaker: string?, text: string |}'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](91,134): TypeError: Key 'priority' is missing from '{| speaker: string?, text: string |}' in the type '{- essential: 'a, generation: 'b, id: 'c, priority: 'd, speaker: any, text: 'e -} | {| speaker: string?, text: string |}'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](91,176): TypeError: Key 'essential' is missing from '{| speaker: string?, text: string |}' in the type '{- essential: 'a, generation: 'b, id: 'c, priority: 'd, speaker: any, text: 'e -} | {| speaker: string?, text: string |}'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Newspaper.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Newspaper](38,2): TypeError: Value of type 'TextButton?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Newspaper.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Newspaper](39,2): TypeError: Value of type 'TextButton?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\Controllers\PresentationState.lua [game/StarterPlayer/StarterPlayerScripts/Client/Controllers/PresentationState](15,80): TypeError: Expected this to be 'boolean', but got 'boolean?'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](54,2): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](55,2): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](56,2): TypeError: Value of type 'TextLabel?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](58,2): TypeError: Value of type 'TextButton?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](59,2): TypeError: Value of type 'TextButton?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](85,5): TypeError: Key 'generation' is missing from '{| speaker: string?, text: string |}' in the type '{- essential: 'a, generation: 'b, id: 'c, priority: 'd, speaker: any, text: 'e -} | {| speaker: string?, text: string |}'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](85,50): TypeError: Key 'generation' is missing from '{| speaker: string?, text: string |}' in the type '{- essential: 'a, generation: 'b, id: 'c, priority: 'd, speaker: any, text: 'e -} | {| speaker: string?, text: string |}'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](86,21): TypeError: Key 'id' is missing from '{| speaker: string?, text: string |}' in the type '{- essential: 'a, generation: 'b, id: 'c, priority: 'd, speaker: any, text: 'e -} | {| speaker: string?, text: string |}'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](86,58): TypeError: Key 'generation' is missing from '{| speaker: string?, text: string |}' in the type '{- essential: 'a, generation: 'b, id: 'c, priority: 'd, speaker: any, text: 'e -} | {| speaker: string?, text: string |}'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](91,95): TypeError: Key 'generation' is missing from '{| speaker: string?, text: string |}' in the type '{- essential: 'a, generation: 'b, id: 'c, priority: 'd, speaker: any, text: 'e -} | {| speaker: string?, text: string |}'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](91,134): TypeError: Key 'priority' is missing from '{| speaker: string?, text: string |}' in the type '{- essential: 'a, generation: 'b, id: 'c, priority: 'd, speaker: any, text: 'e -} | {| speaker: string?, text: string |}'
+c:\Users\1thea\Projects\Florida-Man\src\client\UI\Tagline.lua [game/StarterPlayer/StarterPlayerScripts/Client/UI/Tagline](91,176): TypeError: Key 'essential' is missing from '{| speaker: string?, text: string |}' in the type '{- essential: 'a, generation: 'b, id: 'c, priority: 'd, speaker: any, text: 'e -} | {| speaker: string?, text: string |}'
+c:\Users\1thea\Projects\Florida-Man\src\client\Controllers\PresentationState.lua [game/StarterPlayer/StarterPlayerScripts/Client/Controllers/PresentationState](15,80): TypeError: Expected this to be 'boolean', but got 'boolean?'
+c:\Users\1thea\Projects\Florida-Man\src\server\EnemyFactory.lua [game/ServerScriptService/Server/EnemyFactory](1146,3): TypeError: Expected type table, got 'nil' instead
+c:\Users\1thea\Projects\Florida-Man\src\server\EnemyFactory.lua [game/ServerScriptService/Server/EnemyFactory](1148,2): TypeError: Value of type 'Humanoid?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\server\EnemyFactory.lua [game/ServerScriptService/Server/EnemyFactory](1149,2): TypeError: Value of type 'Humanoid?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\server\EnemyFactory.lua [game/ServerScriptService/Server/EnemyFactory](1150,2): TypeError: Value of type 'Humanoid?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\server\EnemyFactory.lua [game/ServerScriptService/Server/EnemyFactory](1151,2): TypeError: Value of type 'Humanoid?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\server\EnemyFactory.lua [game/ServerScriptService/Server/EnemyFactory](1179,2): TypeError: Cannot call a value of the union type:
+  | (Model, Part, any) -> ()
+  | (Model, Part, any) -> ()
+We are unable to determine the appropriate result type for such a call.
+c:\Users\1thea\Projects\Florida-Man\src\server\EnemyFactory.lua [game/ServerScriptService/Server/EnemyFactory](1266,46): TypeError: Value of type 'BasePart?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\server\EnemyService.lua [game/ServerScriptService/Server/EnemyService](536,7): TypeError: Function only returns 1 value, but 2 are required here
+c:\Users\1thea\Projects\Florida-Man\src\server\EnemyFactory.lua [game/ServerScriptService/Server/EnemyFactory](1146,3): TypeError: Expected type table, got 'nil' instead
+c:\Users\1thea\Projects\Florida-Man\src\server\EnemyFactory.lua [game/ServerScriptService/Server/EnemyFactory](1148,2): TypeError: Value of type 'Humanoid?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\server\EnemyFactory.lua [game/ServerScriptService/Server/EnemyFactory](1149,2): TypeError: Value of type 'Humanoid?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\server\EnemyFactory.lua [game/ServerScriptService/Server/EnemyFactory](1150,2): TypeError: Value of type 'Humanoid?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\server\EnemyFactory.lua [game/ServerScriptService/Server/EnemyFactory](1151,2): TypeError: Value of type 'Humanoid?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\server\EnemyFactory.lua [game/ServerScriptService/Server/EnemyFactory](1179,2): TypeError: Cannot call a value of the union type:
+  | (Model, Part, any) -> ()
+  | (Model, Part, any) -> ()
+We are unable to determine the appropriate result type for such a call.
+c:\Users\1thea\Projects\Florida-Man\src\server\EnemyFactory.lua [game/ServerScriptService/Server/EnemyFactory](1266,46): TypeError: Value of type 'BasePart?' could be nil
+src/server/EnemyFactory.lua(6,7): LocalUnused: Variable 'RunService' is never used; prefix with '_' to silence
+c:\Users\1thea\Projects\Florida-Man\src\server\EnemyFactory.lua [game/ServerScriptService/Server/EnemyFactory](1146,3): TypeError: Expected type table, got 'nil' instead
+c:\Users\1thea\Projects\Florida-Man\src\server\EnemyFactory.lua [game/ServerScriptService/Server/EnemyFactory](1148,2): TypeError: Value of type 'Humanoid?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\server\EnemyFactory.lua [game/ServerScriptService/Server/EnemyFactory](1149,2): TypeError: Value of type 'Humanoid?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\server\EnemyFactory.lua [game/ServerScriptService/Server/EnemyFactory](1150,2): TypeError: Value of type 'Humanoid?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\server\EnemyFactory.lua [game/ServerScriptService/Server/EnemyFactory](1151,2): TypeError: Value of type 'Humanoid?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\server\EnemyFactory.lua [game/ServerScriptService/Server/EnemyFactory](1179,2): TypeError: Cannot call a value of the union type:
+  | (Model, Part, any) -> ()
+  | (Model, Part, any) -> ()
+We are unable to determine the appropriate result type for such a call.
+c:\Users\1thea\Projects\Florida-Man\src\server\EnemyFactory.lua [game/ServerScriptService/Server/EnemyFactory](1266,46): TypeError: Value of type 'BasePart?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\server\EnemyService.lua [game/ServerScriptService/Server/EnemyService](536,7): TypeError: Function only returns 1 value, but 2 are required here
+src/server/EnemyService.lua(6,7): LocalUnused: Variable 'Debris' is never used; prefix with '_' to silence
+src/server/EnemyService.lua(254,10): LocalUnused: Variable 'pct' is never used; prefix with '_' to silence
+c:\Users\1thea\Projects\Florida-Man\src\shared\LayoutPlan.lua [game/ReplicatedStorage/Shared/LayoutPlan](16,16): TypeError: Cannot call a value of type {number} in union:
+  {number} | {|  |}
+c:\Users\1thea\Projects\Florida-Man\src\server\WorldBuilder.lua [game/ServerScriptService/Server/WorldBuilder](645,19): TypeError: Expected this to be 'boolean', but got 'nil'
+c:\Users\1thea\Projects\Florida-Man\src\server\WorldBuilder.lua [game/ServerScriptService/Server/WorldBuilder](826,3): TypeError: Expected type table, got 'nil' instead
+c:\Users\1thea\Projects\Florida-Man\src\server\WorldBuilder.lua [game/ServerScriptService/Server/WorldBuilder](827,3): TypeError: Type 'nil' does not have key 'SetAttribute'
+c:\Users\1thea\Projects\Florida-Man\src\server\WorldBuilder.lua [game/ServerScriptService/Server/WorldBuilder](828,3): TypeError: Expected type table, got 'nil' instead
+c:\Users\1thea\Projects\Florida-Man\src\server\WorldBuilder.lua [game/ServerScriptService/Server/WorldBuilder](841,21): TypeError: Value of type 'Model?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\server\GameService.lua [game/ServerScriptService/Server/GameService](367,17): TypeError: Function only returns 1 value, but 2 are required here
+src/server/RunContext.lua(9,7): ImportUnused: Import 'Weapons' is never used; prefix with '_' to silence
+src/server/RunContext.lua(216,9): LocalShadow: Variable 'char' shadows previous declaration at line 210
+c:\Users\1thea\Projects\Florida-Man\src\server\EnemyFactory.lua [game/ServerScriptService/Server/EnemyFactory](1146,3): TypeError: Expected type table, got 'nil' instead
+c:\Users\1thea\Projects\Florida-Man\src\server\EnemyFactory.lua [game/ServerScriptService/Server/EnemyFactory](1148,2): TypeError: Value of type 'Humanoid?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\server\EnemyFactory.lua [game/ServerScriptService/Server/EnemyFactory](1149,2): TypeError: Value of type 'Humanoid?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\server\EnemyFactory.lua [game/ServerScriptService/Server/EnemyFactory](1150,2): TypeError: Value of type 'Humanoid?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\server\EnemyFactory.lua [game/ServerScriptService/Server/EnemyFactory](1151,2): TypeError: Value of type 'Humanoid?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\server\EnemyFactory.lua [game/ServerScriptService/Server/EnemyFactory](1179,2): TypeError: Cannot call a value of the union type:
+  | (Model, Part, any) -> ()
+  | (Model, Part, any) -> ()
+We are unable to determine the appropriate result type for such a call.
+c:\Users\1thea\Projects\Florida-Man\src\server\EnemyFactory.lua [game/ServerScriptService/Server/EnemyFactory](1266,46): TypeError: Value of type 'BasePart?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\server\EnemyService.lua [game/ServerScriptService/Server/EnemyService](536,7): TypeError: Function only returns 1 value, but 2 are required here
+src/server/SkillService.lua(22,8): LocalUnused: Variable 'now' is never used; prefix with '_' to silence
+c:\Users\1thea\Projects\Florida-Man\src\shared\LayoutPlan.lua [game/ReplicatedStorage/Shared/LayoutPlan](16,16): TypeError: Cannot call a value of type {number} in union:
+  {number} | {|  |}
+c:\Users\1thea\Projects\Florida-Man\src\server\WorldBuilder.lua [game/ServerScriptService/Server/WorldBuilder](645,19): TypeError: Expected this to be 'boolean', but got 'nil'
+c:\Users\1thea\Projects\Florida-Man\src\server\WorldBuilder.lua [game/ServerScriptService/Server/WorldBuilder](826,3): TypeError: Expected type table, got 'nil' instead
+c:\Users\1thea\Projects\Florida-Man\src\server\WorldBuilder.lua [game/ServerScriptService/Server/WorldBuilder](827,3): TypeError: Type 'nil' does not have key 'SetAttribute'
+c:\Users\1thea\Projects\Florida-Man\src\server\WorldBuilder.lua [game/ServerScriptService/Server/WorldBuilder](828,3): TypeError: Expected type table, got 'nil' instead
+c:\Users\1thea\Projects\Florida-Man\src\server\WorldBuilder.lua [game/ServerScriptService/Server/WorldBuilder](841,21): TypeError: Value of type 'Model?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\server\EnemyFactory.lua [game/ServerScriptService/Server/EnemyFactory](1146,3): TypeError: Expected type table, got 'nil' instead
+c:\Users\1thea\Projects\Florida-Man\src\server\EnemyFactory.lua [game/ServerScriptService/Server/EnemyFactory](1148,2): TypeError: Value of type 'Humanoid?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\server\EnemyFactory.lua [game/ServerScriptService/Server/EnemyFactory](1149,2): TypeError: Value of type 'Humanoid?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\server\EnemyFactory.lua [game/ServerScriptService/Server/EnemyFactory](1150,2): TypeError: Value of type 'Humanoid?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\server\EnemyFactory.lua [game/ServerScriptService/Server/EnemyFactory](1151,2): TypeError: Value of type 'Humanoid?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\server\EnemyFactory.lua [game/ServerScriptService/Server/EnemyFactory](1179,2): TypeError: Cannot call a value of the union type:
+  | (Model, Part, any) -> ()
+  | (Model, Part, any) -> ()
+We are unable to determine the appropriate result type for such a call.
+c:\Users\1thea\Projects\Florida-Man\src\server\EnemyFactory.lua [game/ServerScriptService/Server/EnemyFactory](1266,46): TypeError: Value of type 'BasePart?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\server\EnemyService.lua [game/ServerScriptService/Server/EnemyService](536,7): TypeError: Function only returns 1 value, but 2 are required here
+src/server/StageFlowService.lua(21,7): ImportUnused: Import 'MetaService' is never used; prefix with '_' to silence
+c:\Users\1thea\Projects\Florida-Man\src\server\EnemyFactory.lua [game/ServerScriptService/Server/EnemyFactory](1146,3): TypeError: Expected type table, got 'nil' instead
+c:\Users\1thea\Projects\Florida-Man\src\server\EnemyFactory.lua [game/ServerScriptService/Server/EnemyFactory](1148,2): TypeError: Value of type 'Humanoid?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\server\EnemyFactory.lua [game/ServerScriptService/Server/EnemyFactory](1149,2): TypeError: Value of type 'Humanoid?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\server\EnemyFactory.lua [game/ServerScriptService/Server/EnemyFactory](1150,2): TypeError: Value of type 'Humanoid?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\server\EnemyFactory.lua [game/ServerScriptService/Server/EnemyFactory](1151,2): TypeError: Value of type 'Humanoid?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\server\EnemyFactory.lua [game/ServerScriptService/Server/EnemyFactory](1179,2): TypeError: Cannot call a value of the union type:
+  | (Model, Part, any) -> ()
+  | (Model, Part, any) -> ()
+We are unable to determine the appropriate result type for such a call.
+c:\Users\1thea\Projects\Florida-Man\src\server\EnemyFactory.lua [game/ServerScriptService/Server/EnemyFactory](1266,46): TypeError: Value of type 'BasePart?' could be nil
+c:\Users\1thea\Projects\Florida-Man\src\server\EnemyService.lua [game/ServerScriptService/Server/EnemyService](536,7): TypeError: Function only returns 1 value, but 2 are required here
+c:\Users\1thea\Projects\Florida-Man\src\shared\LayoutPlan.lua [game/ReplicatedStorage/Shared/LayoutPlan](16,16): TypeError: Cannot call a value of type {number} in union:
+  {number} | {|  |}
+c:\Users\1thea\Projects\Florida-Man\src\server\WorldBuilder.lua [game/ServerScriptService/Server/WorldBuilder](645,19): TypeError: Expected this to be 'boolean', but got 'nil'
+c:\Users\1thea\Projects\Florida-Man\src\server\WorldBuilder.lua [game/ServerScriptService/Server/WorldBuilder](826,3): TypeError: Expected type table, got 'nil' instead
+c:\Users\1thea\Projects\Florida-Man\src\server\WorldBuilder.lua [game/ServerScriptService/Server/WorldBuilder](827,3): TypeError: Type 'nil' does not have key 'SetAttribute'
+c:\Users\1thea\Projects\Florida-Man\src\server\WorldBuilder.lua [game/ServerScriptService/Server/WorldBuilder](828,3): TypeError: Expected type table, got 'nil' instead
+c:\Users\1thea\Projects\Florida-Man\src\server\WorldBuilder.lua [game/ServerScriptService/Server/WorldBuilder](841,21): TypeError: Value of type 'Model?' could be nil
+src/server/WorldBuilder.lua(6,7): LocalUnused: Variable 'Debris' is never used; prefix with '_' to silence
+src/server/WorldBuilder.lua(589,9): LocalUnused: Variable 'pad' is never used; prefix with '_' to silence
+c:\Users\1thea\Projects\Florida-Man\src\shared\LayoutPlan.lua [game/ReplicatedStorage/Shared/LayoutPlan](16,16): TypeError: Cannot call a value of type {number} in union:
+  {number} | {|  |}

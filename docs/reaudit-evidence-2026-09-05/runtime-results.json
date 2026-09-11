@@ -1,0 +1,264 @@
+{
+  "lastEngineSourceBuild": "main08",
+  "buildIdentity": "3343bd4af705195a25501090dd63ed3c0d1f10c81a4af636358e1b2cc7127465",
+  "mainPackageSha256": "683fb58306fa1899729e55f2f06ef7587323ad8c5ea8730b629b94c4bab853dc",
+  "qaPackageReport": "artifacts/reaudit-studio-08/report.json",
+  "records": [
+    {
+      "source": "build05-engine-events.txt",
+      "timeUtc": "2026-09-05T06:12:30.381Z",
+      "tag": "QA_NPC",
+      "result": {
+        "ok": true,
+        "note": "Explicit QA relocation only; press E normally to test the NPC."
+      }
+    },
+    {
+      "source": "build05-engine-events.txt",
+      "timeUtc": "2026-09-05T06:14:38.990Z",
+      "tag": "QA_PRE",
+      "result": {
+        "audio": {
+          "truncated": false,
+          "note": "Read-only server instance scan; client-only audio must be checked on the client.",
+          "findings": [],
+          "inspected": 2155
+        },
+        "snapshot": {
+          "note": "Latest server sample only; no client frame time or playtest success is inferred.",
+          "available": true,
+          "metrics": {
+            "pendingEnemies": 0,
+            "pendingSessionTasks": 0,
+            "at": 446.85885209999105,
+            "analytics": {
+              "dropped": 0,
+              "failed": 0,
+              "queued": 0
+            },
+            "workspaceDescendants": 370,
+            "serverMemoryMb": 1472.046875,
+            "hazards": 0,
+            "sessionConnections": 3,
+            "hostiles": 0,
+            "profile": {
+              "workers": 0,
+              "closing": 0,
+              "dirty": 0,
+              "queued": 0,
+              "profiles": 1
+            },
+            "simulationMs": {
+              "max": 0.5603000026894733,
+              "p50": 0.16260000120382756,
+              "p95": 0.2649999951245263,
+              "count": 120
+            },
+            "serverHeartbeatMs": {
+              "max": 19.25330050289631,
+              "p50": 16.924843192100525,
+              "p95": 18.137898296117783,
+              "count": 120
+            },
+            "remoteRateRejected": 0,
+            "remoteRequests": 2,
+            "luauHeapKiB": 2544
+          }
+        }
+      }
+    },
+    {
+      "source": "build05-engine-events.txt",
+      "timeUtc": "2026-09-05T06:14:42.521Z",
+      "tag": "QA_STAGES",
+      "logTruncatedOrNonJson": true,
+      "raw": "{\"restored\":true,\"note\":\"Engine service smoke using explicit test relocations and lethal damage. Not input, combat balance, traversal, or normal campaign acceptance.\",\"stages\":[{\"ok\":false,\"stage\":\"DaytonaHangover\",\"failure\":\"ServerScriptService.StudioAudit:234: Spawn has no world support\"},{\"ok\":false,\"stage\":\"BoardwalkChaos\",\"failure\":\"ServerScriptService.StudioAudit:234: Spawn has no world support\"},{\"ok\":false,\"stage\":\"GasStationLegends\",\"failure\":\"ServerScriptService.StudioAudit:234: Spawn has no world support\"},{\"ok\":false,\"stage\":\"StripMallShowdown\",\"failure\":\"ServerScriptService.StudioAudit:234: Spawn has no world support\"},{\"ok\":false,\"stage\":\"DriveThruDisaster\",\"failure\":\"ServerScriptService.StudioAudit:234: Spawn has no world support\"},{\"ok\":false,\"stage\":\"CanalRun\",\"failure\":\"ServerScriptService.StudioAudit:234: Spawn has no world support\"},{\"ok\":false,\"stage\":\"SwampShift\",\"failure\":\"ServerScriptService.StudioAudit:2"
+    },
+    {
+      "source": "build05-engine-events.txt",
+      "timeUtc": "2026-09-05T06:15:45.084Z",
+      "tag": "QA_GROUND",
+      "result": {
+        "pad": "18, 0.25, 0",
+        "query": true,
+        "hit": "Workspace.GameWorld.Bonfire",
+        "root": "17.992462158203125, 4.176333427429199, 0",
+        "collide": true,
+        "group": "Default",
+        "world": "Workspace.GameWorld"
+      }
+    },
+    {
+      "source": "build05-engine-events.txt",
+      "timeUtc": "2026-09-05T06:18:15.433Z",
+      "tag": "QA_ARM",
+      "result": {
+        "ok": true,
+        "note": "Thirty-second bounded server trace armed. Commands count receipt, not accepted damage."
+      }
+    },
+    {
+      "source": "build05-engine-events.txt",
+      "timeUtc": "2026-09-05T06:20:04.838Z",
+      "tag": "QA_TRACE",
+      "result": {
+        "ok": true,
+        "seconds": 29.994905100000324,
+        "samples": 1794,
+        "x0": 17.992462158203125,
+        "y0": 4.176333427429199,
+        "y": 4.176333427429199,
+        "x": 17.992462158203125,
+        "minX": 17.992460250854492,
+        "maxY": 11.499826431274414,
+        "resets": 0,
+        "commands": [],
+        "maxX": 17.992462158203125
+      }
+    },
+    {
+      "source": "build08-engine-events.txt",
+      "timeUtc": "2026-09-05T06:40:05.731Z",
+      "tag": "QA_CLIENT_AUDIO",
+      "result": {
+        "ok": true,
+        "note": "Read-only client instance sample. It does not certify platform voice settings or absence of past/future audio.",
+        "truncated": false,
+        "inspected": 2342,
+        "otherAudioClasses": [],
+        "sources": [],
+        "sourceRecordsOmitted": 0,
+        "sourceCount": 0,
+        "nonzeroVolume": 0,
+        "playing": 0
+      }
+    },
+    {
+      "source": "build08-engine-events.txt",
+      "timeUtc": "2026-09-05T06:40:05.732Z",
+      "tag": "QA_CLIENT_READ",
+      "logTruncatedOrNonJson": true,
+      "raw": "{\"ok\":true,\"note\":\"Local snapshot. Visible text candidates are not proof of clipping, occlusion or readability on every device.\",\"modal\":false,\"readableText\":[{\"y\":15,\"x\":18,\"name\":\"TextLabel\",\"height\":24,\"content\":\"Bonfire\",\"width\":114},{\"y\":16,\"x\":134,\"name\":\"TextLabel\",\"height\":22,\"content\":\"Use E / LB nearby\",\"width\":420},{\"y\":4,\"x\":564,\"name\":\"TextButton\",\"height\":44,\"content\":\"Tab\",\"width\":44},{\"y\":64,\"x\":24,\"name\":\"TextLabel\",\"height\":18,\"content\":\"Progress\",\"width\":376},{\"y\":84,\"x\":24,\"name\":\"TextLabel\",\"height\":62,\"content\":\"retry.\",\"width\":376},{\"y\":152,\"x\":24,\"name\":\"TextLabel\",\"height\":18,\"content\":\"Tap or T / \u2191 \u00b7 Next \u00b7 Saved in Notes\",\"width\":376},{\"y\":9,\"x\":71.47826385498047,\"name\":\"ActionText\",\"height\":71.79130554199219,\"content\":\"Start Run\",\"width\":65.94783020019531},{\"y\":-10,\"x\":71.478271484375,\"name\":\"ObjectText\",\"height\":71.79130554199219,\"content\":\"Bonfire\",\"width\":38.400001525878909},{\"y\":-1,\"x\":-0"
+    },
+    {
+      "source": "build08-engine-events.txt",
+      "timeUtc": "2026-09-05T06:41:09.513Z",
+      "tag": "QA_TEXT_MEASURE",
+      "result": {
+        "viewport": "1094.40002, 600.20874",
+        "narrow": "45.0782623, 95.1652222",
+        "short": "202.01741, 15.8608704"
+      }
+    },
+    {
+      "source": "build08-engine-events.txt",
+      "timeUtc": "2026-09-05T06:41:55.294Z",
+      "tag": "QA_MOVE_SUMMARY",
+      "result": {
+        "ok": true,
+        "jump": {
+          "startY": 3.0963165760040283,
+          "landed": true,
+          "apexY": 9.458949089050293,
+          "rise": 6.362632513046265,
+          "finish": {
+            "y": 3.0377540588378906,
+            "x": 24.829944610595703,
+            "z": -2.241959435878016e-07
+          }
+        },
+        "elapsed": 1.53,
+        "completed": true,
+        "movement": {
+          "observedRightwardMotion": true,
+          "afterRelease": {
+            "y": 3.0963165760040283,
+            "x": 24.829944610595703,
+            "z": -2.241959435878016e-07
+          },
+          "start": {
+            "y": 4.076319694519043,
+            "x": 17.992605209350586,
+            "z": -2.241959435878016e-07
+          },
+          "deltaX": 6.610567092895508,
+          "finish": {
+            "y": 3.0942728519439697,
+            "x": 24.603172302246094,
+            "z": -2.241959435878016e-07
+          }
+        },
+        "allActionsAccepted": false,
+        "motionResetStable": true,
+        "stageId": "Hub"
+      }
+    },
+    {
+      "source": "build08-engine-events.txt",
+      "timeUtc": "2026-09-05T06:41:55.294Z",
+      "tag": "QA_MOVE_ACTION",
+      "result": {
+        "combatEvents": 0,
+        "commandResults": 0,
+        "action": "attack",
+        "outcome": "unavailable-no-intent",
+        "intentSubmitted": false,
+        "command": "RequestAttack",
+        "available": false,
+        "acceptanceObserved": false,
+        "rejectionObserved": false
+      }
+    },
+    {
+      "source": "build08-engine-events.txt",
+      "timeUtc": "2026-09-05T06:41:55.295Z",
+      "tag": "QA_MOVE_ACTION",
+      "result": {
+        "combatEvents": 0,
+        "commandResults": 0,
+        "action": "skill",
+        "outcome": "unavailable-no-intent",
+        "intentSubmitted": false,
+        "command": "RequestSkill",
+        "available": false,
+        "acceptanceObserved": false,
+        "rejectionObserved": false
+      }
+    },
+    {
+      "source": "build08-engine-events.txt",
+      "timeUtc": "2026-09-05T06:41:55.295Z",
+      "tag": "QA_MOVE_ACTION",
+      "result": {
+        "combatEvents": 0,
+        "commandResults": 0,
+        "action": "dodge",
+        "outcome": "unavailable-no-intent",
+        "intentSubmitted": false,
+        "command": "RequestDodge",
+        "available": false,
+        "acceptanceObserved": false,
+        "rejectionObserved": false
+      }
+    }
+  ],
+  "nativeObservations": [
+    {
+      "build": "main08",
+      "action": "Tab opens then closes Options",
+      "evidence": "build08-tab-options.png"
+    },
+    {
+      "build": "main08",
+      "action": "Native E opened Captain Steve after ordinary Input.Intent walking and jump; no QA relocation",
+      "evidence": "build08-walk-npc-e.png"
+    }
+  ],
+  "limits": [
+    "MovementSmoke used Input.Intent, not native held keys; Hub combat was unavailable and not attempted.",
+    "Stage smoke from main05 failed its support ownership assertion; truncated records are preserved and never interpreted as passes.",
+    "No QA08 all-stage sweep, lifecycle smoke, Active combat smoke, full campaign, device matrix or live provider acceptance.",
+    "QA08 commit headroom about 1.45\u20131.61 GiB was below the 2 GiB host threshold; own Studio was closed.",
+    "Dialogue startup fragmentation reproduced on main08; subsequent repair requires its own matching build and engine check."
+  ]
+}

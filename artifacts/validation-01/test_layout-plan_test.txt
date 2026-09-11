@@ -1,0 +1,1 @@
+PASS: 20 stage lengths in solid/gap modes, room/spawn/exit support, reserved landings

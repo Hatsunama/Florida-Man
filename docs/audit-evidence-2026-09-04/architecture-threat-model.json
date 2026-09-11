@@ -1,0 +1,145 @@
+{
+  "threatModel": {
+    "summary": "Florida Man is a Roblox Luau 2.5D roguelite. Rojo maps src/shared to ReplicatedStorage.Shared, src/server to ServerScriptService.Server, and src/client to StarterPlayerScripts.Client (default.project.json:5-36). The server bootstrap creates remotes, requires GameService, wires RemoteEvent and prompt handlers, and loads one player profile/run per Player (src/server/init.server.lua:37-50; src/server/GameService.lua:71-149). Runtime services apply combat, progression, world, and profile mutations; clients perform input, movement prediction, UI, animation, and presentation (src/client/init.client.lua:35-98). A singleton Workspace.GameWorld and global enemy registry coexist with per-player RunState, which is a material session-isolation discrepancy (src/server/StageFlowService.lua:56-110; src/server/WorldBuilder.lua:152-161; src/server/EnemyService.lua:19-24). Persistent records use Roblox DataStore FloridaMan_Meta_v2 key u_<Player.UserId>, with fallback reads from FloridaMan_Meta_v1 and an in-process cache (src/server/MetaService.lua:17-25; src/server/MetaService.lua:54-55; src/server/MetaService.lua:150-173; src/server/MetaService.lua:343-352). The parent compiler evidence identifies a startup-blocking reserved identifier at src/server/HazardService.lua:131, required by GameService at src/server/GameService.lua:19; runtime scenarios are latent/conditional on a runnable build with these same handlers, not evidence of currently live exploitation.",
+    "assets": [
+      "Server-issued player identity and actor/resource association: Roblox supplies the Player argument to OnServerEvent; currency, unlock, and state mutations are looked up by that Player rather than a payload user ID (src/server/GameService.lua:210-271; src/server/RunContext.lua:21-38).",
+      "Gameplay entitlement integrity: item offer membership, itemSlots, persona unlocks and rarity, weapon unlocks, and Sunburn costs. Draft application checks catalog membership/slot capacity but has no retained offered-ID set (src/server/DraftService.lua:51-71; src/server/DraftService.lua:89-109); weapon equipping validates unlockedWeapons and catalog membership (src/server/CombatFacade.lua:110-122).",
+      "Persistent progress and preference data at DataStore FloridaMan_Meta_v2/u_<Player.UserId>: deaths, Sunburn, unlockedPersonas, bestStageIndex, and settings (src/server/MetaService.lua:17-18; src/server/MetaService.lua:54-55; src/server/MetaService.lua:343-349). Purchased personaRarity is absent from that payload although the upgrade consumes stored Sunburn (src/server/HubService.lua:161-168).",
+      "Availability and integrity of the shared GameWorld, global enemy set, turtle objectives, pickups, gates, and per-player stage/run state (src/server/StageFlowService.lua:56-110; src/server/EnemyService.lua:19-24; src/server/EnemyService.lua:318-343; src/server/WorldBuilder.lua:152-161).",
+      "Authoritative combat damage, i-frame and shield state, and cooldown limits held in server memory (src/server/CombatService.lua:21-26; src/server/CombatFacade.lua:64-91), plus the trusted position/facing evidence used for attacks and progression (src/server/AttackService.lua:80-98; src/server/StageFlowService.lua:420).",
+      "Shared server resources: DataStore request budget, tick availability, outbound UI event capacity, and retained session memory. SyncSettings directly triggers Save; the simulation pump is shared and sequential (src/server/GameService.lua:250-298; src/server/MetaService.lua:20-25; src/server/MetaService.lua:320-360).",
+      "Telemetry correctness and intended text-only product behavior. AnalyticsService receives named custom events, but the current adapter omits payload dimensions (src/server/FunnelService.lua:58-69). User-origin requirement: no audio and necessary conversations in small popup text; older implemented server/client audio paths remain (src/server/WorldBuilder.lua:1301-1324; src/client/init.client.lua:35-36; src/client/init.client.lua:96-98)."
+    ],
+    "trustBoundaries": [
+      "Untrusted player client -> server RemoteEvents: a legitimate player can issue command names/arguments and timing; server-supplied Player identity must bind lookup and authorization. Type/key validation exists on settings, draft, shop, and equip, while only attack/skill/dodge use token buckets (src/shared/Remotes.lua:6-31; src/server/GameService.lua:169-271; src/server/DraftService.lua:89-105; src/server/HubService.lua:97-108; src/server/CombatFacade.lua:110-118).",
+      "Server-generated draft -> client display -> client selection -> server inventory grant: the offer set must constrain the returned choice. Current roll local variable is sent to the client and discarded; the mutation checks only any valid catalog ID and available slots (src/server/DraftService.lua:51-71; src/server/DraftService.lua:89-109).",
+      "One player's lifecycle -> other players' world/resources: each InitPlayer schedules LoadHub; LoadHub/LoadStage clear all enemies and rebuild the same Workspace.GameWorld without session identity, while run state and wave flags remain per Player (src/server/GameService.lua:76-95; src/server/GameService.lua:129-130; src/server/StageFlowService.lua:56-110; src/server/WorldBuilder.lua:152-161; src/server/EnemyService.lua:100-128). This boundary requires multiple players on the same server; actual deployed capacity is unverified.",
+      "Client-owned character physics -> authoritative progression/combat: InitPlayer sets HumanoidRootPart network ownership to the player; attacks use its replicated position/facing and waves use X/stage.length (src/server/GameService.lua:99-119; src/server/AttackService.lua:80-98; src/server/AttackService.lua:114; src/server/StageFlowService.lua:420-431). Responsiveness belongs on the client; progression/target validity must remain server decisions. Complete movement-envelope validation is assigned to the companion audit.",
+      "Server profile domain -> Roblox DataStore provider: key derivation uses server Player.UserId; cloud reads, migration, memory fallback, and SetAsync occur only in MetaService. Read failure does not mark a profile read-only and Save does not use a version/session conflict condition (src/server/MetaService.lua:150-173; src/server/MetaService.lua:215-258; src/server/MetaService.lua:320-375). No application secret material is passed or stored in source.",
+      "Accepted profile mutation -> yielded save snapshot -> unload/shutdown: concurrent saves are rejected by saving[player], successful older writes clear dirty unconditionally, and Unload drops bookkeeping after a potentially rejected forced save (src/server/MetaService.lua:325-327; src/server/MetaService.lua:343-375). This is primarily durability/correctness unless a separate attacker boundary and meaningful unauthorized gain is established.",
+      "Server domain events -> client presentation: StateUpdate, Toast, ShowDraft, ShowNewspaper, ShowTagline, ShowCredits, and PlaySound are server-sent events; clients display them and keep local snapshots (src/server/RunContext.lua:46-90; src/client/init.client.lua:49-98). Client UI presence is not authorization for inventory/progression commands; local accessibility preferences are legitimate presentation state, not a paid entitlement system.",
+      "Domain analytics -> official Roblox AnalyticsService: server FunnelService emits local diagnostic text and LogCustomEvent(player, event, payload.value); no HTTP endpoint or third-party SDK is involved (src/server/FunnelService.lua:58-69). Provider delivery must be distinguished from Output logging.",
+      "Privileged developer build/publish -> Roblox experience: rokit.toml:1-2 pins Rojo 7.7.0; default.project.json maps source/Instances; scripts/check_invariants.sh:1-18 checks local text patterns. Publishing and live capacity/API/streaming settings are manual operator workflows documented in docs/PUBLISH_CHECKLIST.md, not exposed to game clients. An attacker is not assumed to control the repository, operator account, or publishing credentials."
+    ],
+    "attackerCapabilities": [
+      "Conditional on normal server startup, an ordinary authenticated Roblox player can call exposed client-to-server RemoteEvents with arbitrary primitive/table argument values and timing, including valid-but-unoffered catalog item IDs, unchanged settings, and stale interaction requests; no arbitrary Player identity or server table write is assumed (src/server/GameService.lua:169-271).",
+      "A modified local client can control its own presentation and character movement inputs/network-owned character physics; it cannot thereby directly modify server-only RunContext or CombatService tables. Any new gain must follow server reliance on this client-controlled evidence (src/server/GameService.lua:99-119; src/server/CombatService.lua:21-26).",
+      "A legitimate player can join, start a run, trigger valid combat/shop/draft actions, reset/leave/rejoin, and race its own commands. If multiple players are admitted, these actions may interact with other players' shared world resources (src/server/GameService.lua:129-130; src/server/HubService.lua:24-61; src/server/StageFlowService.lua:56-110).",
+      "A client does not have DataStore credentials, direct access to cloud keys, script/repository write access, published-experience configuration privileges, another player's account, or control of Roblox services. Provider failures and server shutdown are environmental fault scenarios, not attacker capabilities by assumption.",
+      "Potential meaningful gains under investigation are unoffered item entitlement, interference with another run's world/progress, and disproportionate use of shared persistence/UI budgets. Self-only text spam, user preference changes, and intended hub operations are not automatically security vulnerabilities."
+    ],
+    "securityObjectives": [
+      "Bind every command to the server-supplied player and its allowed run/session/phase, validate argument shape and catalog/reference ownership, and authorize grants against the exact current server offer or transaction (src/server/GameService.lua:237-247; src/server/DraftService.lua:89-109).",
+      "One player's join/death/transition cannot destroy, rescue, clear, scale, or grant rewards from an unrelated player's run. Either enforce and verify single-player deployment or make session ownership explicit throughout world, enemy, objective, reward, and lifecycle paths (src/server/StageFlowService.lua:56-110; src/server/EnemyService.lua:19-24).",
+      "Combat i-frames, cooldowns, damage, legal target/progression checks, inventory limits, currency costs, and unlock decisions remain server-authoritative. Replicated/local UI and client physics are evidence or projections, never sufficient entitlement authority (src/server/CombatService.lua:81-99; src/server/CombatFacade.lua:64-91; src/server/StageFlowService.lua:420).",
+      "Never overwrite an unknown existing profile after a failed read; preserve final accepted mutations across concurrent saves, migration, unload, shutdown, and overlapping servers. Currency spends and acquired tiers must persist atomically with explicit field/version policy (src/server/MetaService.lua:150-173; src/server/MetaService.lua:320-375; src/server/HubService.lua:161-168).",
+      "Bound command rates, no-op writes, retries, event queues, cache retention, and work in the simulation pump so one client or slow provider cannot exhaust shared resources or stop other sessions (src/server/GameService.lua:250-298).",
+      "User-origin product requirement: no runtime audio creation/playback or unmute paths; present every necessary conversation through small, readable, dismissible/advancable popup text. Enforce this in one presentation policy and meaningful source/runtime release checks, replacing older SFX-permitted documentation.",
+      "Telemetry must distinguish successful provider delivery, failure, and local-only logging; KPI denominator/timeout/abort semantics must match reported metrics. Release validation must separate syntax/build, structural lint, static source review, and executed gameplay evidence (src/server/FunnelService.lua:58-69; scripts/check_invariants.sh:1-18)."
+    ],
+    "assumptions": [
+      "Source revision is 1bff8c516fd0dfed08f991e0c23c008c665f707d. Parent compiler evidence reports src/server/HazardService.lua:131 uses the reserved identifier until; GameService requires it at src/server/GameService.lua:19. Existing handlers are therefore analyzed as latent source paths conditional on repairing that syntax blocker. No currently live exploitable deployment is claimed.",
+      "Roblox is the identity, replication, DataStore, and analytics provider. Its platform/service compromise is excluded. Actual published place/universe identity, max players, API permissions, streaming configuration, datastore data, asset ownership, and telemetry delivery are not observable from this repository.",
+      "Multiple concurrent players are supported syntactically by Players iteration and per-player state, but the repository does not enforce a one-player capacity; the actual deployment setting is an unresolved prerequisite for cross-player impact (src/server/GameService.lua:277; default.project.json:1-65).",
+      "The current profile resource is FloridaMan_Meta_v2/u_<Player.UserId>, fallback resource is FloridaMan_Meta_v1/u_<Player.UserId>, and fallback memory is a process-local map keyed by UserId. These are distinct resources and no memory retention guarantee survives server loss (src/server/MetaService.lua:17-25; src/server/MetaService.lua:54-55; src/server/MetaService.lua:150-173).",
+      "docs/AUDIT_N2.md:30-31 describes safe loads/saves and re-entrancy as PASS; actual code lacks read-failure write quarantine, queued final saves, and revision-aware dirty clearing (src/server/MetaService.lua:215-258; src/server/MetaService.lua:325-375). Historical source-check passes are not runtime proof.",
+      "Persistent schema omits personaRarity while UpgradePersona spends persistent Sunburn (src/shared/Types.lua:21-36; src/server/HubService.lua:161-168; src/server/MetaService.lua:343-349). Whether weapon unlocks/loadout selection should persist is an explicit product decision; current session retention differs from fresh-join retention.",
+      "Current user instruction supersedes old documentation that permits combat SFX and ambience. Runtime still starts AudioDirector and creates server Sound templates (src/client/init.client.lua:35-36; src/server/WorldBuilder.lua:1301-1324). No audio source changes were made during this audit.",
+      "No application-owned authentication, payment/marketplace entitlement, external HTTP/provider integration, uploaded-code execution, credential issuance, or language-model memory/control subsystem was found in reviewed runtime sources. Local accessibility attribute changes do not constitute an auth bypass merely because they are client-optimistic.",
+      "This independent architecture workstream inspected current source offline and did not execute Roblox gameplay, attack payloads, cloud writes, multiplayer sessions, or provider APIs. The parent owns formal security validation and final canonical findings. Architecture mapping by itself is not full security-audit file coverage."
+    ]
+  },
+  "effectiveResources": [
+    {
+      "consumer": "MetaService read/write current profile",
+      "deployment": "Roblox server, both Studio when permitted and published experience",
+      "configurationChain": "STORE_NAME -> GetDataStore -> keyFor(Player.UserId) -> GetAsync/SetAsync",
+      "effectiveValue": "DataStore FloridaMan_Meta_v2, key u_<server-supplied Player.UserId>",
+      "recipients": ["Roblox DataStore provider", "server profiles map", "sanitized public state/settings projected to owning player"],
+      "enforcingControl": "Server derives UserId and data payload; no client-selected key or arbitrary store name. Existing code uses SetAsync, a local saving boolean, and sanitization; no lease/version conflict check or read-failure write quarantine.",
+      "evidence": ["src/server/MetaService.lua:17", "src/server/MetaService.lua:54-55", "src/server/MetaService.lua:116-121", "src/server/MetaService.lua:155-156", "src/server/MetaService.lua:343-352"],
+      "documentedClaim": "Safe load/save and re-entrancy PASS in docs/AUDIT_N2.md:30-31.",
+      "discrepancy": "A failed read can return fallback/defaults and later overwrite the same v2 key; an in-flight older save can clear newer dirty state."
+    },
+    {
+      "consumer": "MetaService legacy migration",
+      "deployment": "Roblox server after current read returns nil or errors",
+      "configurationChain": "LEGACY_STORE_NAME -> GetDataStore -> keyFor(uid) -> GetAsync -> sanitize -> eventual current-store Save",
+      "effectiveValue": "DataStore FloridaMan_Meta_v1, key u_<server-supplied Player.UserId>, migrated to FloridaMan_Meta_v2/u_<same UserId>",
+      "recipients": ["server profile memory", "current v2 DataStore on later save"],
+      "enforcingControl": "Same server-derived key; sanitize migrates schema marker. Current absence is not proven before legacy fallback when the v2 read throws.",
+      "evidence": ["src/server/MetaService.lua:18", "src/server/MetaService.lua:127-131", "src/server/MetaService.lua:150-173", "src/server/MetaService.lua:105-107"],
+      "discrepancy": "Comment says v2 empty, implementation also enters legacy fallback on v2 read failure."
+    },
+    {
+      "consumer": "MetaService offline/rejoin cache",
+      "deployment": "One server process lifetime",
+      "configurationChain": "memory[Player.UserId] <- captured profile; Load may prefer cached profile if any of stage/Sunburn/deaths is greater",
+      "effectiveValue": "In-process memory map keyed by numeric UserId; no durable disk/cloud replacement",
+      "recipients": ["same server's later joining Player object for that UserId"],
+      "enforcingControl": "Server-only map; no eviction/revision merge policy. Unload clears player-keyed maps but not memory or loadWarned.",
+      "evidence": ["src/server/MetaService.lua:20-25", "src/server/MetaService.lua:245-253", "src/server/MetaService.lua:288", "src/server/MetaService.lua:364-375"],
+      "discrepancy": "Greater spendable currency is not proof of newer state, and session fallback cannot survive server loss."
+    },
+    {
+      "consumer": "WorldBuilder stage rebuild and EnemyService lifecycle",
+      "deployment": "Every player's LoadHub/LoadStage within one Roblox server",
+      "configurationChain": "RunContext states[player] -> StageFlowService.LoadHub/LoadStage -> EnemyService.Clear -> WorldBuilder.BuildStage -> WorldBuilder.Clear",
+      "effectiveValue": "Workspace.GameWorld shared folder and EnemyService._alive shared module table; one _stageIndex; global Lighting",
+      "recipients": ["all connected clients", "all server run loops and enemy queries"],
+      "enforcingControl": "No run/party/world-owner parameter or per-session registry. Player-specific StartRun gate only guards that player's state.",
+      "evidence": ["src/server/StageFlowService.lua:56-110", "src/server/WorldBuilder.lua:152-161", "src/server/WorldBuilder.lua:1200-1207", "src/server/EnemyService.lua:19-24", "src/server/EnemyService.lua:100-128"],
+      "missingImpactPrerequisite": "Cross-player impact requires a runnable build and a server admitting at least two players; deployed capacity unknown."
+    },
+    {
+      "consumer": "DraftService item grant",
+      "deployment": "Owning player's inter-stage draft",
+      "configurationChain": "Items.RollDraft -> ShowDraft payload -> client itemId -> PickDraftItem -> Items.Get -> table.insert(s.items, itemId)",
+      "effectiveValue": "RunContext.GetState(server Player).items; any catalog-valid ID when awaitingDraft and below itemSlots",
+      "recipients": ["owning player's run stats", "next stage via advanceAfterDraft"],
+      "enforcingControl": "Player identity, state flag, type, catalog existence, slot count, and consumption boolean; no offered-ID membership or offer transaction ID.",
+      "evidence": ["src/server/GameService.lua:237-238", "src/server/DraftService.lua:51-71", "src/server/DraftService.lua:89-109"]
+    },
+    {
+      "consumer": "SyncSettings profile write",
+      "deployment": "Any connected player with initialized profile/runtime",
+      "configurationChain": "SyncSettings key/value -> whitelist/type validation -> UpdateSettings -> CaptureFromRun -> Save -> current v2 key",
+      "effectiveValue": "FloridaMan_Meta_v2/u_<requesting Player.UserId> and shared Roblox server DataStore request budget",
+      "recipients": ["Roblox DataStore provider", "owning player preference attributes"],
+      "enforcingControl": "Key/value validation; no request token bucket, no unchanged-value skip, no debounced persistence. Local save re-entrancy limits simultaneous writes but can lose updates.",
+      "evidence": ["src/server/GameService.lua:250-271", "src/server/MetaService.lua:291-303", "src/server/MetaService.lua:325-352"],
+      "missingImpactPrerequisite": "Shared service exhaustion requires a runnable build, operational DataStore writes, and enough sustained commands/provider demand; actual budget behavior is not measured."
+    },
+    {
+      "consumer": "FunnelService provider logging",
+      "deployment": "Roblox server with AnalyticsService available",
+      "configurationChain": "FunnelService.Mark fields -> local payload -> emit -> LogCustomEvent(player, event, payload.value)",
+      "effectiveValue": "Official Roblox AnalyticsService custom event for event name and supplied player; current payload.value is absent at observed callers; other fields only reach server Output",
+      "recipients": ["Roblox analytics provider", "developer server Output with UserId and fields"],
+      "enforcingControl": "Server-generated event name/data and pcall; provider result discarded; no arbitrary external destination or secrets.",
+      "evidence": ["src/server/FunnelService.lua:58-69", "src/server/FunnelService.lua:95-102", "src/server/FunnelService.lua:114-121"],
+      "documentedClaim": "KPI docs describe custom events/Output for FTUE and softlock interpretation.",
+      "discrepancy": "ok/where/held/stage dimensions are not passed to provider; live dashboard receipt remains unverified."
+    },
+    {
+      "consumer": "Runtime audio presentation",
+      "deployment": "Server stage build plus each client startup",
+      "configurationChain": "AudioCatalog -> WorldBuilder.StageSounds Sound objects; client AudioDirector.Start and PlaySound receiver -> playback",
+      "effectiveValue": "Workspace.GameWorld.StageSounds templates plus client AudioDirector runtime",
+      "recipients": ["connected player clients/audio output"],
+      "enforcingControl": "Old mute preference/playback policy; current user requires zero audio. A mutable mute setting is not an enforcement of no-audio product behavior.",
+      "evidence": ["src/server/WorldBuilder.lua:1301-1324", "src/client/init.client.lua:32-36", "src/client/init.client.lua:96-98"],
+      "discrepancy": "User-origin requirement supersedes old combat-SFX/ambience allowance."
+    }
+  ],
+  "resolved_questions": [
+    {"question": "Does an attacker choose another player's profile key?", "disposition": "No source path identified: OnServerEvent supplies Player and keyFor uses server Player.UserId; retain as a verified control, not an auth vulnerability.", "evidence": ["src/server/GameService.lua:250-271", "src/server/MetaService.lua:54-55"]},
+    {"question": "Are all client preference attribute writes an authorization leak?", "disposition": "No: accessibility preferences are self-owned presentation state; no paid setting/entitlement feature is present. Durability/ack/rate problems are separate.", "evidence": ["src/shared/Settings.lua:53-67", "src/shared/Settings.lua:112-135", "src/server/GameService.lua:250-271"]},
+    {"question": "Does Remotes.InitServer living in shared alone permit an exploit?", "disposition": "No server-authority gain follows from module placement. Only server bootstrap calls it; moving it is dependency hygiene, not a vulnerability.", "evidence": ["src/shared/Remotes.lua:33-52", "src/server/init.server.lua:37-38", "src/server/GameService.lua:151"]},
+    {"question": "Does draft slot validation close item entitlement risk?", "disposition": "No: capacity is enforced but selection is not restricted to offered IDs. ARCH-02 is a focused authorization candidate.", "evidence": ["src/server/DraftService.lua:51-71", "src/server/DraftService.lua:89-105"]},
+    {"question": "Do save failures constitute external attacker compromise by themselves?", "disposition": "No attacker control of provider failures is assumed. Read quarantine, races, missing shutdown/leases, and omitted rarity are high-priority product durability findings; classify security impact only if a separate realistic unauthorized-gain path is established.", "evidence": ["src/server/MetaService.lua:150-173", "src/server/MetaService.lua:320-375", "src/server/HubService.lua:161-168"]},
+    {"question": "Is multi-player cross-run impact currently deployed?", "disposition": "Unknown. Repository uses global world/registry with per-player state, but actual published capacity and parser repair state are unverified. Preserve these prerequisites.", "evidence": ["src/server/StageFlowService.lua:56-110", "src/server/WorldBuilder.lua:152-161", "src/server/GameService.lua:19"]},
+    {"question": "Are i-frames still based on client-written damage attributes?", "disposition": "No: CombatService uses server iframesUntil and EnemyService passes server callbacks to CombatFacade; former PendingDamage criticism is outdated.", "evidence": ["src/server/CombatService.lua:21", "src/server/CombatService.lua:81-99", "src/server/CombatFacade.lua:23-27", "src/server/CombatFacade.lua:64-91"]},
+    {"question": "Do current runtime attacks execute at the audited commit?", "disposition": "Parent compiler evidence identifies startup-blocking HazardService.lua:131 reserved identifier; runtime paths are conditional after repair or in a separately verified runnable deployment. Do not claim live exploitability.", "evidence": ["src/server/HazardService.lua:131", "src/server/GameService.lua:19", "docs/audit-evidence-2026-09-04/compiler.json:131"]}
+  ]
+}

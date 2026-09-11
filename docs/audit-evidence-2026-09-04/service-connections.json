@@ -1,0 +1,6 @@
+[
+  {
+    "caller": "EnemyService",
+    "callee": "EnemyService.UpdateSpillfatherSlickRing"
+  }
+]

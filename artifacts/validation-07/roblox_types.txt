@@ -1,0 +1,7 @@
+[INFO] Loading definitions file: @roblox - C:\Users\1thea\AppData\Local\Temp\florida-man-audit-tools-20260904\luau-lsp-1.69.0\globalTypes.d.luau
+[WARN] client does not allow didChangeWatchedFiles registration - automatic updating on sourcemap changes disabled
+src/server/RunContext.lua(9,7): ImportUnused: Import 'Weapons' is never used; prefix with '_' to silence
+src/server/RunContext.lua(229,9): LocalShadow: Variable 'char' shadows previous declaration at line 223
+src/server/StageFlowService.lua(21,7): ImportUnused: Import 'MetaService' is never used; prefix with '_' to silence
+src/server/WorldBuilder.lua(6,7): LocalUnused: Variable 'Debris' is never used; prefix with '_' to silence
+src/server/WorldBuilder.lua(589,9): LocalUnused: Variable 'pad' is never used; prefix with '_' to silence

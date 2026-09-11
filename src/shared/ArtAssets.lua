@@ -68,6 +68,10 @@ ArtAssets.AnimationIds = {
 	},
 } :: { [string]: ClipBag }
 
+for _, personaId in { "GolfCartBandit", "FireworksEnthusiast", "LizardBreath", "TurtlePaladin" } do
+	ArtAssets.AnimationIds[personaId] = { Idle = "", Run = "", Jump = "", Attack1 = "", Attack2 = "", Attack3 = "", Dodge = "", Skill = "", Swap = "" }
+end
+
 -- Optional MeshPart model names under ReplicatedStorage.Assets.Meshes (Studio).
 -- Empty until uploaded; EnemyFactory / WorldBuilder clone by FindFirstChild(name).
 ArtAssets.MeshSubjects = {
@@ -127,6 +131,34 @@ function ArtAssets.GetAnimationId(personaId: string, clip: string): string?
 	return nil
 end
 
+-- Optional imported content is presentation data. Executable/audio instances and collision policy
+-- cannot enter the game through a model template. Failed contracts retain the procedural kit.
+function ArtAssets.ValidateMeshModel(model: Model): (boolean, string)
+	local root = model.PrimaryPart or model:FindFirstChild("HumanoidRootPart")
+	if not root or not root:IsA("BasePart") or not root:IsDescendantOf(model) then return false, "Missing model root" end
+	if model:GetAttribute("FM_AssetSchema") ~= 1 or model:GetAttribute("FM_ForwardAxis") ~= "+X" then return false, "Missing reviewed orientation/schema contract" end
+	local parts = 0
+	local descendants = model:GetDescendants()
+	if #descendants > 1024 then return false, "Model exceeds instance budget" end
+	for _, object in descendants do
+		if object:IsA("LuaSourceContainer") or object:IsA("Sound") or object:IsA("AudioPlayer")
+			or object:IsA("RemoteEvent") or object:IsA("RemoteFunction") or object:IsA("BindableEvent") or object:IsA("BindableFunction")
+			or object:IsA("BodyMover") or object:IsA("AlignPosition") or object:IsA("AlignOrientation")
+			or object:IsA("LinearVelocity") or object:IsA("VectorForce") or object:IsA("AngularVelocity") then
+			return false, "Model contains a runtime or audio owner"
+		end
+		if object:IsA("BasePart") then
+			parts += 1
+			local size = object.Size
+			local distance = (object.Position - root.Position).Magnitude
+			if size.X ~= size.X or size.Y ~= size.Y or size.Z ~= size.Z or distance ~= distance
+				or math.max(size.X,size.Y,size.Z) > 80 or distance > 80 then return false, "Unbounded model geometry" end
+		end
+	end
+	if parts > 256 then return false, "Model exceeds part budget" end
+	return true, "Validated presentation template"
+end
+
 --- Clone Mesh_v1 kit if Studio placed a Model under Assets.Meshes[subjectName].
 function ArtAssets.TryCloneMeshModel(subjectName: string): Model?
 	local assets = ReplicatedStorage:FindFirstChild("Assets")
@@ -141,7 +173,12 @@ function ArtAssets.TryCloneMeshModel(subjectName: string): Model?
 	if not template or not template:IsA("Model") then
 		return nil
 	end
+	local valid = ArtAssets.ValidateMeshModel(template)
+	if not valid then return nil end
 	local clone = template:Clone()
+	for _, object in clone:GetDescendants() do
+		if object:IsA("BasePart") then object.CanCollide=false; object.CanQuery=false; object.CanTouch=false end
+	end
 	clone:SetAttribute("ArtKit", "Mesh_v1")
 	return clone
 end

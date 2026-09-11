@@ -1,141 +1,47 @@
 --!strict
---[[ Player a11y / options (client attrs + Meta persist).
-	Bools: ShakeEnabled, ColorblindTelegraphs, MuteMaster, MuteSFX, MuteAmbience, ReduceMotion
-	TextSpeed: "slow" | "normal" | "instant" (Tagline typewriter)
-]]
-
 local Settings = {}
-
 Settings.TEXT_SPEEDS = { "slow", "normal", "instant" }
-
-Settings.TEXT_SPEED_DELAY = {
-	slow = 0.055,
-	normal = 0.028,
-	instant = 0,
-}
-
-Settings.DEFAULTS = {
-	ShakeEnabled = true,
-	ColorblindTelegraphs = false,
-	MuteMaster = false,
-	MuteSFX = false,
-	MuteAmbience = false,
-	ReduceMotion = false,
-	TextSpeed = "normal",
-}
-
-Settings.BOOL_KEYS = {
-	"ShakeEnabled",
-	"ColorblindTelegraphs",
-	"MuteMaster",
-	"MuteSFX",
-	"MuteAmbience",
-	"ReduceMotion",
-}
-
-function Settings.IsBoolKey(key: string): boolean
-	for _, k in Settings.BOOL_KEYS do
-		if k == key then
-			return true
-		end
-	end
-	return false
-end
-
-function Settings.IsValidTextSpeed(value: string): boolean
-	for _, s in Settings.TEXT_SPEEDS do
-		if s == value then
-			return true
-		end
-	end
-	return false
-end
-
+Settings.TEXT_SPEED_DELAY = { slow = 0.055, normal = 0.028, instant = 0 }
+Settings.DEFAULTS = { ShakeEnabled = true, ColorblindTelegraphs = false, ReduceMotion = false, ReduceFlashes = true, LargeText = false, TextSpeed = "normal" } :: { [string]: any }
+Settings.BOOL_KEYS = { "ShakeEnabled", "ColorblindTelegraphs", "ReduceMotion", "ReduceFlashes", "LargeText" }
+function Settings.IsBoolKey(key: string): boolean return table.find(Settings.BOOL_KEYS, key) ~= nil end
+function Settings.IsValidTextSpeed(value: string): boolean return table.find(Settings.TEXT_SPEEDS, value) ~= nil end
 function Settings.GetBool(player: Player, key: string): boolean
-	local v = player:GetAttribute(key)
-	if typeof(v) == "boolean" then
-		return v
-	end
-	local def = Settings.DEFAULTS[key]
-	if typeof(def) == "boolean" then
-		return def
-	end
-	return false
+	if not Settings.IsBoolKey(key) then return false end
+	local value = player:GetAttribute(key)
+	return if typeof(value) == "boolean" then value else Settings.DEFAULTS[key] == true
 end
-
 function Settings.SetBool(player: Player, key: string, value: boolean)
-	player:SetAttribute(key, value)
+	if Settings.IsBoolKey(key) then player:SetAttribute(key, value) end
 end
-
 function Settings.GetTextSpeed(player: Player): string
-	local v = player:GetAttribute("TextSpeed")
-	if typeof(v) == "string" and Settings.IsValidTextSpeed(v) then
-		return v
-	end
-	return "normal"
+	local value = player:GetAttribute("TextSpeed")
+	return if typeof(value) == "string" and Settings.IsValidTextSpeed(value) then value else "normal"
 end
-
 function Settings.SetTextSpeed(player: Player, value: string)
-	if Settings.IsValidTextSpeed(value) then
-		player:SetAttribute("TextSpeed", value)
-	end
+	if Settings.IsValidTextSpeed(value) then player:SetAttribute("TextSpeed", value) end
 end
-
 function Settings.CycleTextSpeed(player: Player): string
-	local cur = Settings.GetTextSpeed(player)
-	local idx = 1
-	for i, s in Settings.TEXT_SPEEDS do
-		if s == cur then
-			idx = i
-			break
-		end
-	end
-	local nextVal = Settings.TEXT_SPEEDS[(idx % #Settings.TEXT_SPEEDS) + 1]
-	Settings.SetTextSpeed(player, nextVal)
-	return nextVal
+	local index = table.find(Settings.TEXT_SPEEDS, Settings.GetTextSpeed(player)) or 2
+	local value = Settings.TEXT_SPEEDS[index % #Settings.TEXT_SPEEDS + 1]
+	Settings.SetTextSpeed(player, value)
+	return value
 end
-
-function Settings.TypewriterDelay(player: Player): number
-	local speed = Settings.GetTextSpeed(player)
-	return Settings.TEXT_SPEED_DELAY[speed] or 0.028
-end
-
-function Settings.IsReduceMotion(player: Player): boolean
-	return Settings.GetBool(player, "ReduceMotion")
-end
-
+function Settings.TypewriterDelay(player: Player): number return Settings.TEXT_SPEED_DELAY[Settings.GetTextSpeed(player)] or 0 end
+function Settings.IsReduceMotion(player: Player): boolean return Settings.GetBool(player, "ReduceMotion") end
 function Settings.EnsureDefaults(player: Player)
-	for key, def in Settings.DEFAULTS do
-		if player:GetAttribute(key) == nil then
-			player:SetAttribute(key, def)
-		end
+	for key, value in Settings.DEFAULTS do
+		if player:GetAttribute(key) == nil then player:SetAttribute(key, value) end
 	end
 end
-
 function Settings.Toggle(player: Player, key: string): boolean
-	local nextVal = not Settings.GetBool(player, key)
-	Settings.SetBool(player, key, nextVal)
-	return nextVal
+	local value = not Settings.GetBool(player, key)
+	Settings.SetBool(player, key, value)
+	return value
 end
-
-function Settings.Snapshot(player: Player): {
-	ShakeEnabled: boolean,
-	ColorblindTelegraphs: boolean,
-	MuteMaster: boolean,
-	MuteSFX: boolean,
-	MuteAmbience: boolean,
-	ReduceMotion: boolean,
-	TextSpeed: string,
-}
-	return {
-		ShakeEnabled = Settings.GetBool(player, "ShakeEnabled"),
-		ColorblindTelegraphs = Settings.GetBool(player, "ColorblindTelegraphs"),
-		MuteMaster = Settings.GetBool(player, "MuteMaster"),
-		MuteSFX = Settings.GetBool(player, "MuteSFX"),
-		MuteAmbience = Settings.GetBool(player, "MuteAmbience"),
-		ReduceMotion = Settings.GetBool(player, "ReduceMotion"),
-		TextSpeed = Settings.GetTextSpeed(player),
-	}
+function Settings.Snapshot(player: Player): { [string]: any }
+	local result: { [string]: any } = { TextSpeed = Settings.GetTextSpeed(player) }
+	for _, key in Settings.BOOL_KEYS do result[key] = Settings.GetBool(player, key) end
+	return result
 end
-
 return Settings

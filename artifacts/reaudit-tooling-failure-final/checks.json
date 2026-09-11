@@ -1,0 +1,30 @@
+{
+  "passed": true,
+  "cases": [
+    {
+      "case": "validator-missing-tools",
+      "passed": true,
+      "exitCode": 1,
+      "staleSuccessInvalidated": true,
+      "lockRemoved": true,
+      "output": "Validation FAIL: FileNotFoundError: [WinError 2] The system cannot find the file specified\n"
+    },
+    {
+      "case": "qa-missing-baseline",
+      "passed": true,
+      "exitCode": 1,
+      "staleSuccessInvalidated": true,
+      "lockRemoved": true,
+      "output": "[Errno 2] No such file or directory: 'C:\\\\Users\\\\1thea\\\\Projects\\\\Florida-Man\\\\artifacts\\\\reaudit-tooling-failure-final\\\\missing-baseline.json'\n"
+    },
+    {
+      "case": "qa-refuses-baseline-output-alias",
+      "passed": true,
+      "exitCode": 1,
+      "baselineUnchanged": true,
+      "baselineSha256": "1018927768bdc234e186c2db3c4a2d4863f32abe1c499fe9e125605045a239ba",
+      "output": "QA output must differ from the baseline validation directory; preserve its report.\n"
+    }
+  ],
+  "note": "Negative tooling checks only; no engine acceptance. Initial invalid harness invocation is preserved separately and is not evidence of the QA guard."
+}

@@ -1,408 +1,194 @@
 --!strict
-
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
-local Debris = game:GetService("Debris")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
-local Shared = ReplicatedStorage:WaitForChild("Shared")
-local Constants = require(Shared:WaitForChild("Constants"))
-local Settings = require(Shared:WaitForChild("Settings"))
-local Remotes = require(Shared:WaitForChild("Remotes"))
-local AnimController = require(script.Parent:WaitForChild("AnimController"))
-
-local MovementController = {}
-
-local player = Players.LocalPlayer
-local moveX = 0
-local facing = 1
-local velX = 0
-local coyote = 0
-local jumpBuffer = 0
-local jumpHeld = false
-local jumping = false
-local attackLockUntil = 0
-local dodgeUntil = 0
-local hitstopUntil = 0
-local baseSpeed = 18
-local enabled = true
-
-local ACCEL = 100
-local DECEL = 110
-local AIR_ACCEL = 52
-local MAX_SPEED = 23
-local JUMP_VELOCITY = 56
-local JUMP_CUT = 0.45
-local COYOTE_TIME = 0.12
-local JUMP_BUFFER = 0.12
-local DODGE_SPEED = 62
-local DODGE_DUR = 0.18
-
-local rootAttachment: Attachment? = nil
-local alignPos: AlignPosition? = nil
-local alignOri: AlignOrientation? = nil
-
-local function faceCFrame(faceDir: number): CFrame
-	local dir = if faceDir >= 0 then 1 else -1
-	return CFrame.lookAlong(Vector3.zero, Vector3.new(dir, 0, 0))
+local Players=game:GetService("Players")
+local RunService=game:GetService("RunService")
+local Shared=game:GetService("ReplicatedStorage"):WaitForChild("Shared")
+local Constants=require(Shared:WaitForChild("Constants"))
+local CharacterGeometry=require(Shared:WaitForChild("CharacterGeometry"))
+local Anim=require(script.Parent:WaitForChild("AnimController"))
+local Movement={}
+local player=Players.LocalPlayer
+local root: BasePart?=nil
+local humanoid: Humanoid?=nil
+local lane: AlignPosition?=nil
+local orientation: AlignOrientation?=nil
+local attachment: Attachment?=nil
+local enabled=true
+local axis=0
+local baseSpeed=18
+local facing=1
+local velocity=0
+local jumpHeld=false
+local jumpBuffer=0
+local coyote=0
+local jumping=false
+local dodgeRemaining=0
+local lockUntil=0
+local impulseRevision: any=nil
+local resetRevision: any=nil
+local previousExternalY=0
+local started=false
+local character: Model?=nil
+local characterConnections: { RBXScriptConnection }={}
+local params=RaycastParams.new()
+params.FilterType=Enum.RaycastFilterType.Exclude
+params.RespectCanCollide=true
+local JUMP_SPEED=54
+local function face(): CFrame return CFrame.lookAlong(Vector3.zero,Vector3.new(facing,0,0)) end
+local function teardown()
+	if lane then lane:Destroy() end
+	if orientation then orientation:Destroy() end
+	if attachment then attachment:Destroy() end
+	lane=nil; orientation=nil; attachment=nil; root=nil; humanoid=nil
 end
-
-local function getChar(): (Model?, BasePart?, Humanoid?)
-	local char = player.Character
-	if not char then
-		return nil, nil, nil
+function Movement.Reset()
+	axis=0; velocity=0; jumpHeld=false; jumpBuffer=0; coyote=0; jumping=false; dodgeRemaining=0; lockUntil=0; impulseRevision=nil; previousExternalY=0
+	local char=root and root.Parent
+	if char then impulseRevision=char:GetAttribute("ImpulseRevision"); resetRevision=char:GetAttribute("MotionResetRevision") end
+end
+local function bind(char: Model)
+	if player.Character~=char then return end
+	for _,connection in characterConnections do connection:Disconnect() end
+	table.clear(characterConnections)
+	teardown(); Movement.Reset()
+	character=char
+	local function refresh()
+	if character~=char or player.Character~=char then return end
+	local hrp=char:FindFirstChild("HumanoidRootPart")
+	local hum=char:FindFirstChildOfClass("Humanoid")
+	if not char:IsDescendantOf(workspace) or not hrp or not hrp:IsA("BasePart") or not hum then teardown(); return end
+	if root==hrp and humanoid==hum then return end
+	teardown(); Movement.Reset()
+	root=hrp; humanoid=hum
+	hum.AutoRotate=false; hum.WalkSpeed=0; hum.JumpPower=0; hum.JumpHeight=0
+	params.FilterDescendantsInstances={char}
+	local moveAttachment=Instance.new("Attachment")
+	moveAttachment.Name="FM_MoveAttach"; moveAttachment.Parent=hrp; attachment=moveAttachment
+	local laneLock=Instance.new("AlignPosition")
+	laneLock.Name="FM_LaneLock"; laneLock.Mode=Enum.PositionAlignmentMode.OneAttachment; laneLock.Attachment0=moveAttachment
+	laneLock.ApplyAtCenterOfMass=true; laneLock.Responsiveness=55; laneLock.MaxForce=1e6
+	laneLock.ForceLimitMode=Enum.ForceLimitMode.PerAxis; laneLock.MaxAxesForce=Vector3.new(0,0,250000)
+	laneLock.Position=Vector3.new(hrp.Position.X,hrp.Position.Y,Constants.LANE_Z); laneLock.Parent=hrp; lane=laneLock
+	local faceLock=Instance.new("AlignOrientation")
+	faceLock.Name="FM_Face"; faceLock.Mode=Enum.OrientationAlignmentMode.OneAttachment; faceLock.Attachment0=moveAttachment
+	faceLock.RigidityEnabled=true; faceLock.MaxTorque=1e7; faceLock.CFrame=face(); faceLock.Parent=hrp; orientation=faceLock
 	end
-	local hrp = char:FindFirstChild("HumanoidRootPart") :: BasePart?
-	local hum = char:FindFirstChildOfClass("Humanoid")
-	return char, hrp, hum
-end
-
-local function destroyMovers()
-	if alignPos then
-		alignPos:Destroy()
-		alignPos = nil
+	local scheduled=false
+	local function schedule()
+		if scheduled then return end
+		scheduled=true
+		task.defer(function() scheduled=false; refresh() end)
 	end
-	if alignOri then
-		alignOri:Destroy()
-		alignOri = nil
+	table.insert(characterConnections,char.DescendantAdded:Connect(schedule))
+	table.insert(characterConnections,char.DescendantRemoving:Connect(schedule))
+	table.insert(characterConnections,char.AncestryChanged:Connect(schedule))
+	refresh()
+end
+function Movement.SetMoveAxis(value: number) axis=math.clamp(value,-1,1) end
+function Movement.SetBaseSpeed(value: number) if value==value and value>0 and value<250 then baseSpeed=value end end
+function Movement.SetEnabled(value: boolean)
+	if enabled and not value then velocity=0; dodgeRemaining=0 end
+	enabled=value
+	if not value then axis=0; jumpHeld=false; jumpBuffer=0 end
+end
+function Movement.SetJumpHeld(value: boolean)
+	if value and not jumpHeld and enabled then jumpBuffer=0.12 end
+	if not value and jumpHeld and jumping and root and root.AssemblyLinearVelocity.Y>0 then
+		local v=root.AssemblyLinearVelocity
+		root.AssemblyLinearVelocity=Vector3.new(v.X,v.Y*0.48,v.Z)
 	end
-	if rootAttachment then
-		rootAttachment:Destroy()
-		rootAttachment = nil
-	end
+	jumpHeld=value
 end
-
-local function setupMovers(hrp: BasePart)
-	destroyMovers()
-
-	local att = Instance.new("Attachment")
-	att.Name = "FM_MoveAttach"
-	att.Parent = hrp
-	rootAttachment = att
-
-	local ap = Instance.new("AlignPosition")
-	ap.Name = "FM_LaneLock"
-	ap.Mode = Enum.PositionAlignmentMode.OneAttachment
-	ap.Attachment0 = att
-	ap.ApplyAtCenterOfMass = true
-	ap.RigidityEnabled = false
-	ap.Responsiveness = 55
-	ap.MaxForce = 1e6
-	ap.ForceLimitMode = Enum.ForceLimitMode.PerAxis
-	ap.MaxAxesForce = Vector3.new(0, 0, 250000)
-	ap.Position = Vector3.new(hrp.Position.X, hrp.Position.Y, Constants.LANE_Z)
-	ap.Parent = hrp
-	alignPos = ap
-
-	local ao = Instance.new("AlignOrientation")
-	ao.Name = "FM_Face"
-	ao.Mode = Enum.OrientationAlignmentMode.OneAttachment
-	ao.Attachment0 = att
-	ao.RigidityEnabled = true
-	ao.Responsiveness = 200
-	ao.MaxTorque = 1e7
-	ao.CFrame = faceCFrame(facing)
-	ao.Parent = hrp
-	alignOri = ao
+function Movement.GetFacing(): number return facing end
+function Movement.LockFacing(value: number,duration: number)
+	facing=if value>=0 then 1 else -1
+	lockUntil=os.clock()+duration
 end
-
-local function configureHumanoid(hum: Humanoid, hrp: BasePart)
-	hum.AutoRotate = false
-	hum.WalkSpeed = 0
-	hum.JumpPower = 0
-	hum.JumpHeight = 0
-	hum:SetStateEnabled(Enum.HumanoidStateType.Climbing, false)
-	hum:SetStateEnabled(Enum.HumanoidStateType.Swimming, false)
-	setupMovers(hrp)
+-- Hitstop is visual-only: animation freeze never changes simulation or a11y physics.
+function Movement.Hitstop(duration: number?) Anim.Hitstop(duration or Constants.HITSTOP) end
+function Movement.ApplyDodge(direction: number): boolean
+	if not enabled or not root then return false end
+	facing=if direction==-1 then -1 else 1
+	dodgeRemaining=Constants.DODGE_DURATION
+	Anim.PlayDodge()
+	return true
 end
-
-local function isGrounded(hrp: BasePart, hum: Humanoid): boolean
-	local state = hum:GetState()
-	if state == Enum.HumanoidStateType.Freefall or state == Enum.HumanoidStateType.Jumping then
-		local params = RaycastParams.new()
-		params.FilterType = Enum.RaycastFilterType.Exclude
-		params.FilterDescendantsInstances = { player.Character :: Instance }
-		local hit = workspace:Raycast(hrp.Position, Vector3.new(0, -3.2, 0), params)
-		return hit ~= nil
-	end
-	return state == Enum.HumanoidStateType.Running
-		or state == Enum.HumanoidStateType.Landed
-		or state == Enum.HumanoidStateType.RunningNoPhysics
+function Movement.CancelDodge()
+	dodgeRemaining=0
+	velocity=axis*baseSpeed
 end
-
-local function spawnDodgeTrail(hrp: BasePart)
-	for i = 1, 6 do
-		task.delay((i - 1) * 0.028, function()
-			if not hrp.Parent then
-				return
-			end
-			local ghost = Instance.new("Part")
-			ghost.Size = Vector3.new(2, 4, 1)
-			ghost.CFrame = hrp.CFrame
-			ghost.Anchored = true
-			ghost.CanCollide = false
-			ghost.Material = Enum.Material.ForceField
-			ghost.Color = Color3.fromRGB(160, 220, 255)
-			ghost.Transparency = 0.35
-			ghost.Parent = workspace
-			TweenService:Create(ghost, TweenInfo.new(0.35), { Transparency = 1 }):Play()
-			Debris:AddItem(ghost, 0.4)
-		end)
-	end
-	local att = Instance.new("Attachment")
-	att.Parent = hrp
-	local pe = Instance.new("ParticleEmitter")
-	pe.Color = ColorSequence.new(Color3.fromRGB(180, 230, 255))
-	pe.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.8), NumberSequenceKeypoint.new(1, 0) })
-	pe.Lifetime = NumberRange.new(0.2, 0.35)
-	pe.Speed = NumberRange.new(2, 6)
-	pe.Rate = 0
-	pe.LightEmission = 0.5
-	pe.Parent = att
-	pe:Emit(16)
-	Debris:AddItem(att, 0.5)
-end
-
-local function doJump(hrp: BasePart, hum: Humanoid)
-	local v = hrp.AssemblyLinearVelocity
-
-	hrp.AssemblyLinearVelocity = Vector3.new(v.X, JUMP_VELOCITY, 0)
-	hum:ChangeState(Enum.HumanoidStateType.Jumping)
-	jumping = true
-	AnimController.PlayJump()
-	coyote = 0
-	jumpBuffer = 0
-end
-
--- N2: Hangover/OilSlow applied server-side into MoveSpeed (min-stack). Client must not re-multiply.
-function MovementController.SetHangover(_active: boolean)
-end
-
-function MovementController.SetBaseSpeed(speed: number)
-	baseSpeed = speed
-end
-
-function MovementController.SetEnabled(on: boolean)
-	enabled = on
-end
-
-function MovementController.Hitstop(duration: number?)
-	if Settings.IsReduceMotion(Players.LocalPlayer) then
-		return
-	end
-	local d = duration or Constants.HITSTOP
-	hitstopUntil = math.max(hitstopUntil, os.clock() + d)
-end
-
-function MovementController.GetFacing(): number
-	return facing
-end
-
-function MovementController.LockFacing(dir: number, duration: number)
-	facing = if dir >= 0 then 1 else -1
-	attackLockUntil = os.clock() + duration
-	if alignOri then
-		alignOri.CFrame = faceCFrame(facing)
-	end
-end
-
-function MovementController.RequestDodge()
-	if not enabled then
-		return
-	end
-	if os.clock() < dodgeUntil then
-		return
-	end
-	local char, hrp = getChar()
-	if not char or not hrp then
-		return
-	end
-	local dir = moveX
-	if math.abs(dir) < 0.1 then
-		dir = facing
-	else
-		facing = if dir >= 0 then 1 else -1
-	end
-	dodgeUntil = os.clock() + Constants.DODGE_COOLDOWN
-	AnimController.PlayDodge()
-	char:SetAttribute("IFrameVFX", true)
-	spawnDodgeTrail(hrp)
-	if alignOri then
-		alignOri.CFrame = faceCFrame(facing)
-	end
-	local v = hrp.AssemblyLinearVelocity
-	hrp.AssemblyLinearVelocity = Vector3.new(dir * DODGE_SPEED, math.max(v.Y, 4), 0)
-	velX = dir * DODGE_SPEED * 0.55
-	task.delay(Constants.DODGE_IFRAME, function()
-		if char then
-			char:SetAttribute("IFrameVFX", nil)
-		end
+function Movement.Start()
+	if started then return end
+	started=true
+	player.CharacterAdded:Connect(bind)
+	player.CharacterRemoving:Connect(function(char)
+		if character~=char then return end
+		character=nil
+		for _,connection in characterConnections do connection:Disconnect() end
+		table.clear(characterConnections); teardown(); Movement.Reset()
 	end)
-	Remotes.Get("RequestDodge"):FireServer(facing)
-	pcall(function()
-		local TutorialController = require(script.Parent:WaitForChild("TutorialController"))
-		TutorialController.OnDodgeInput()
+	if player.Character then task.defer(bind,player.Character) end
+	RunService.PreSimulation:Connect(function(dt)
+		if not root or not humanoid or not root.Parent or humanoid.Health<=0 then return end
+		dt=math.clamp(dt,0,0.1)
+		local char=root.Parent
+		local reset=char:GetAttribute("MotionResetRevision")
+		if reset~=resetRevision then
+			Movement.Reset(); resetRevision=reset
+			impulseRevision=char:GetAttribute("ImpulseRevision")
+		end
+		local speed=char:GetAttribute("MoveSpeed")
+		if typeof(speed)=="number" then Movement.SetBaseSpeed(speed) end
+		local v=root.AssemblyLinearVelocity
+		local hit=workspace:Raycast(root.Position,Vector3.new(0,-(CharacterGeometry.FeetDistance(char :: Model,root,humanoid)+0.45),0),params)
+		local grounded=hit~=nil and hit.Normal.Y>0.65 and v.Y<4
+		if grounded then coyote=0.12; jumping=false else coyote=math.max(0,coyote-dt) end
+		jumpBuffer=math.max(0,jumpBuffer-dt)
+		local vy=v.Y-previousExternalY
+		if enabled and jumpBuffer>0 and coyote>0 then
+			vy=JUMP_SPEED; jumpBuffer=0; coyote=0; jumping=true
+			humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+			Anim.PlayJump()
+		end
+		local desired=if enabled then axis*baseSpeed else 0
+		local activeDt=if enabled then math.min(dt,dodgeRemaining) else 0
+		local dodging=activeDt>0 and dt>0
+		if dodging then
+			local fraction=activeDt/dt
+			desired=facing*(Constants.DODGE_DISTANCE/Constants.DODGE_DURATION)*fraction+axis*baseSpeed*(1-fraction)
+		end
+		dodgeRemaining=math.max(0,dodgeRemaining-dt)
+		local acceleration=if grounded then 180 else 110
+		if dodging then velocity=desired else velocity+=math.clamp(desired-velocity,-acceleration*dt,acceleration*dt) end
+		if math.abs(axis)>0.1 and os.clock()>lockUntil then facing=if axis>0 then 1 else -1 end
+		local motionUntil=char:GetAttribute("ExternalMotionUntil")
+		local externalX=0
+		local externalY=0
+		if typeof(motionUntil)=="number" and workspace:GetServerTimeNow()<motionUntil then
+			local x=char:GetAttribute("ExternalVelocityX")
+			local y=char:GetAttribute("ExternalVelocityY")
+			externalX=if typeof(x)=="number" then x else 0
+			externalY=if typeof(y)=="number" then y else 0
+		end
+		local revision=char:GetAttribute("ImpulseRevision")
+		if revision~=nil and revision~=impulseRevision then
+			impulseRevision=revision
+			local y=char:GetAttribute("ImpulseY")
+			if typeof(y)=="number" then vy=math.max(vy,y) end
+		end
+		local targetX=velocity+externalX
+		-- Sweep grounded horizontal bursts against collidable gates and walls.
+		if math.abs(targetX)>baseSpeed+1 then
+			local delta=Vector3.new(targetX*dt,0,0)
+			local obstacle=workspace:Raycast(root.Position,delta+Vector3.new(math.sign(targetX)*1.2,0,0),params)
+			if obstacle then targetX=0; velocity=0; dodgeRemaining=0 end
+		end
+		root.AssemblyLinearVelocity=Vector3.new(targetX,vy+externalY,0)
+		if dodging and dodgeRemaining<=0 then velocity=axis*baseSpeed end
+		previousExternalY=externalY
+		if lane then lane.Position=Vector3.new(root.Position.X,root.Position.Y,Constants.LANE_Z) end
+		if orientation then orientation.CFrame=face() end
+		humanoid:Move(Vector3.new(if enabled then axis else 0,0,0),false)
+		char:SetAttribute("Facing",facing)
 	end)
 end
-
-function MovementController.Start()
-	UserInputService.InputBegan:Connect(function(input, gp)
-		if gp or not enabled then
-			return
-		end
-		if input.KeyCode == Enum.KeyCode.Space or input.KeyCode == Enum.KeyCode.ButtonA then
-			jumpHeld = true
-			jumpBuffer = JUMP_BUFFER
-		elseif input.KeyCode == Enum.KeyCode.LeftShift or input.KeyCode == Enum.KeyCode.ButtonR1 then
-			MovementController.RequestDodge()
-		end
-	end)
-	UserInputService.InputEnded:Connect(function(input)
-		if input.KeyCode == Enum.KeyCode.Space or input.KeyCode == Enum.KeyCode.ButtonA then
-			jumpHeld = false
-			local _, hrp = getChar()
-			if hrp and jumping and hrp.AssemblyLinearVelocity.Y > 0 then
-				local v = hrp.AssemblyLinearVelocity
-				hrp.AssemblyLinearVelocity = Vector3.new(v.X, v.Y * JUMP_CUT, 0)
-			end
-		end
-	end)
-
-	player.CharacterAdded:Connect(function(char)
-		destroyMovers()
-		task.wait(0.15)
-		local hrp = char:WaitForChild("HumanoidRootPart", 5) :: BasePart?
-		local hum = char:WaitForChild("Humanoid", 5) :: Humanoid?
-		if hrp and hum then
-			configureHumanoid(hum, hrp)
-			player.DevEnableMouseLock = false
-		end
-	end)
-	player.CharacterRemoving:Connect(function()
-		destroyMovers()
-	end)
-	if player.Character then
-		local hrp = player.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
-		local hum = player.Character:FindFirstChildOfClass("Humanoid")
-		if hrp and hum then
-			configureHumanoid(hum, hrp)
-		end
-	end
-
-	RunService.RenderStepped:Connect(function(dt)
-		if not enabled then
-			return
-		end
-		local char, hrp, hum = getChar()
-		if not char or not hrp or not hum then
-			return
-		end
-		if hum.Health <= 0 then
-			return
-		end
-
-		if os.clock() < hitstopUntil then
-			local v = hrp.AssemblyLinearVelocity
-			hrp.AssemblyLinearVelocity = Vector3.new(0, v.Y * 0.35, 0)
-			velX = 0
-			if alignPos then
-				alignPos.Position = Vector3.new(hrp.Position.X, hrp.Position.Y, Constants.LANE_Z)
-			end
-			if alignOri then
-				alignOri.CFrame = faceCFrame(facing)
-			end
-			return
-		end
-
-		local slowUntil = char:GetAttribute("SlowUntil")
-		local slowMult = 1
-		if typeof(slowUntil) == "number" and os.clock() < slowUntil then
-			slowMult = 0.55
-		end
-
-		if not alignPos or not alignOri or not rootAttachment or rootAttachment.Parent ~= hrp then
-			setupMovers(hrp)
-		end
-
-		local left = UserInputService:IsKeyDown(Enum.KeyCode.A) or UserInputService:IsKeyDown(Enum.KeyCode.Left)
-		local right = UserInputService:IsKeyDown(Enum.KeyCode.D) or UserInputService:IsKeyDown(Enum.KeyCode.Right)
-		local stick = UserInputService:GetGamepadState(Enum.UserInputType.Gamepad1)
-		local stickX = 0
-		for _, obj in stick do
-			if obj.KeyCode == Enum.KeyCode.Thumbstick1 then
-				stickX = obj.Position.X
-			end
-		end
-		moveX = 0
-		if left then
-			moveX -= 1
-		end
-		if right then
-			moveX += 1
-		end
-		if math.abs(stickX) > 0.2 then
-			moveX = if stickX > 0 then 1 else -1
-		end
-
-		local grounded = isGrounded(hrp, hum)
-		if grounded then
-			coyote = COYOTE_TIME
-			if jumping and hrp.AssemblyLinearVelocity.Y <= 0.5 then
-				jumping = false
-				char:SetAttribute("LandSquash", os.clock())
-			end
-		else
-			coyote = math.max(0, coyote - dt)
-		end
-		jumpBuffer = math.max(0, jumpBuffer - dt)
-
-		if jumpBuffer > 0 and coyote > 0 then
-			doJump(hrp, hum)
-		end
-
-		-- baseSpeed already includes Hangover/OilSlow from server MoveSpeed attr
-		local maxSpd = math.min(MAX_SPEED, baseSpeed) * slowMult
-		local accel = if grounded then ACCEL else AIR_ACCEL
-		local inDodge = os.clock() < dodgeUntil - Constants.DODGE_COOLDOWN + DODGE_DUR
-
-		if not inDodge then
-			if math.abs(moveX) > 0.1 then
-				velX = velX + moveX * accel * dt
-				velX = math.clamp(velX, -maxSpd, maxSpd)
-				if os.clock() > attackLockUntil then
-					facing = if moveX >= 0 then 1 else -1
-				end
-			else
-				local dec = if grounded then DECEL else DECEL * 0.4
-				if velX > 0 then
-					velX = math.max(0, velX - dec * dt)
-				elseif velX < 0 then
-					velX = math.min(0, velX + dec * dt)
-				end
-			end
-		end
-
-		local v = hrp.AssemblyLinearVelocity
-		hrp.AssemblyLinearVelocity = Vector3.new(velX, v.Y, 0)
-
-		if alignPos then
-			alignPos.Position = Vector3.new(hrp.Position.X, hrp.Position.Y, Constants.LANE_Z)
-		end
-		if alignOri then
-			alignOri.CFrame = faceCFrame(facing)
-		end
-
-		if math.abs(moveX) > 0.1 then
-			hum:Move(Vector3.new(moveX, 0, 0), false)
-		else
-			hum:Move(Vector3.zero, false)
-		end
-
-		char:SetAttribute("Facing", facing)
-		char:SetAttribute("VelX", velX)
-	end)
-end
-
-return MovementController
+return Movement

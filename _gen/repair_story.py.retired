@@ -1,0 +1,16 @@
+from pathlib import Path
+p=Path('src/shared/Story.lua');s=p.read_text(encoding='utf-8')
+replacements={
+"You heard the tagline. Now listen to the collars beep.":"You know the tagline. Now look at the matching logos on those collars.",
+"then escort turtles.":"then rescue the turtles.",
+"VERB: Stay near turtles — they walk toward the nest. Press E to rescue.":"Rescue the turtles: move beside each one and use Interact. Clear the enemies before leaving.",
+"Florida Dew acquired. Comedy's still running — listen for the beep under the cooler later.":"Florida Dew acquired. Now look closer: those crab collars carry the same corporate logo.",
+"You hear that? Radio collars. That's not wildlife. That's a logo with teeth.":"See those radio collars? That's not wildlife. That's a logo with teeth.",
+"COLLAR BEEP":"COLLAR LOGO",
+"VERB: ":"",
+}
+for a,b in replacements.items():s=s.replace(a,b)
+s=s.replace('local idx = ((deaths or 0) % #lines) + 1','local idx = if act == 1 then 1 else ((deaths or 0) % #lines) + 1')
+p.write_text(s,encoding='utf-8')
+p=Path('src/shared/Stages.lua');s=p.read_text(encoding='utf-8').replace('The conspiracy gets a soundtrack.','The conspiracy leaves a paper trail.').replace('Turtle escort — stay near to guide nests','Turtle rescue — use Interact beside each turtle').replace('escort turtles','rescue turtles').replace('Escort turtles','Rescue turtles');p.write_text(s,encoding='utf-8')
+p=Path('src/server/StageFlowService.lua');s=p.read_text(encoding='utf-8').replace('RunContext.Toast(player, Story.ActOpener(act))','RunContext.Say(player, Story.ActOpener(act), "Chapter", "act-" .. tostring(act))').replace('RunContext.Toast(player, beat)','RunContext.Say(player, beat, "The story", "stage-" .. stage.id)');p.write_text(s,encoding='utf-8')

@@ -1,0 +1,486 @@
+{
+  "documentType": "codex-security.findings",
+  "findings": [
+    {
+      "attackPath": {
+        "dataflow": {
+          "outcome": "A selected item bypasses the generated offer's entitlement rules.",
+          "sink": "server RunState.items",
+          "source": "client-controlled itemId",
+          "summary": "PickDraftItem remote -> DraftService.PickDraftItem -> Items.Get -> s.items insertion/stat computation"
+        },
+        "reachability": {
+          "summary": "Requires an initialized player's pending draft and free item slot. The server-supplied Player limits changes to the caller; no arbitrary user key is accepted."
+        },
+        "summary": "After a legitimate offer is displayed without a chosen catalog item, the player submits that valid-but-unoffered ID; the server grants it and advances."
+      },
+      "codeEvidence": [
+        {
+          "code": "\tRemotes.Get(\"PickDraftItem\").OnServerEvent:Connect(function(player, itemId)\n\t\tDraftService.PickDraftItem(player, itemId)\n\tend)",
+          "endLine": 239,
+          "explanation": "The client supplies itemId; Roblox supplies the owning Player. The gateway forwards the selection to DraftService.",
+          "id": "draft-input",
+          "label": "Client item selection",
+          "language": "lua",
+          "path": "src/server/GameService.lua",
+          "role": "entrypoint",
+          "startLine": 237
+        },
+        {
+          "code": "\ts.awaitingDraft = true\n\tlocal dailyLuck = Balance.DailyLuckBonus()\n\tlocal picks = Items.RollDraft(RunContext.GetRng(), s.luck + dailyLuck, Constants.DRAFT_CHOICES)\n\tif math.abs(dailyLuck) >= 0.01 then\n\t\tlocal pct = math.floor(dailyLuck * 100 + (if dailyLuck >= 0 then 0.5 else -0.5))\n\t\tRunContext.Toast(player, string.format(\"Florida Forecast: %+d%% draft luck today\", pct))\n\tend\n\tlocal payload = {}\n\tfor _, it in picks do\n\t\ttable.insert(payload, {\n\t\t\tid = it.id,\n\t\t\tname = it.name,\n\t\t\tdescription = it.description,\n\t\t\trarity = it.rarity,\n\t\t\tinscription = it.inscription,\n\t\t\tstatText = it.statText,\n\t\t})\n\tend\n\tRemotes.Get(\"ShowDraft\"):FireClient(player, payload)\n\tFunnelService.Mark(player, \"draft_open\", { stage = s.stageId })\n\tRunContext.PushState(player)",
+          "endLine": 71,
+          "explanation": "The generated choices remain in a local variable and client payload; the later command cannot consult an authoritative allowed-ID set.",
+          "id": "draft-offer",
+          "label": "Offer sent without retention",
+          "language": "lua",
+          "path": "src/server/DraftService.lua",
+          "role": "propagation",
+          "startLine": 51
+        },
+        {
+          "code": "function DraftService.PickDraftItem(player: Player, itemId: unknown)\n\tlocal s = RunContext.GetState(player)\n\tif not s or not s.awaitingDraft or typeof(itemId) ~= \"string\" then\n\t\treturn\n\tend\n\tif not Items.Get(itemId) then\n\t\treturn\n\tend\n\tif #s.items >= s.itemSlots then\n\t\tRunContext.Toast(player, \"Item slots full \u2014 draft skipped\")\n\telse\n\t\ttable.insert(s.items, itemId)\n\t\tlocal it = Items.Get(itemId)\n\t\tif it and it.healOnPickup > 0 then\n\t\t\ts.hp = math.min(s.maxHp, s.hp + it.healOnPickup)\n\t\tend\n\t\tRunContext.ComputeStats(s)\n\tend\n\ts.awaitingDraft = false\n\tFunnelService.Mark(player, \"draft_pick\", { item = itemId })\n\tadvanceAfterDraft(player)",
+          "endLine": 109,
+          "explanation": "A valid itemId passes catalog checking and is inserted into authoritative inventory. Slot/phase guards do not bind it to the offered choices.",
+          "id": "draft-grant",
+          "label": "Catalog-only grant",
+          "language": "lua",
+          "path": "src/server/DraftService.lua",
+          "role": "root_control",
+          "startLine": 89
+        }
+      ],
+      "confidence": {
+        "level": "high",
+        "rationale": "Independent source trace and parent validation establish the missing offer membership check and authoritative inventory mutation; runtime remains untested."
+      },
+      "findingId": "csf_1b37c2af27917e8dac568252",
+      "fingerprints": {
+        "algorithm": "codex-security/v1",
+        "primary": "codex-security/v1:sha256:671c112b6ea2cb8a2d9b373cc5d0a36e3bfd7a3485696d9f9f89abdf04c70813"
+      },
+      "identity": {
+        "anchor": "draft-selection-grants-an-item-absent-from-the-server-offer"
+      },
+      "locations": [
+        {
+          "endLine": 100,
+          "path": "src/server/DraftService.lua",
+          "role": "root_control",
+          "startLine": 94
+        },
+        {
+          "endLine": 238,
+          "path": "src/server/GameService.lua",
+          "role": "entrypoint",
+          "startLine": 237
+        }
+      ],
+      "occurrenceId": "occ_47938f8ce412355b6d50d160",
+      "provenance": {
+        "candidateId": "draft_offers",
+        "originalCandidates": [
+          {
+            "attacker": "Modified authenticated player client",
+            "candidateId": "draft_offers",
+            "counterevidence": [
+              "Server-supplied Player, type/catalog/cap/phase/once guards constrain grants. Sets remain impossible with current item caps."
+            ],
+            "cwe": "CWE-863",
+            "locations": [
+              {
+                "endLine": 100,
+                "path": "src/server/DraftService.lua",
+                "startLine": 94
+              }
+            ],
+            "remediation": "Server-owned allowed-ID offer and atomic consumption.",
+            "severity": "medium",
+            "sourceFlow": "Client itemId -> PickDraftItem -> catalog-only validation -> authoritative inventory. Offer set is discarded.",
+            "title": "Draft selection grants valid catalog items absent from the offer"
+          },
+          {
+            "evidence": "Source flow reported by architecture auditor; not yet classified as validated security finding.",
+            "locations": [
+              {
+                "endLine": 97,
+                "path": "src/server/DraftService.lua",
+                "startLine": 53
+              }
+            ],
+            "title": "DraftService does not bind selections to server-offered IDs"
+          }
+        ],
+        "source": "local_plugin"
+      },
+      "remediation": "Retain an immutable server-owned offer with allowed IDs, session/stage/offer identity, and consumed state; validate exact membership and consume atomically through one inventory grant operation.",
+      "remediationTests": [
+        "Reject a valid Legendary ID absent from the offer without granting or advancing.",
+        "Accept each actually offered entry exactly once; reject stale, replayed, cross-run and duplicate selections."
+      ],
+      "rootCause": {
+        "evidenceRefs": [
+          "draft-input",
+          "draft-offer",
+          "draft-grant"
+        ],
+        "summary": "The domain rolls a limited offer, sends it, and retains only awaitingDraft. On return, itemId is checked against the entire catalog rather than that offer before inventory mutation."
+      },
+      "ruleId": "authorization.draft-offer-membership",
+      "severity": {
+        "level": "medium",
+        "rationale": "Constrained game entitlement/integrity impact for the caller; server identity, slot count and draft phase limit the scope. No paid entitlement or cross-account access is claimed."
+      },
+      "summary": "A modified player client can choose any catalog-valid item during a legitimate draft because the server discards the offered-ID set and authorizes only catalog membership. This bypasses rarity/offer rules for server-issued progression.",
+      "taxonomy": {
+        "category": "incorrect-authorization",
+        "cwe": [
+          "CWE-863"
+        ]
+      },
+      "title": "Draft selection grants an item absent from the server offer",
+      "validation": {
+        "evidenceRefs": [
+          "draft-input",
+          "draft-offer",
+          "draft-grant"
+        ],
+        "limitations": [
+          "Static source validation only. HazardService.lua:131 currently blocks initialization; the path is latent until that independent syntax defect is repaired. No live Roblox exploit execution was performed.",
+          "A single offer still grants at most the capped choice; current one/two item caps make three-item sets unreachable."
+        ],
+        "method": "independent baseline plus parent static source trace",
+        "summary": "The returned client selection reaches table.insert after type, phase, catalog and capacity checks; no offered-ID state or membership comparison exists. LabBadge is a catalog-valid unoffered choice when absent from the three displayed options."
+      }
+    },
+    {
+      "attackPath": {
+        "dataflow": {
+          "outcome": "Unrelated active run loses terrain/objectives/enemies and may softlock or falsely clear.",
+          "sink": "shared world and enemy resources",
+          "source": "ordinary admitted player's lifecycle",
+          "summary": "Player join -> InitPlayer -> LoadHub -> EnemyService.Clear/WorldBuilder.BuildStage -> GameWorld.ClearAllChildren"
+        },
+        "reachability": {
+          "summary": "No forged identity or arbitrary stage name is required. Exposure is conditional on a runnable multi-player deployment; per-player StartRun guards do not isolate world resources."
+        },
+        "summary": "Join another player's active server, or transition one's own run; the normal lifecycle deletes shared stage resources while the victim's flags remain tied to the former stage."
+      },
+      "codeEvidence": [
+        {
+          "code": "\ttask.defer(function()\n\t\tStageFlowService.LoadHub(player)\n\tend)",
+          "endLine": 131,
+          "explanation": "Initialization schedules a hub transition for the newly joining Player.",
+          "id": "world-join",
+          "label": "Every join loads its hub",
+          "language": "lua",
+          "path": "src/server/GameService.lua",
+          "role": "entrypoint",
+          "startLine": 129
+        },
+        {
+          "code": "function StageFlowService.LoadHub(player: Player)\n\tlocal s = RunContext.GetState(player)\n\tif not s then\n\t\treturn\n\tend\n\ts.inHub = true\n\ts.runActive = false\n\ts.stageId = \"Hub\"\n\ts.stageIndex = 0\n\ts.awaitingDraft = false\n\ts.awaitingNewspaper = false\n\tEnemyService.Clear()\n\tWorldBuilder.BuildStage(\"Hub\", s.deaths)\n\tRunContext.TeleportPlayer(player, WorldBuilder.GetSpawnCFrame(\"Hub\"))",
+          "endLine": 69,
+          "explanation": "Only this player's state is changed, but enemy/world operations have no session scope and operate on global resources.",
+          "id": "world-clear-request",
+          "label": "Per-player state clears shared resources",
+          "language": "lua",
+          "path": "src/server/StageFlowService.lua",
+          "role": "root_control",
+          "startLine": 56
+        },
+        {
+          "code": "function WorldBuilder.Clear()\n\tlocal world = Workspace:FindFirstChild(\"GameWorld\")\n\tif world then\n\t\tworld:ClearAllChildren()\n\telse\n\t\tworld = Instance.new(\"Folder\")\n\t\tworld.Name = \"GameWorld\"\n\t\tworld.Parent = Workspace\n\tend\n\treturn world :: Folder",
+          "endLine": 161,
+          "explanation": "The builder locates Workspace.GameWorld and clears its children rather than a world owned by the requesting run.",
+          "id": "world-clear-sink",
+          "label": "Singleton world contents destroyed",
+          "language": "lua",
+          "path": "src/server/WorldBuilder.lua",
+          "role": "sink",
+          "startLine": 152
+        },
+        {
+          "code": "\ts.waveFlags = {}\n\ts.minibossSpawned = false\n\ts.bossSpawned = false\n\ts.bossDefeated = false\n\ts.turtlesRescued = 0\n\ts.turtlesNeeded = 0\n\ts.coldOneTaken = false\n\ts.midRoomState = \"idle\"\n\tEnemyService.Clear()\n\tEnemyService.SetStageContext(stage.index)\n\tWorldBuilder.BuildStage(stageId, s.deaths)",
+          "endLine": 110,
+          "explanation": "Subsequent player stage changes again clear enemies, global scaling and geometry; this is not limited to first join.",
+          "id": "world-stage-path",
+          "label": "Stage changes use the same global owner",
+          "language": "lua",
+          "path": "src/server/StageFlowService.lua",
+          "role": "propagation",
+          "startLine": 100
+        }
+      ],
+      "confidence": {
+        "level": "high",
+        "rationale": "Direct PlayerAdded-to-global-clear source path, independently identified and parent-verified. Multi-client behavior has not been executed."
+      },
+      "findingId": "csf_bf650db3d54bbecb70e86132",
+      "fingerprints": {
+        "algorithm": "codex-security/v1",
+        "primary": "codex-security/v1:sha256:67a791d739fff142ca3ac5a9c1a446d6ef79730b191045cf77f077cd594e2e60"
+      },
+      "identity": {
+        "anchor": "a-joining-player-s-lifecycle-destroys-other-active-players-world"
+      },
+      "locations": [
+        {
+          "endLine": 68,
+          "path": "src/server/StageFlowService.lua",
+          "role": "root_control",
+          "startLine": 67
+        },
+        {
+          "endLine": 155,
+          "path": "src/server/WorldBuilder.lua",
+          "role": "sink",
+          "startLine": 152
+        }
+      ],
+      "occurrenceId": "occ_6b966b7be26687c15f96ba02",
+      "provenance": {
+        "candidateId": "global_world",
+        "originalCandidates": [
+          {
+            "attacker": "Another admitted player",
+            "candidateId": "global_world",
+            "counterevidence": [
+              "Requires two admitted players; published capacity unknown.",
+              "All runtime scenarios conditional on fixing independent boot error."
+            ],
+            "cwe": "CWE-863",
+            "locations": [
+              {
+                "endLine": 68,
+                "path": "src/server/StageFlowService.lua",
+                "startLine": 67
+              }
+            ],
+            "remediation": "Enforce solo or session-owned worlds/registries/transitions.",
+            "severity": "medium",
+            "sourceFlow": "PlayerAdded -> InitPlayer -> LoadHub -> global EnemyService.Clear and WorldBuilder.BuildStage -> GameWorld.ClearAllChildren.",
+            "title": "One player's lifecycle clears other active runs' world"
+          },
+          {
+            "evidence": "Source flow reported by architecture auditor; not yet classified as validated security finding.",
+            "locations": [
+              {
+                "endLine": 110,
+                "path": "src/server/StageFlowService.lua",
+                "startLine": 56
+              }
+            ],
+            "title": "Per-player lifecycle clears a shared world"
+          }
+        ],
+        "source": "local_plugin"
+      },
+      "remediation": "Choose and enforce solo admission, or bind world roots, enemy registries, objective state and transitions to explicit run/party sessions. A cooperative shared world must transition all participants as one session.",
+      "remediationTests": [
+        "With two clients, joining, dying, starting and finishing cannot remove an unrelated active session's resources.",
+        "Verify deployed player capacity if solo; for co-op validate shared turtle/kill/reward credit and atomic transitions."
+      ],
+      "rootCause": {
+        "evidenceRefs": [
+          "world-join",
+          "world-clear-request",
+          "world-clear-sink",
+          "world-stage-path"
+        ],
+        "summary": "Run state is keyed by Player, but the global world and enemy registry lack a corresponding session owner. Normal lifecycle authority for one player is therefore applied to resources used by others."
+      },
+      "ruleId": "authorization.session-world-ownership",
+      "severity": {
+        "level": "medium",
+        "rationale": "Concrete cross-player availability and game-integrity impact with ordinary player access, conditional on multiple players being admitted. Actual deployment player limit is unknown."
+      },
+      "summary": "Per-player LoadHub/LoadStage operations clear global enemies and rebuild singleton GameWorld while other players retain their separate run flags. In a server admitting multiple players, one join or transition can remove another run's terrain, objectives and enemies.",
+      "taxonomy": {
+        "category": "incorrect-resource-ownership",
+        "cwe": [
+          "CWE-863"
+        ]
+      },
+      "title": "A joining player's lifecycle destroys other active players' world",
+      "validation": {
+        "evidenceRefs": [
+          "world-join",
+          "world-clear-request",
+          "world-clear-sink",
+          "world-stage-path"
+        ],
+        "limitations": [
+          "Static source validation only. HazardService.lua:131 currently blocks initialization; the path is latent until that independent syntax defect is repaired. No live Roblox exploit execution was performed.",
+          "Requires at least two players on the same server. A reliably enforced solo deployment removes cross-player exposure; MaxPlayers/admission is unverified."
+        ],
+        "method": "independent baseline plus parent static source trace",
+        "summary": "InitPlayer schedules LoadHub for each Player; LoadHub invokes unscoped EnemyService.Clear and WorldBuilder.BuildStage, which calls ClearAllChildren on singleton GameWorld. Other Players' RunContext state is not transitioned together."
+      }
+    },
+    {
+      "attackPath": {
+        "dataflow": {
+          "outcome": "Combat risk can be bypassed without choosing arbitrary damage.",
+          "sink": "authoritative damage/kill progression",
+          "source": "replicated character position",
+          "summary": "client-owned root position -> AttackService origin -> X-only melee -> server damage and rewards"
+        },
+        "reachability": {
+          "summary": "Requires a runnable active stage and controllable client-owned character physics; server cooldown, facing and horizontal range limits still apply."
+        },
+        "summary": "A modified client maintains high altitude while matching enemy X and sends ordinary rate-compliant melee intents; the server accepts hits while the target remains beyond enemy attack activation range."
+      },
+      "codeEvidence": [
+        {
+          "code": "\tplayer.CharacterAdded:Connect(function(char)\n\t\tlocal hrp = char:WaitForChild(\"HumanoidRootPart\", 8) :: BasePart?\n\t\tif hrp then\n\t\t\tpcall(function()\n\t\t\t\thrp:SetNetworkOwner(player)\n\t\t\tend)\n\t\tend\n\t\ttask.wait(0.3)\n\t\tif hrp and hrp.Parent then\n\t\t\tpcall(function()\n\t\t\t\thrp:SetNetworkOwner(player)\n\t\t\tend)",
+          "endLine": 110,
+          "explanation": "The server assigns the character root's network ownership to its player; positions supplied by client-owned simulation are later used for hit resolution.",
+          "id": "physics-owner",
+          "label": "Client character ownership",
+          "language": "lua",
+          "path": "src/server/GameService.lua",
+          "role": "entrypoint",
+          "startLine": 99
+        },
+        {
+          "code": "\telse\n\t\tfor _, model in EnemyService.GetAlive() do\n\t\t\tif model:GetAttribute(\"IsAlly\") then\n\t\t\t\tcontinue\n\t\t\tend\n\t\t\tlocal root = model.PrimaryPart\n\t\t\tif not root then\n\t\t\t\tcontinue\n\t\t\tend\n\t\t\tif CombatService.InLaneMelee(origin.X, s.facing, root.Position.X, range) then\n\t\t\t\tif math.abs(root.Position.Z - Constants.LANE_Z) < 6 then\n\t\t\t\t\tapplyHit(model, base, knock * 0.45, heavy)\n\t\t\t\tend\n\t\t\tend\n\t\tend\n\tend",
+          "endLine": 169,
+          "explanation": "The hit query checks horizontal melee range and the enemy's lane Z, but not the attacker-target vertical separation or legal motion.",
+          "id": "physics-hit",
+          "label": "Melee omits height validation",
+          "language": "lua",
+          "path": "src/server/AttackService.lua",
+          "role": "root_control",
+          "startLine": 154
+        },
+        {
+          "code": "\t\t\tfor _, plr in Players:GetPlayers() do\n\t\t\t\tlocal char = plr.Character\n\t\t\t\tlocal hrp = char and char:FindFirstChild(\"HumanoidRootPart\") :: BasePart?\n\t\t\t\tif hrp then\n\t\t\t\t\tlocal d = (hrp.Position - root.Position).Magnitude\n\n\t\t\t\t\tif char:GetAttribute(\"AggroPull\") == true then\n\t\t\t\t\t\td *= 0.72\n\t\t\t\t\tend\n\t\t\t\t\tif d < nearestDist then\n\t\t\t\t\t\tnearestDist = d\n\t\t\t\t\t\tnearest = plr\n\t\t\t\t\t\ttargetPos = hrp.Position\n\t\t\t\t\tend\n\t\t\t\tend\n\t\t\tend\n\t\t\tif not nearest then\n\t\t\t\tcontinue\n\t\t\tend\n\n\t\t\tlocal behavior = (model:GetAttribute(\"Behavior\") :: string) or \"chase\"\n\t\t\tlocal speed = (model:GetAttribute(\"Speed\") :: number) or 8\n\t\t\tlocal facing = if targetPos.X >= root.Position.X then 1 else -1\n\t\t\tmodel:SetAttribute(\"Facing\", facing)\n\n\t\t\tlocal moving = false\n\t\t\tlocal attackRange = if model:GetAttribute(\"IsBoss\") then 14 elseif behavior == \"spitter\" or behavior == \"firearc\" then 16 else 8",
+          "endLine": 489,
+          "explanation": "Nearest target distance includes height, unlike player melee. Normal enemy attack range is 8, 14 or 16 studs.",
+          "id": "physics-distance",
+          "label": "AI measures three-dimensional distance",
+          "language": "lua",
+          "path": "src/server/EnemyService.lua",
+          "role": "propagation",
+          "startLine": 463
+        },
+        {
+          "code": "\t\t\tif nearestDist <= attackRange then\n\t\t\t\tlocal now = os.clock()\n\t\t\t\tlocal cd = (model:GetAttribute(\"AttackCooldown\") :: number) or 1.5\n\t\t\t\tlocal last = lastAttack[model] or 0\n\t\t\t\tif now - last >= cd then\n\t\t\t\t\tlastAttack[model] = now\n\t\t\t\t\ttelegraphing[model] = true",
+          "endLine": 566,
+          "explanation": "An enemy initiates its next telegraph only inside its 3D activation range.",
+          "id": "physics-retaliation",
+          "label": "Attack initiation requires range",
+          "language": "lua",
+          "path": "src/server/EnemyService.lua",
+          "role": "outcome",
+          "startLine": 560
+        },
+        {
+          "code": "\tlocal p = hrp.Position\n\tif math.abs(p.Z - Constants.LANE_Z) > 2.5 then\n\t\thrp.CFrame = CFrame.new(p.X, p.Y, Constants.LANE_Z)\n\tend\n\tif st.runActive and st.stageIndex >= 1 then\n\t\tlocal stg = Stages.Get(st.stageId)\n\t\tif p.Y >= 1.5 and p.Y < 40 then\n\t\t\tchar:SetAttribute(\"LastSolidX\", p.X)\n\t\t\tchar:SetAttribute(\"LastSolidY\", math.max(3, p.Y))\n\t\t\tif stg and p.X > st.checkpointX + 4 then\n\t\t\t\tst.checkpointX = math.max(st.checkpointX, math.min(p.X, stg.length - 15))\n\t\t\tend\n\t\telseif stg and p.X > st.checkpointX + 8 and p.Y >= 0 then\n\t\t\tst.checkpointX = math.max(st.checkpointX, math.min(p.X, stg.length - 15))\n\t\tend\n\t\tif p.Y < -2 then\n\t\t\ttriggerSoftFall(player, char, hrp, st, toast, \"Soft checkpoint \u2014 back on the lane.\")\n\t\tend",
+          "endLine": 260,
+          "explanation": "Correction preserves X/Y when fixing the lane and handles falls below -2, without rejecting an implausible elevated position.",
+          "id": "physics-correction",
+          "label": "No upper-altitude envelope",
+          "language": "lua",
+          "path": "src/server/HazardService.lua",
+          "role": "propagation",
+          "startLine": 243
+        }
+      ],
+      "confidence": {
+        "level": "medium",
+        "rationale": "Source establishes client ownership, missing vertical hit validation and asymmetric enemy activation. Physics replication and the full scenario need Studio reproduction."
+      },
+      "findingId": "csf_5eb2c64971513fcb1690dff8",
+      "fingerprints": {
+        "algorithm": "codex-security/v1",
+        "primary": "codex-security/v1:sha256:c9e4362899349831f28ed748516f53473133244816d26a9ac78be7d6f5324039"
+      },
+      "identity": {
+        "anchor": "high-altitude-client-positions-permit-melee-outside-enemy-attack-range"
+      },
+      "locations": [
+        {
+          "endLine": 165,
+          "path": "src/server/AttackService.lua",
+          "role": "root_control",
+          "startLine": 163
+        }
+      ],
+      "occurrenceId": "occ_dfe00e6be7dc88e790122e5d",
+      "provenance": {
+        "candidateId": "altitude_melee",
+        "originalCandidates": [
+          {
+            "attacker": "Modified character physics of authenticated client",
+            "candidateId": "altitude_melee",
+            "counterevidence": [
+              "Server controls damage/attack rates/defenses.",
+              "Already-started telegraphs can hit above ground; reliable scenario starts outside activation range.",
+              "No Studio reproduction."
+            ],
+            "cwe": "CWE-602",
+            "locations": [
+              {
+                "endLine": 165,
+                "path": "src/server/AttackService.lua",
+                "startLine": 163
+              }
+            ],
+            "remediation": "Authoritative vertical/lane hit constraints plus movement envelope.",
+            "severity": "medium",
+            "sourceFlow": "Client-owned root position -> X-only melee and enemy-only Z check -> damage; enemy AI needs3Ddistance <=16 and no highY correction exists.",
+            "title": "Client-owned high-altitude melee bypasses enemy retaliation range"
+          }
+        ],
+        "source": "local_plugin"
+      },
+      "remediation": "Validate attacker-target vertical/lane separation and obstruction at hit resolution, and validate movement against permitted speed/jump/dash/knockback/teleport envelopes before it authorizes combat or progression.",
+      "remediationTests": [
+        "Reject elevated out-of-volume melee while preserving legitimate airborne attacks within the intended volume.",
+        "Verify movement exceptions for server-approved dash, jump pad, knockback and teleport without allowing impossible altitude or gate skips."
+      ],
+      "rootCause": {
+        "evidenceRefs": [
+          "physics-owner",
+          "physics-hit",
+          "physics-distance",
+          "physics-retaliation",
+          "physics-correction"
+        ],
+        "summary": "The server trusts client-owned root position for attack origin and validates only horizontal melee reach. Enemy activation uses a stronger 3D distance constraint, so the player can deal damage from a location that prevents new enemy attacks."
+      },
+      "ruleId": "combat.client-position-validation",
+      "severity": {
+        "level": "medium",
+        "rationale": "Game integrity/progression bypass constrained to the attacker's character and server-calculated damage/rates. No arbitrary damage, platform privilege or other account mutation is claimed."
+      },
+      "summary": "A player controls their character's physics, and authoritative melee accepts horizontal range without attacker-target height validation. Enemy activation uses 3D range, permitting server-confirmed attacks from above the range that initiates enemy retaliation.",
+      "taxonomy": {
+        "category": "client-side-enforcement",
+        "cwe": [
+          "CWE-602"
+        ]
+      },
+      "title": "High-altitude client positions permit melee outside enemy attack range",
+      "validation": {
+        "evidenceRefs": [
+          "physics-owner",
+          "physics-hit",
+          "physics-distance",
+          "physics-retaliation",
+          "physics-correction"
+        ],
+        "limitations": [
+          "Static source validation only. HazardService.lua:131 currently blocks initialization; the path is latent until that independent syntax defect is repaired. No live Roblox exploit execution was performed.",
+          "Use a scenario that begins outside enemy activation range; already-started telegraphs may still hit because their own damage check omits height.",
+          "Physical replication and actual earned rewards were not executed."
+        ],
+        "method": "independent baseline plus parent static source trace",
+        "summary": "Parent inspection confirms X-only melee and enemy-only lane check reach applyHit, while enemy telegraph initiation requires full 3D distance within <=16. No upper-Y/movement validation path was found in the hazard correction or gateway."
+      }
+    }
+  ],
+  "scanId": "a007184d-8d78-47b9-a857-2ab55d5827af",
+  "schemaVersion": "1.0"
+}

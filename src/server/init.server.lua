@@ -28,7 +28,11 @@ local function ensureSafetyPad()
 	spawn.Duration = 0
 	spawn.Size = Vector3.new(8, 1, 8)
 	spawn.Position = Vector3.new(18, 0.5, 0) -- Constants.SPAWN_X
-	spawn.Transparency = 0.3
+	-- Respawn marker only. Stage geometry supplies the visible, collidable floor.
+	spawn.Transparency = 1
+	spawn.CanCollide = false
+	spawn.CanQuery = false
+	spawn.CanTouch = false
 	spawn.Neutral = true
 	spawn.Parent = Workspace
 end
@@ -49,4 +53,5 @@ for _, p in Players:GetPlayers() do
 end
 Players.PlayerAdded:Connect(onPlayer)
 
-print("[Florida Man] Server ready — bonfire lit.")
+local buildIdentity=ReplicatedStorage:FindFirstChild('BuildIdentity')
+print('[Florida Man] Server initialized; build '..(if buildIdentity and buildIdentity:IsA('StringValue') then buildIdentity.Value else 'unpackaged-checkout')..'. Character readiness is checked separately.')

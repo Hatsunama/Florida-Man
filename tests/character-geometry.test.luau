@@ -1,0 +1,6 @@
+local Geometry=require('../src/shared/CharacterGeometry')
+assert(Geometry.StandingHeight(0,2,2)==3,'R6 feet include the two-stud leg, so ground rays reach the floor')
+assert(Geometry.StandingHeight(2,2,nil)==3,'R15 HipHeight already includes leg support')
+assert(Geometry.StandingHeight(0.5,2,3)==4.5,'Scaled R6 uses actual leg dimensions')
+assert(Geometry.StandingHeight(1,1,nil)==1.5,'Scaled R15 support remains separate from R6 leg length')
+print('PASS: R6/R15/scaled standing geometry')

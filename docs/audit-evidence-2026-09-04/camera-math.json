@@ -1,0 +1,95 @@
+[
+  {
+    "hz": 30,
+    "player_x": 106,
+    "initial_look_x": 108,
+    "look_x_after_5_seconds": 114.00000001662441,
+    "expected_look_near": 114
+  },
+  {
+    "hz": 60,
+    "player_x": 106,
+    "initial_look_x": 108,
+    "look_x_after_5_seconds": 114.00000000585155,
+    "expected_look_near": 114
+  },
+  {
+    "hz": 120,
+    "player_x": 106,
+    "initial_look_x": 108,
+    "look_x_after_5_seconds": 114.00000000300125,
+    "expected_look_near": 114
+  },
+  {
+    "scenario": "move 18 studs/s for 3 seconds then stop for 2",
+    "hz": 30,
+    "start_x": 100,
+    "min_look_error": -2.9913191636154153,
+    "max_look_error": 727.0400785681654,
+    "final_look_error": 727.0400785681654
+  },
+  {
+    "scenario": "move 18 studs/s for 3 seconds then stop for 2",
+    "hz": 30,
+    "start_x": 400,
+    "min_look_error": -2.9710889857318534,
+    "max_look_error": 2279.107938291731,
+    "final_look_error": 2279.107938291731
+  },
+  {
+    "scenario": "move 18 studs/s for 3 seconds then stop for 2",
+    "hz": 30,
+    "start_x": 800,
+    "min_look_error": -2.9710889857318534,
+    "max_look_error": 4321.223689314204,
+    "final_look_error": 4321.223689314204
+  },
+  {
+    "scenario": "move 18 studs/s for 3 seconds then stop for 2",
+    "hz": 60,
+    "start_x": 100,
+    "min_look_error": -3.333926165742838,
+    "max_look_error": 1.0668576942163668,
+    "final_look_error": 4.274620954447528e-05
+  },
+  {
+    "scenario": "move 18 studs/s for 3 seconds then stop for 2",
+    "hz": 60,
+    "start_x": 400,
+    "min_look_error": -3.319779480232114,
+    "max_look_error": 2277.6934565068796,
+    "final_look_error": 2277.6934565068796
+  },
+  {
+    "scenario": "move 18 studs/s for 3 seconds then stop for 2",
+    "hz": 60,
+    "start_x": 800,
+    "min_look_error": -3.319779480232228,
+    "max_look_error": 4322.038849378562,
+    "final_look_error": 4322.038849378562
+  },
+  {
+    "scenario": "move 18 studs/s for 3 seconds then stop for 2",
+    "hz": 120,
+    "start_x": 100,
+    "min_look_error": -3.4225293070761893,
+    "max_look_error": 0.0,
+    "final_look_error": -0.00014356489609212986
+  },
+  {
+    "scenario": "move 18 studs/s for 3 seconds then stop for 2",
+    "hz": 120,
+    "start_x": 400,
+    "min_look_error": -3.4225293070762746,
+    "max_look_error": 1567.8724658623457,
+    "final_look_error": 1567.8724658623457
+  },
+  {
+    "scenario": "move 18 studs/s for 3 seconds then stop for 2",
+    "hz": 120,
+    "start_x": 800,
+    "min_look_error": -3.4225293070762746,
+    "max_look_error": 4318.678037418112,
+    "final_look_error": 4318.678037418112
+  }
+]

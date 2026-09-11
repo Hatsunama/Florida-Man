@@ -1,0 +1,1 @@
+PASS: 7 motion-envelope acceptance and correction assertions

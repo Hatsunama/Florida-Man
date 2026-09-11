@@ -1,0 +1,1 @@
+PASS: 20 stage lengths, fixed endpoints, reservations, and production stage-planning selection

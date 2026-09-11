@@ -1,0 +1,1 @@
+inventory: offered-ID binding, replacement, duplicate policy, all inscription builds, all weapon unlocks, hub transactions and bounded replay passed

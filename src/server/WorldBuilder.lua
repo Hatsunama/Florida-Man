@@ -3,13 +3,13 @@
 local Workspace = game:GetService("Workspace")
 local Lighting = game:GetService("Lighting")
 local TweenService = game:GetService("TweenService")
-local Debris = game:GetService("Debris")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Constants = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Constants"))
 local Stages = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Stages"))
-local Story = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Story"))
 local ArtAssets = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("ArtAssets"))
+local ProgressionRules = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("ProgressionRules"))
+local LayoutPlan = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("LayoutPlan"))
 
 local WorldBuilder = {}
 
@@ -17,6 +17,8 @@ local function part(props: { [string]: any }): Part
 	local p = Instance.new("Part")
 	p.Anchored = true
 	p.CanCollide = props.CanCollide ~= false
+	p.CanQuery = p.CanCollide
+	p.CanTouch = p.CanCollide
 	p.Material = props.Material or Enum.Material.SmoothPlastic
 	p.Color = props.Color or Color3.new(1, 1, 1)
 	p.Size = props.Size or Vector3.new(1, 1, 1)
@@ -48,9 +50,10 @@ end
 
 local function label(parent: Instance, text: string, color: Color3?, offsetY: number?)
 	local bb = Instance.new("BillboardGui")
-	bb.Size = UDim2.fromOffset(240, 44)
+	bb.Size = UDim2.fromOffset(160, 28)
 	bb.StudsOffset = Vector3.new(0, offsetY or 4, 0)
-	bb.AlwaysOnTop = true
+	bb.AlwaysOnTop = false
+	bb.MaxDistance = 40
 	bb.Parent = parent
 	local tl = Instance.new("TextLabel")
 	tl.Size = UDim2.fromScale(1, 1)
@@ -59,7 +62,8 @@ local function label(parent: Instance, text: string, color: Color3?, offsetY: nu
 	tl.TextColor3 = color or Color3.new(1, 1, 1)
 	tl.TextStrokeTransparency = 0.3
 	tl.Font = Enum.Font.GothamBold
-	tl.TextScaled = true
+	tl.TextSize = 14
+	tl.TextWrapped = true
 	tl.Parent = bb
 	return bb
 end
@@ -69,6 +73,7 @@ local function proximityPrompt(parent: Instance, props: { [string]: any }): Prox
 	pp.ActionText = props.ActionText or "Interact"
 	pp.ObjectText = props.ObjectText or ""
 	pp.KeyboardKeyCode = Enum.KeyCode.E
+	pp.GamepadKeyCode = Enum.KeyCode.ButtonL1
 	pp.HoldDuration = 0
 	pp.ClickablePrompt = true
 	pp.RequiresLineOfSight = false
@@ -113,31 +118,36 @@ function WorldBuilder.ApplyLighting(stage: any)
 	Lighting.OutdoorAmbient = stage.groundColor:Lerp(Color3.new(0.5, 0.5, 0.5), 0.4)
 	Lighting.Ambient = stage.fogColor:Lerp(Color3.new(0.3, 0.3, 0.3), 0.5)
 	Lighting.Brightness = 2.2
+	if stage.isHub then
+		Lighting.Brightness = 1.5
+		Lighting.OutdoorAmbient = Color3.fromRGB(150,145,132)
+		Lighting.Ambient = Color3.fromRGB(130,126,116)
+	end
 
 	local prof = LIGHTING_PROFILES[stage.lighting or "dawnGold"] or LIGHTING_PROFILES.dawnGold
 
 	local atmo = Instance.new("Atmosphere")
 	atmo.Name = "FM_Atmosphere"
-	atmo.Density = prof.density
+	atmo.Density = if stage.isHub then 0.12 else prof.density
 	atmo.Offset = 0.1
 	atmo.Color = stage.fogColor
 	atmo.Decay = stage.fogColor:Lerp(Color3.fromRGB(20, 20, 30), 0.5)
-	atmo.Glare = prof.glare
-	atmo.Haze = prof.haze
+	atmo.Glare = if stage.isHub then 0 else prof.glare
+	atmo.Haze = if stage.isHub then 0.2 else prof.haze
 	atmo.Parent = Lighting
 
 	local cc = Instance.new("ColorCorrectionEffect")
 	cc.Name = "FM_CC"
-	cc.Saturation = prof.sat
-	cc.Contrast = prof.contrast
-	cc.TintColor = if stage.hangover then Color3.fromRGB(255, 235, 210) else prof.tint
+	cc.Saturation = if stage.isHub then -0.03 else prof.sat
+	cc.Contrast = if stage.isHub then 0.01 else prof.contrast
+	cc.TintColor = if stage.isHub then Color3.new(1,1,1) elseif stage.hangover then Color3.fromRGB(255, 235, 210) else prof.tint
 	cc.Parent = Lighting
 
 	local bloom = Instance.new("BloomEffect")
 	bloom.Name = "FM_Bloom"
-	bloom.Intensity = prof.bloom
-	bloom.Size = 18
-	bloom.Threshold = 1.05
+	bloom.Intensity = if stage.isHub then 0.08 else prof.bloom
+	bloom.Size = if stage.isHub then 8 else 18
+	bloom.Threshold = if stage.isHub then 1.6 else 1.05
 	bloom.Parent = Lighting
 
 	local dof = Instance.new("DepthOfFieldEffect")
@@ -258,31 +268,23 @@ local function makeHazard(world: Folder, kind: string, x: number, laneZ: number,
 		h.Material = Enum.Material.Mud
 		h.Size = Vector3.new(9, 0.25, 5)
 		if kind == "slushPuddle" then
-			h:SetAttribute("HazardPeriod", 2.4)
-			h:SetAttribute("HazardDuty", 0.45)
-			h:SetAttribute("HazardDamage", 3)
 			h:SetAttribute("JumpRhythm", true)
-			label(h, "SLUSH — JUMP WHEN HOT", Color3.fromRGB(180, 255, 255), 2)
+			label(h, "HOT SLUSH", Color3.fromRGB(180, 255, 255), 2)
 		end
 	elseif kind == "fryerOil" then
 		h.Color = Color3.fromRGB(180, 120, 30)
 		h.Material = Enum.Material.Glass
 		h.Transparency = 0.4
 		-- N5 Act1: clearer timed rhythm
-		h:SetAttribute("HazardPeriod", 2.2)
-		h:SetAttribute("HazardDuty", 0.42)
-		h:SetAttribute("HazardDamage", 5)
 		h:SetAttribute("JumpRhythm", true)
-		label(h, "FRYER OIL — JUMP WHEN HOT", Color3.fromRGB(255, 220, 80), 2)
+		label(h, "HOT OIL", Color3.fromRGB(255, 220, 80), 2)
 	elseif kind == "conveyor" then
 		h.Color = Color3.fromRGB(70, 75, 90)
 		h.Material = Enum.Material.Metal
 		h.Size = Vector3.new(14, 0.6, 5)
 		h.CFrame = CFrame.new(x, 0.4, laneZ)
 		h.Transparency = 0.15
-		h:SetAttribute("ConveyorPush", 22)
 		h:SetAttribute("ConveyorFlipPeriod", Constants.CONVEYOR_FLIP_PERIOD)
-		h:SetAttribute("HazardDamage", 4)
 		label(h, "CONVEYOR FLIPS", Color3.fromRGB(255, 180, 80), 2)
 	elseif kind == "pipeSpray" then
 		h.Color = Color3.fromRGB(80, 200, 120)
@@ -290,10 +292,6 @@ local function makeHazard(world: Folder, kind: string, x: number, laneZ: number,
 		h.Size = Vector3.new(5, 4, 5)
 		h.CFrame = CFrame.new(x, 2.5, laneZ)
 		h.Transparency = 0.45
-		h:SetAttribute("HazardPeriod", 2.4)
-		h:SetAttribute("HazardDuty", 0.4)
-		h:SetAttribute("HazardDamage", 6)
-		h:SetAttribute("DisplaceY", 28)
 		label(h, "PIPE BURST", Color3.fromRGB(120, 255, 160), 3)
 	elseif kind == "fireCone" then
 		h.Color = Color3.fromRGB(255, 100, 20)
@@ -317,7 +315,6 @@ local function makeHazard(world: Folder, kind: string, x: number, laneZ: number,
 		h.Material = Enum.Material.SmoothPlastic
 		h.Transparency = 0
 		h.CanCollide = false
-		h:SetAttribute("HazardDamage", Constants.HOA_CONE_DAMAGE)
 		label(h, "HOA", Color3.fromRGB(255, 220, 80), 2)
 	elseif kind == "redTide" then
 		h.Color = Color3.fromRGB(180, 40, 70)
@@ -330,9 +327,7 @@ local function makeHazard(world: Folder, kind: string, x: number, laneZ: number,
 		h.Size = Vector3.new(12, 0.4, 8)
 		h.Transparency = 0.45
 		h:SetAttribute("WaterSlow", true)
-		h:SetAttribute("SlowAmount", 7)
-		h:SetAttribute("WaterTimeout", Constants.WATER_TIMEOUT)
-		label(h, "DEEP WATER — PADS OR SOFT-FALL", Color3.fromRGB(120, 220, 255), 2)
+		label(h, "DEEP WATER", Color3.fromRGB(120, 220, 255), 2)
 	elseif kind == "windPush" then
 		h.Color = Color3.fromRGB(180, 220, 255)
 		h.Material = Enum.Material.ForceField
@@ -340,9 +335,7 @@ local function makeHazard(world: Folder, kind: string, x: number, laneZ: number,
 		h.CFrame = CFrame.new(x, 3, laneZ)
 		h.Transparency = 0.7
 		h:SetAttribute("WindDir", -1)
-		h:SetAttribute("WindSpeed", Constants.WIND_PUSH_SPEED)
-		h:SetAttribute("WindOpposeJump", true)
-		label(h, "WIND — CUTS JUMP", Color3.fromRGB(200, 240, 255), 2)
+		label(h, "WIND", Color3.fromRGB(200, 240, 255), 2)
 	end
 	return h
 end
@@ -388,7 +381,7 @@ function WorldBuilder._SetPiece(world: Folder, stage: any, laneZ: number, length
 	local mid = length * 0.5
 	local arenaX = length * 0.78
 
-	if sp == "collapsingPier" then
+	if sp == "pierWalkway" then
 		for i = 1, 5 do
 			local px = length * 0.55 + i * 8
 			part({ Name = "PierPlank", Parent = world, Size = Vector3.new(7, 0.6, 5),
@@ -462,7 +455,7 @@ function WorldBuilder._SetPiece(world: Folder, stage: any, laneZ: number, length
 		pl.Range = 36
 		pl.Parent = spot
 	elseif sp == "canalPads" then
-		-- N5 Act2: pad-only traversal — water + pads as the verb
+		-- Water timeout and launch pads challenge a route with reserved safe landings.
 		for i = 1, 6 do
 			local x = 20 + i * 36
 			local water = makeHazard(world, "canalWater", x, laneZ, stage.accentColor)
@@ -535,7 +528,6 @@ function WorldBuilder._SetPiece(world: Folder, stage: any, laneZ: number, length
 			local sample = part({ Name = "Sample", Parent = world, Size = Vector3.new(2.2, 2.2, 2.2),
 				CFrame = CFrame.new(x, 1.4, laneZ), Color = Color3.fromRGB(80, 220, 120), Material = Enum.Material.Neon, CanCollide = false })
 			sample:SetAttribute("Hazard", "movingSample")
-			sample:SetAttribute("HazardDamage", 5)
 			sample:SetAttribute("ConveyorMove", true)
 			sample:SetAttribute("ConveyorOriginX", x)
 			sample:SetAttribute("ConveyorAmp", 8)
@@ -576,16 +568,18 @@ function WorldBuilder._SetPiece(world: Folder, stage: any, laneZ: number, length
 			CFrame = CFrame.new(mid + 20, 10, laneZ - 6), Color = Color3.fromRGB(255, 160, 40), Material = Enum.Material.Metal, CanCollide = false })
 	elseif sp == "bargeGaps" then
 		-- N5 Act5: gaps + wind opposing jumps
+		local spans = LayoutPlan.ForStage(stage, Constants.SPAWN_X)
 		for i = 1, 5 do
 			local x = 20 + i * 48
-			part({ Name = "Deck", Parent = world, Size = Vector3.new(26, 1.2, 10),
-				CFrame = CFrame.new(x, 0.8, laneZ), Color = Color3.fromRGB(60, 75, 90), Material = Enum.Material.Metal })
+			for _, slice in LayoutPlan.SupportedSlices(spans, x-13, x+13) do
+				part({ Name = "Deck", Parent = world, Size = Vector3.new(slice.last-slice.first, 1.2, 10),
+					CFrame = CFrame.new((slice.first+slice.last)*0.5, 0.8, laneZ), Color = Color3.fromRGB(60, 75, 90), Material = Enum.Material.Metal })
+			end
 			local gap = part({ Name = "GapWater", Parent = world, Size = Vector3.new(14, 0.3, 12),
 				CFrame = CFrame.new(x + 20, -0.4, laneZ), Color = Color3.fromRGB(30, 80, 110), Material = Enum.Material.Glass, CanCollide = false, Transparency = 0.4 })
 			gap:SetAttribute("GapMarker", true)
 			local wind = makeHazard(world, "windPush", x + 18, laneZ, stage.accentColor)
 			wind:SetAttribute("WindDir", if i % 2 == 0 then -1 else 1)
-			wind:SetAttribute("WindOpposeJump", true)
 			local cp = part({ Name = "CheckpointPad", Parent = world, Size = Vector3.new(4, 0.4, 4),
 				CFrame = CFrame.new(x + 8, 1.5, laneZ), Color = Color3.fromRGB(80, 220, 160), Material = Enum.Material.Neon, CanCollide = false })
 			cp:SetAttribute("Checkpoint", true)
@@ -602,7 +596,7 @@ function WorldBuilder._SetPiece(world: Folder, stage: any, laneZ: number, length
 		pl.Color = Color3.fromRGB(255, 140, 40)
 		pl.Parent = flare
 	elseif sp == "helipadWind" then
-		local pad = part({ Name = "Helipad", Parent = world, Size = Vector3.new(28, 0.5, 28),
+		part({ Name = "Helipad", Parent = world, Size = Vector3.new(28, 0.5, 28),
 			CFrame = CFrame.new(mid, 0.3, laneZ), Color = Color3.fromRGB(50, 52, 58), Material = Enum.Material.Concrete })
 		part({ Name = "HMark", Parent = world, Size = Vector3.new(10, 0.2, 2),
 			CFrame = CFrame.new(mid, 0.6, laneZ), Color = Color3.fromRGB(255, 220, 40), Material = Enum.Material.Neon, CanCollide = false })
@@ -643,7 +637,7 @@ function WorldBuilder._SetPiece(world: Folder, stage: any, laneZ: number, length
 				Transparency = 0.85,
 			})
 			slick:SetAttribute("Hazard", "slickRing")
-			slick:SetAttribute("HazardDamage", 7)
+			slick:SetAttribute("HazardEnabled", false)
 			slick:SetAttribute("RingIndex", i)
 			slick:SetAttribute("RingAngle", ang)
 		end
@@ -655,7 +649,7 @@ function WorldBuilder._SetPiece(world: Folder, stage: any, laneZ: number, length
 	end
 
 	local hazards = stage.hazards or {}
-	local skip = { windPush = true, canalWater = true, fryerOil = true, conveyor = true, pipeSpray = true }
+	local skip: { [string]: boolean? } = { windPush = true, canalWater = true, fryerOil = true, conveyor = true, pipeSpray = true }
 
 	if sp ~= "fryerOil" then
 		skip.fryerOil = nil
@@ -709,7 +703,7 @@ function WorldBuilder._Decor(world: Folder, stage: any, laneZ: number, length: n
 	end
 end
 
-function WorldBuilder._BuildHub(world: Folder, stage: any, laneZ: number, deaths: number?)
+function WorldBuilder._BuildHub(world: Folder, _stage: any, laneZ: number, _deaths: number?)
 
 	local base = part({
 		Name = "Bonfire",
@@ -738,8 +732,8 @@ function WorldBuilder._BuildHub(world: Folder, stage: any, laneZ: number, deaths
 		Parent = world,
 		Size = Vector3.new(2.4, 0.5, 2.4),
 		CFrame = CFrame.new(20, 1.35, laneZ),
-		Color = Color3.fromRGB(255, 90, 20),
-		Material = Enum.Material.Neon,
+		Color = Color3.fromRGB(170, 60, 20),
+		Material = Enum.Material.SmoothPlastic,
 		CanCollide = false,
 		Shape = Enum.PartType.Cylinder,
 	})
@@ -748,14 +742,13 @@ function WorldBuilder._BuildHub(world: Folder, stage: any, laneZ: number, deaths
 		Parent = world,
 		Size = Vector3.new(2.8, 4.4, 2.8),
 		CFrame = CFrame.new(20, 3.3, laneZ),
-		Color = Color3.fromRGB(255, 120, 30),
+		Color = Color3.fromRGB(220, 90, 24),
 		Material = Enum.Material.Neon,
 		CanCollide = false,
 		Shape = Enum.PartType.Ball,
 	})
 	addSpecialMesh(flame, Enum.MeshType.Sphere, Vector3.new(0.85, 1.25, 0.85))
 	flame:SetAttribute("Interact", "StartRun")
-	label(flame, "🔥 Press E · Start Run", Color3.fromRGB(255, 200, 80))
 	proximityPrompt(flame, {
 		ActionText = "Start Run",
 		ObjectText = "Bonfire",
@@ -773,23 +766,23 @@ function WorldBuilder._BuildHub(world: Folder, stage: any, laneZ: number, deaths
 	pe.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1.6), NumberSequenceKeypoint.new(1, 0) })
 	pe.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.15), NumberSequenceKeypoint.new(1, 1) })
 	pe.Lifetime = NumberRange.new(0.5, 1.0)
-	pe.Rate = 36
+	pe.Rate = 14
 	pe.Speed = NumberRange.new(3, 9)
-	pe.LightEmission = 0.85
+	pe.LightEmission = 0.45
 	pe.Parent = att
 	local spark = Instance.new("ParticleEmitter")
 	spark.Name = "Sparks"
 	spark.Color = ColorSequence.new(Color3.fromRGB(255, 220, 80), Color3.fromRGB(255, 80, 20))
 	spark.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.25), NumberSequenceKeypoint.new(1, 0) })
 	spark.Lifetime = NumberRange.new(0.35, 0.7)
-	spark.Rate = 10
+	spark.Rate = 3
 	spark.Speed = NumberRange.new(4, 11)
 	spark.SpreadAngle = Vector2.new(40, 40)
-	spark.LightEmission = 1
+	spark.LightEmission = 0.45
 	spark.Parent = att
 	local pl = Instance.new("PointLight")
-	pl.Brightness = 2.8
-	pl.Range = 32
+	pl.Brightness = 0.35
+	pl.Range = 14
 	pl.Color = Color3.fromRGB(255, 140, 40)
 	pl.Parent = flame
 	task.spawn(function()
@@ -799,7 +792,7 @@ function WorldBuilder._BuildHub(world: Folder, stage: any, laneZ: number, deaths
 			})
 			t:Play()
 			if pl.Parent then
-				pl.Brightness = 2.2 + math.random() * 1.3
+				pl.Brightness = 0.3 + math.random() * 0.15
 			end
 			t.Completed:Wait()
 		end
@@ -812,13 +805,11 @@ function WorldBuilder._BuildHub(world: Folder, stage: any, laneZ: number, deaths
 			CFrame = CFrame.new(20 + ox, 2.2, laneZ + 5), Color = Color3.fromRGB(40, 140, 200), CanCollide = false })
 	end
 
-	local cooler = part({ Name = "Cooler", Parent = world, Size = Vector3.new(3, 2.2, 2),
+	part({ Name = "Cooler", Parent = world, Size = Vector3.new(3, 2.2, 2),
 		CFrame = CFrame.new(14, 1.2, laneZ + 2), Color = Color3.fromRGB(30, 100, 180), Material = Enum.Material.SmoothPlastic, CanCollide = false })
-	label(cooler, "Florida Dew cooler\n(empty… for now)", Color3.fromRGB(180, 255, 200), 2)
 
-	local stand = part({ Name = "NewsStand", Parent = world, Size = Vector3.new(4, 5, 2),
+	part({ Name = "NewsStand", Parent = world, Size = Vector3.new(4, 5, 2),
 		CFrame = CFrame.new(8, 2.6, laneZ - 3), Color = Color3.fromRGB(140, 100, 60), Material = Enum.Material.Wood, CanCollide = false })
-	label(stand, "THE DAILY SWAMP", Color3.fromRGB(255, 240, 200), 3)
 
 	local steveCF = CFrame.new(32, 2.1, laneZ - 2)
 	local steveModel = ArtAssets.TryCloneMeshModel("CaptainSteve")
@@ -830,7 +821,7 @@ function WorldBuilder._BuildHub(world: Folder, stage: any, laneZ: number, deaths
 		if root and root:IsA("BasePart") then
 			steveModel.PrimaryPart = root
 			root.Name = "CaptainSteve"
-			root.CFrame = steveCF
+			steveModel:PivotTo(steveCF)
 			body = root
 		else
 			steveModel:Destroy()
@@ -838,10 +829,11 @@ function WorldBuilder._BuildHub(world: Folder, stage: any, laneZ: number, deaths
 		end
 	end
 	if not steveModel then
-		steveModel = Instance.new("Model")
-		steveModel.Name = "CaptainSteveModel"
-		steveModel:SetAttribute("ArtKit", ArtAssets.ART_KIT_PART)
-		steveModel.Parent = world
+		local fallback = Instance.new("Model")
+		fallback.Name = "CaptainSteveModel"
+		fallback:SetAttribute("ArtKit", ArtAssets.ART_KIT_PART)
+		fallback.Parent = world
+		steveModel = fallback
 		body = part({
 			Name = "CaptainSteve",
 			Parent = steveModel,
@@ -852,6 +844,7 @@ function WorldBuilder._BuildHub(world: Folder, stage: any, laneZ: number, deaths
 		})
 		addSpecialMesh(body, Enum.MeshType.Sphere, Vector3.new(0.95, 1.15, 0.9))
 	end
+	assert(steveModel, "Steve model must be present after fallback")
 	body:SetAttribute("Interact", "CaptainSteve")
 	-- Procedural kit extras only when Part kit (Mesh_v1 already authored)
 	local usePartKit = steveModel:GetAttribute("ArtKit") ~= ArtAssets.ART_KIT_MESH
@@ -872,7 +865,7 @@ function WorldBuilder._BuildHub(world: Folder, stage: any, laneZ: number, deaths
 			Size = Vector3.new(3.4, 0.75, 0.95),
 			CFrame = CFrame.new(34.5, 2.7, laneZ - 2),
 			Color = Color3.fromRGB(255, 150, 35),
-			Material = Enum.Material.Neon,
+			Material = Enum.Material.SmoothPlastic,
 			CanCollide = false,
 		})
 		addSpecialMesh(beak, Enum.MeshType.Wedge, Vector3.new(1.2, 0.7, 0.9))
@@ -923,7 +916,7 @@ function WorldBuilder._BuildHub(world: Folder, stage: any, laneZ: number, deaths
 			Size = Vector3.new(0.6, 1.2, 1.4),
 			CFrame = CFrame.new(32.2, 4.7, laneZ - 2),
 			Color = Color3.fromRGB(255, 160, 50),
-			Material = Enum.Material.Neon,
+			Material = Enum.Material.SmoothPlastic,
 			CanCollide = false,
 		})
 		for _, side in { -1, 1 } do
@@ -948,7 +941,6 @@ function WorldBuilder._BuildHub(world: Folder, stage: any, laneZ: number, deaths
 	peSteve.Rate = 3
 	peSteve.Speed = NumberRange.new(0.2, 0.8)
 	peSteve.Parent = fluff
-	label(body, "Captain Steve\nPress E · Talk", Color3.fromRGB(255, 240, 180))
 	proximityPrompt(body, {
 		ActionText = "Talk",
 		ObjectText = "Captain Steve",
@@ -956,102 +948,43 @@ function WorldBuilder._BuildHub(world: Folder, stage: any, laneZ: number, deaths
 		MaxActivationDistance = 12,
 	})
 
-	local board = part({
-		Name = "HeadlineBoard",
-		Parent = world,
-		Size = Vector3.new(18, 7, 0.4),
-		CFrame = CFrame.new(20, 10, laneZ - 12),
-		Color = Color3.fromRGB(30, 30, 35),
-		CanCollide = false,
-	})
-	local headline = Story.HubHeadline(deaths or 0)
-	label(board, headline, Color3.fromRGB(255, 220, 120), 0)
 end
 
 function WorldBuilder._BuildGround(world: Folder, stage: any, laneZ: number, length: number, groundMat: Enum.Material)
-	local biome = stage.biome or "beach"
-	local idx = stage.index or 0
-
-	local tier = stage.scalingTier or 0
-	local segs = if idx <= 3 then 3 elseif idx <= 8 then 5 elseif idx <= 14 then 6 else 7
-	segs += math.clamp(tier - 1, 0, 2)
-	local gapChance = if idx <= 4 then 0 elseif idx <= 10 then 0.35 else 0.55
-	gapChance = math.clamp(gapChance + tier * 0.04, 0, 0.7)
-	if stage.setPiece == "canalPads" then
-		gapChance = math.max(gapChance, 0.55)
+	local spans = LayoutPlan.ForStage(stage, Constants.SPAWN_X)
+	local manifest = Instance.new("Folder")
+	manifest.Name = "LayoutManifest"
+	manifest:SetAttribute("StartX", Constants.SPAWN_X)
+	manifest:SetAttribute("ExitX", length - 6)
+	manifest:SetAttribute("MaximumGap", 6)
+	manifest.Parent = world
+	for index, span in spans do
+		local width = span.last - span.first
+		local ground = part({
+			Name = if span.gap then "GapWater" else "Ground",
+			Parent = world,
+			Size = Vector3.new(width, if span.gap then 0.3 else 2, 28),
+			CFrame = CFrame.new((span.first + span.last) * 0.5, if span.gap then -0.6 else -1, laneZ),
+			Color = if span.gap then Color3.fromRGB(30, 90, 120) else stage.groundColor,
+			Material = if span.gap then Enum.Material.Glass else groundMat,
+			CanCollide = not span.gap,
+			Transparency = if span.gap then 0.4 else 0,
+		})
+		ground:SetAttribute("Walkable", not span.gap)
+		if span.gap then ground:SetAttribute("Hazard", "canalWater") end
+		local record = Instance.new("Folder")
+		record.Name = string.format("Span%02d", index)
+		record:SetAttribute("FromX", span.first)
+		record:SetAttribute("ToX", span.last)
+		record:SetAttribute("Gap", span.gap)
+		record.Parent = manifest
 	end
-	if stage.setPiece == "bargeGaps" then
-		gapChance = math.max(gapChance, 0.6)
-	end
-	local cursor = -10
-	local segLen = (length + 30) / segs
-	local rng = Random.new((#stage.id) * 31 + idx * 97)
-	for i = 1, segs do
-		local isGap = (i > 1 and i < segs and idx >= 5 and rng:NextNumber() < gapChance and (biome == "swamp" or biome == "offshore" or biome == "facility" or stage.setPiece == "bargeGaps" or stage.setPiece == "canalPads" or stage.setPiece == "pipeMaze"))
-		local hOff = 0
-		if biome == "swamp" then
-			hOff = (i % 3) * 0.35
-		elseif biome == "facility" or biome == "offshore" then
-			hOff = (i % 2) * 0.6
-		elseif biome == "town" then
-			hOff = if i % 4 == 0 then 0.4 else 0
-		elseif biome == "beach" then
-			hOff = math.sin(i * 1.2) * 0.25
-		end
-		local thisLen = segLen * (0.85 + rng:NextNumber() * 0.25)
-		if isGap then
-
-			local gapW = math.clamp(6 + idx * 0.25, 6, 12)
-			part({
-				Name = "GapHazard",
-				Parent = world,
-				Size = Vector3.new(gapW, 0.4, 16),
-				CFrame = CFrame.new(cursor + gapW / 2, -0.5 + hOff, laneZ),
-				Color = if biome == "offshore" or biome == "swamp" then Color3.fromRGB(30, 70, 90) else Color3.fromRGB(20, 20, 25),
-				Material = Enum.Material.Glass,
-				CanCollide = false,
-				Transparency = 0.45,
-			})
-			cursor += gapW
-
-			part({
-				Name = "GroundSeg",
-				Parent = world,
-				Size = Vector3.new(thisLen * 0.55, 2, 28),
-				CFrame = CFrame.new(cursor + thisLen * 0.275, -1 + hOff + 0.5, laneZ),
-				Color = stage.groundColor:Lerp(stage.accentColor, 0.08),
-				Material = groundMat,
-			})
-			cursor += thisLen * 0.55
-		else
-			local y = -1 + hOff
-
-			if idx >= 6 and i == math.floor(segs / 2) then
-				part({
-					Name = "GroundShelf",
-					Parent = world,
-					Size = Vector3.new(thisLen * 0.7, 2, 18),
-					CFrame = CFrame.new(cursor + thisLen * 0.35, y + 2.2, laneZ),
-					Color = stage.groundColor:Lerp(Color3.new(0, 0, 0), 0.1),
-					Material = groundMat,
-				})
-			end
-			part({
-				Name = "Ground",
-				Parent = world,
-				Size = Vector3.new(thisLen, 2, 28),
-				CFrame = CFrame.new(cursor + thisLen / 2, y, laneZ),
-				Color = stage.groundColor,
-				Material = groundMat,
-			})
-			cursor += thisLen
-		end
-	end
-
+	assert(LayoutPlan.HasSupport(spans, Constants.SPAWN_X, 3), "spawn needs support")
+	assert(LayoutPlan.HasSupport(spans, length - 6, 4), "exit needs support")
 end
 
 function WorldBuilder._MidRoomGate(world: Folder, stage: any, laneZ: number, length: number)
-	if (stage.index or 0) < 3 then
+	if not ProgressionRules.RequiresMidRoom(stage) then
 		return
 	end
 	local x = length * 0.48
@@ -1241,8 +1174,8 @@ function WorldBuilder.BuildStage(stageId: string, deaths: number?): Folder
 		Parent = world,
 		Size = Vector3.new(8, 0.5, 8),
 		CFrame = CFrame.new(Constants.SPAWN_X, 0.25, laneZ),
-		Color = stage.accentColor,
-		Material = Enum.Material.Neon,
+		Color = if stage.isHub then stage.groundColor:Lerp(stage.accentColor,0.15) else stage.accentColor,
+		Material = if stage.isHub then Enum.Material.SmoothPlastic else Enum.Material.Neon,
 	})
 
 	if stage.isHub then
@@ -1266,7 +1199,7 @@ function WorldBuilder.BuildStage(stageId: string, deaths: number?): Folder
 			Shape = Enum.PartType.Cylinder,
 		})
 		can:SetAttribute("Pickup", "ColdOne")
-		label(can, "Florida Dew — walk over to pick up", Color3.fromRGB(180, 255, 180))
+		label(can, "Florida Dew", Color3.fromRGB(180, 255, 180))
 	end
 
 	if not stage.isHub then
@@ -1298,32 +1231,6 @@ function WorldBuilder.BuildStage(stageId: string, deaths: number?): Folder
 		gpl.Parent = glow
 	end
 
-	local AudioCatalog = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("AudioCatalog"))
-	local sounds = Instance.new("Folder")
-	sounds.Name = "StageSounds"
-	sounds.Parent = world
-	for name, soundId in AudioCatalog.SFX do
-		local s = Instance.new("Sound")
-		s.Name = name
-		s.SoundId = soundId
-		s.Volume = 0.5
-		s.RollOffMaxDistance = 80
-		s.Parent = sounds
-	end
-
-	local biomeKey = stage.biome or "beach"
-	local beds = AudioCatalog.BIOME_BEDS[biomeKey] or AudioCatalog.BIOME_BEDS.beach
-	for _, bed in beds do
-		local s = Instance.new("Sound")
-		s.Name = bed.name
-		s.SoundId = bed.id
-		s.Volume = bed.volume
-		s.PlaybackSpeed = bed.pitch
-		s.Looped = true
-		s.RollOffMaxDistance = 200
-		s.Parent = sounds
-	end
-
 	world:SetAttribute("StageId", stageId)
 	world:SetAttribute("StageLength", length)
 	world:SetAttribute("Biome", stage.biome or "beach")
@@ -1331,6 +1238,10 @@ function WorldBuilder.BuildStage(stageId: string, deaths: number?): Folder
 	world:SetAttribute("StoryBeat", stage.storyBeat or "")
 	world:SetAttribute("LevelVerb", Stages.LevelVerb(stage))
 	world:SetAttribute("ScalingTier", stage.scalingTier or 0)
+	-- Bootstrap support has served its purpose once real stage geometry exists.
+	-- Keeping it would silently bridge authored gaps near the start of every stage.
+	local bootstrapPad=Workspace:FindFirstChild("FM_SafetyPad")
+	if bootstrapPad then bootstrapPad:Destroy() end
 	return world
 end
 

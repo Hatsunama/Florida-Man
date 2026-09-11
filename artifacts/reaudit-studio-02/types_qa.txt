@@ -1,0 +1,4 @@
+[INFO] Loading definitions file: @roblox - C:\Users\1thea\AppData\Local\Temp\florida-man-audit-tools-20260904\luau-lsp-1.69.0\globalTypes.d.luau
+[WARN] client does not allow didChangeWatchedFiles registration - automatic updating on sourcemap changes disabled
+c:\Users\1thea\Projects\Florida-Man\qa\StudioAudit.luau [game/ServerScriptService/StudioAudit](181,11): TypeError: Type "Active" cannot be compared with "Reward"
+c:\Users\1thea\Projects\Florida-Man\qa\StudioAudit.luau [game/ServerScriptService/StudioAudit](181,36): TypeError: Type "Active" cannot be compared with "Ending"

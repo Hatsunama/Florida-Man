@@ -1,0 +1,4 @@
+--!strict
+-- Replaces Roblox's default character sound LocalScript by its reserved name.
+-- The experience is intentionally silent; SilenceController also suppresses
+-- sounds arriving through assets or later character descendants.

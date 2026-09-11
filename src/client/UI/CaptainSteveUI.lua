@@ -1,166 +1,88 @@
 --!strict
---[[ Captain Steve hub panel — smash personas for Sunburn, upgrade rarity. ]]
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Remotes = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Remotes"))
-local Personas = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Personas"))
-local Util = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Util"))
-
-local CaptainSteveUI = {}
-local lastState = nil
-
-function CaptainSteveUI.SetState(s)
-	lastState = s
+local HttpService=game:GetService("HttpService")
+local Shared=game:GetService("ReplicatedStorage"):WaitForChild("Shared")
+local Remotes=require(Shared:WaitForChild("Remotes"))
+local UiKit=require(script.Parent:WaitForChild("UiKit"))
+local Tagline=require(script.Parent:WaitForChild("Tagline"))
+local Steve={}
+local state: any=nil
+local gui: ScreenGui?=nil
+local busy=false
+local pending: any=nil
+local pendingCommand=""
+local sequence=0
+local status: TextLabel?=nil
+local retryButton: TextButton?=nil
+local function command(name: string,id: string,slot: number?)
+	if busy then return end
+	sequence+=1
+	pending={personaId=id,slot=slot,requestId=HttpService:GenerateGUID(false),sequence=sequence,generation=state.generation}
+	pendingCommand=name
+	busy=true
+	if retryButton then retryButton.Visible=true end
+	if status then status.Text="Waiting for Captain Steve…" end
+	Remotes.Get(name):FireServer(pending)
 end
-
-function CaptainSteveUI.Open()
-	if not lastState then
-		return
-	end
-	local player = Players.LocalPlayer
-	local pg = player:WaitForChild("PlayerGui")
-	local old = pg:FindFirstChild("FM_Steve")
-	if old then
-		old:Destroy()
-	end
-	local gui = Instance.new("ScreenGui")
-	gui.Name = "FM_Steve"
-	gui.IgnoreGuiInset = true
-	gui.DisplayOrder = 45
-	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-	gui.Parent = pg
-
-	local panel = Instance.new("Frame")
-	panel.Size = UDim2.new(0, 520, 0, 420)
-	panel.Position = UDim2.new(0.5, -260, 0.5, -210)
-	panel.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
-	panel.Parent = gui
-	local c = Instance.new("UICorner")
-	c.CornerRadius = UDim.new(0, 12)
-	c.Parent = panel
-
-	local title = Instance.new("TextLabel")
-	title.Size = UDim2.new(1, -20, 0, 40)
-	title.Position = UDim2.new(0, 10, 0, 8)
-	title.BackgroundTransparency = 1
-	title.Font = Enum.Font.GothamBold
-	title.TextSize = 22
-	title.TextColor3 = Color3.fromRGB(255, 220, 140)
-	title.Text = "Captain Steve — Pelican Upgrades"
-	title.Parent = panel
-
-	local sub = Instance.new("TextLabel")
-	sub.Size = UDim2.new(1, -20, 0, 40)
-	sub.Position = UDim2.new(0, 10, 0, 48)
-	sub.BackgroundTransparency = 1
-	sub.Font = Enum.Font.Gotham
-	sub.TextWrapped = true
-	sub.TextSize = 14
-	sub.TextColor3 = Color3.fromRGB(190, 200, 220)
-	sub.Text = "\"It IS Florida…\" Smash personas → Sunburn. Rarity: +15/30/50% skill power. Sunburn: " .. tostring(lastState.sunburn)
-	sub.Parent = panel
-
-	local scroll = Instance.new("ScrollingFrame")
-	scroll.Size = UDim2.new(1, -20, 1, -120)
-	scroll.Position = UDim2.new(0, 10, 0, 95)
-	scroll.BackgroundTransparency = 1
-	scroll.CanvasSize = UDim2.new(0, 0, 0, 0)
-	scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
-	scroll.ScrollBarThickness = 6
-	scroll.Parent = panel
-	local layout = Instance.new("UIListLayout")
-	layout.Padding = UDim.new(0, 6)
-	layout.Parent = scroll
-
-	for id, unlocked in lastState.unlockedPersonas do
-		if unlocked then
-			local def = Personas.Get(id)
-			local rarity = lastState.personaRarity[id] or "Common"
-			local row = Instance.new("Frame")
-			row.Size = UDim2.new(1, -10, 0, 56)
-			row.BackgroundColor3 = Color3.fromRGB(35, 40, 52)
-			row.Parent = scroll
-			local rc = Instance.new("UICorner")
-			rc.CornerRadius = UDim.new(0, 8)
-			rc.Parent = row
-
-			local nm = Instance.new("TextLabel")
-			nm.Size = UDim2.new(0.45, 0, 1, 0)
-			nm.Position = UDim2.new(0, 8, 0, 0)
-			nm.BackgroundTransparency = 1
-			nm.Font = Enum.Font.GothamBold
-			nm.TextSize = 16
-			nm.TextXAlignment = Enum.TextXAlignment.Left
-			nm.TextColor3 = Color3.new(1, 1, 1)
-			nm.Text = (if def then def.name else id) .. "  (" .. rarity .. ")"
-			nm.Parent = row
-
-			local up = Instance.new("TextButton")
-			up.Size = UDim2.new(0, 110, 0, 36)
-			up.Position = UDim2.new(1, -240, 0.5, -18)
-			up.BackgroundColor3 = Color3.fromRGB(60, 120, 200)
-			up.Font = Enum.Font.GothamBold
-			up.TextSize = 14
-			up.TextColor3 = Color3.new(1, 1, 1)
-			up.Text = "Upgrade"
-			up.Active = true
-			up.Selectable = true
-			up.ZIndex = 10
-			up.AutoButtonColor = true
-			up.Parent = row
-			local uc = Instance.new("UICorner")
-			uc.CornerRadius = UDim.new(0, 6)
-			uc.Parent = up
-			up.MouseButton1Click:Connect(function()
-				Remotes.Get("UpgradePersona"):FireServer(id)
-				task.delay(0.2, function()
-					gui:Destroy()
-				end)
-			end)
-
-			local smash = Instance.new("TextButton")
-			smash.Size = UDim2.new(0, 110, 0, 36)
-			smash.Position = UDim2.new(1, -120, 0.5, -18)
-			smash.BackgroundColor3 = Color3.fromRGB(180, 70, 50)
-			smash.Font = Enum.Font.GothamBold
-			smash.TextSize = 14
-			smash.TextColor3 = Color3.new(1, 1, 1)
-			smash.Text = "Smash"
-			smash.Active = true
-			smash.Selectable = true
-			smash.ZIndex = 10
-			smash.AutoButtonColor = true
-			smash.Parent = row
-			local sc = Instance.new("UICorner")
-			sc.CornerRadius = UDim.new(0, 6)
-			sc.Parent = smash
-			smash.MouseButton1Click:Connect(function()
-				Remotes.Get("SmashPersona"):FireServer(id)
-				task.delay(0.2, function()
-					gui:Destroy()
-				end)
-			end)
+local function render()
+	if not state then return end
+	local panel,scroll=UiKit.Panel("FM_Steve","Captain Steve · Loadout & upgrades",560,true)
+	gui=panel
+	status=UiKit.Paragraph(scroll,"Sunburn: "..tostring(state.sunburn or 0).."\nChoose two personas. Upgrades last between runs.")
+	local close=UiKit.Button(scroll,"Close",function() Steve.Close() end)
+	UiKit.Focus(close)
+	if state.profileStatus and not state.profileStatus.writable then UiKit.Paragraph(scroll,"Cloud progress is unavailable. This run is temporary; purchases are disabled.") end
+	for _,item in state.shop or {} do
+		if item.owned then
+			local slots={}
+			for _,slot in item.slots or {} do table.insert(slots,tostring(slot)) end
+			UiKit.Paragraph(scroll,tostring(item.name).." · "..tostring(item.rarity)..(if #slots>0 then " · Slot "..table.concat(slots,", ") else ""))
+			if item.canEquip then
+				UiKit.Button(scroll,"Equip in slot 1",function() command("EquipPersona",item.id,1) end)
+				UiKit.Button(scroll,"Equip in slot 2",function() command("EquipPersona",item.id,2) end)
+			end
+			if item.canUpgrade then
+				local nextRarity=item.nextRarity
+				local power=item.nextDamageBonusPercent or 0
+				local cdr=item.nextSkillCooldownReductionPercent or 0
+				UiKit.Button(scroll,"Upgrade to "..tostring(nextRarity).." · "..tostring(item.upgradeCost).." Sunburn",function() command("UpgradePersona",item.id) end)
+				UiKit.Paragraph(scroll,"Attack/skill damage +"..power.."%; skill cooldown −"..cdr.."%. Shield/heal amounts stay fixed.")
+			elseif item.upgradeCost then UiKit.Paragraph(scroll,"Next upgrade: "..tostring(item.upgradeCost).." Sunburn (unavailable).") end
+			if item.canSmash then
+				UiKit.Button(scroll,"Smash "..tostring(item.name).." for "..tostring(item.refund).." Sunburn",function() command("SmashPersona",item.id) end)
+				UiKit.Paragraph(scroll,"Smashing removes this persona and its upgrades. Equipped personas cannot be smashed.")
+			end
 		end
 	end
-
-	local close = Instance.new("TextButton")
-	close.Size = UDim2.new(0, 120, 0, 36)
-	close.Position = UDim2.new(0.5, -60, 1, -42)
-	close.BackgroundColor3 = Color3.fromRGB(70, 70, 80)
-	close.Font = Enum.Font.GothamBold
-	close.Text = "Close"
-	close.TextColor3 = Color3.new(1, 1, 1)
-	close.Active = true
-	close.Selectable = true
-	close.ZIndex = 10
-	close.AutoButtonColor = true
-	close.Parent = panel
-	local cc = Instance.new("UICorner")
-	cc.CornerRadius = UDim.new(0, 8)
-	cc.Parent = close
-	close.MouseButton1Click:Connect(function()
-		gui:Destroy()
-	end)
+	if #(state.personas or {})>1 then UiKit.Button(scroll,"Clear persona slot 2",function() command("EquipPersona","",2) end) end
+	local retry=UiKit.Button(scroll,"Retry pending action",function() if pending then Remotes.Get(pendingCommand):FireServer(pending) end end)
+	retry.Visible=pending~=nil
+	retryButton=retry
 end
-
-return CaptainSteveUI
+function Steve.SetState(value: any)
+	state=value
+	sequence=math.max(sequence,value.shopSequence or 0)
+	if pending and pending.generation~=value.generation then pending=nil; busy=false end
+	if gui and gui.Parent then
+		if not state.inHub then Steve.Close()
+		elseif not busy then render() end
+	end
+end
+function Steve.Open()
+	if not state or not state.inHub then return end
+	render()
+end
+function Steve.Close()
+	if gui then gui:Destroy(); gui=nil end
+	status=nil
+	retryButton=nil
+end
+function Steve.Result(result: any)
+	if result.command~="UpgradePersona" and result.command~="SmashPersona" and result.command~="EquipPersona" then return end
+	if not pending or result.requestId~=pending.requestId then return end
+	busy=false
+	if result.accepted then pending=nil end
+	if gui and gui.Parent then render() end
+	if status then status.Text=result.reason or (if result.accepted then "Done." else "That action was not accepted.") end
+	if not result.accepted then Tagline.Show({text=result.reason or "Try a different action.",speaker="Captain Steve",essential=false}) end
+end
+return Steve

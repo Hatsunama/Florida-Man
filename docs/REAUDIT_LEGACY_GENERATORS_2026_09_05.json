@@ -1,0 +1,168 @@
+{
+  "snapshot_utc": "2026-09-05T06:55:49.119044+00:00",
+  "findings": [],
+  "purpose": "Ancillary historical-script technical-debt review; these are not current runtime sources.",
+  "files": [
+    {
+      "original_path": "_gen/audit_verify.py",
+      "current_path": "_gen/audit_verify.py.retired",
+      "sha256": "e694abe15cebc860830e0c4d0986dad74d4782c3d2313056511e3b00e2f093cb",
+      "lines": 71,
+      "status": "fully read at original path; parent renamed without content changes; post-rename hash verified; not executed"
+    },
+    {
+      "original_path": "_gen/counts.py",
+      "current_path": "_gen/counts.py.retired",
+      "sha256": "380d99131e20caf33d06a4a8f2cd6579041c897197e2e255fa52fbc960d13f29",
+      "lines": 25,
+      "status": "fully read at original path; parent renamed without content changes; post-rename hash verified; not executed"
+    },
+    {
+      "original_path": "_gen/extract_build_rules.py",
+      "current_path": "_gen/extract_build_rules.py.retired",
+      "sha256": "3554c5da7b8465434c505f058b3e42dbcc526250557e888dede24ef13a72c495",
+      "lines": 24,
+      "status": "fully read at original path; parent renamed without content changes; post-rename hash verified; not executed"
+    },
+    {
+      "original_path": "_gen/finalize_implementation_evidence.py",
+      "current_path": "_gen/finalize_implementation_evidence.py.retired",
+      "sha256": "36ab4a7b89cf139c03ec258e1fd3da5b514203a7e8b98f21e2aabf96c1a26512",
+      "lines": 20,
+      "status": "fully read at original path; parent renamed without content changes; post-rename hash verified; not executed"
+    },
+    {
+      "original_path": "_gen/fix_hud.py",
+      "current_path": "_gen/fix_hud.py.retired",
+      "sha256": "43a92e4d17236d4f1031eb8c3604334b76d69b40e5829a836aeb22845896cd97",
+      "lines": 84,
+      "status": "fully read at original path; parent renamed without content changes; post-rename hash verified; not executed"
+    },
+    {
+      "original_path": "_gen/fix_hud2.py",
+      "current_path": "_gen/fix_hud2.py.retired",
+      "sha256": "83d4fca41225f15f35759b280cd9184505537d226d4eceef9981ba1081b2a8f2",
+      "lines": 20,
+      "status": "fully read at original path; parent renamed without content changes; post-rename hash verified; not executed"
+    },
+    {
+      "original_path": "_gen/gen_client.py",
+      "current_path": "_gen/gen_client.py.retired",
+      "sha256": "17cc6517016e6996f65e2aeada17fee8affae26f92fa2672fff4ccaf06e8ad1b",
+      "lines": 338,
+      "status": "fully read at original path; parent renamed without content changes; post-rename hash verified; not executed"
+    },
+    {
+      "original_path": "_gen/gen_ef.py",
+      "current_path": "_gen/gen_ef.py.retired",
+      "sha256": "df989bb653541413db4e6e99802ef1fcb10bc4fb8bbeb35623a56a0814b91786",
+      "lines": 703,
+      "status": "fully read at original path; parent renamed without content changes; post-rename hash verified; not executed"
+    },
+    {
+      "original_path": "_gen/gen_enemies.py",
+      "current_path": "_gen/gen_enemies.py.retired",
+      "sha256": "a7cdeda85f3ecaa4233150886ec9576e5631175e101a9269d4c99d25d723ff17",
+      "lines": 220,
+      "status": "fully read at original path; parent renamed without content changes; post-rename hash verified; not executed"
+    },
+    {
+      "original_path": "_gen/gen_es.py",
+      "current_path": "_gen/gen_es.py.retired",
+      "sha256": "81639f3c760184792444ac1eb497e5f5b115ec88b736cf4dac9f853d7b335422",
+      "lines": 383,
+      "status": "fully read at original path; parent renamed without content changes; post-rename hash verified; not executed"
+    },
+    {
+      "original_path": "_gen/gen_items.py",
+      "current_path": "_gen/gen_items.py.retired",
+      "sha256": "dc9e9ce5e7f8b4a58860c92612275e42079737291ce8b34dc5a5a583deeb336e",
+      "lines": 157,
+      "status": "fully read at original path; parent renamed without content changes; post-rename hash verified; not executed"
+    },
+    {
+      "original_path": "_gen/gen_misc.py",
+      "current_path": "_gen/gen_misc.py.retired",
+      "sha256": "9ee98261ae531157431cb0566b23ab9d21b32988ab3618ba24da898b588c580f",
+      "lines": 91,
+      "status": "fully read at original path; parent renamed without content changes; post-rename hash verified; not executed"
+    },
+    {
+      "original_path": "_gen/gen_move.py",
+      "current_path": "_gen/gen_move.py.retired",
+      "sha256": "850b06d4b3ad11d1b7caeff307c5351b6be7a50f8b7a291cb8c6de2cca7f28a8",
+      "lines": 433,
+      "status": "fully read at original path; parent renamed without content changes; post-rename hash verified; not executed"
+    },
+    {
+      "original_path": "_gen/gen_stages.py",
+      "current_path": "_gen/gen_stages.py.retired",
+      "sha256": "6618d505159ac210c7fc9e0300c7e53d065ec18ebff6b158e6bafd63d3192023",
+      "lines": 407,
+      "status": "fully read at original path; parent renamed without content changes; post-rename hash verified; not executed"
+    },
+    {
+      "original_path": "_gen/gen_wb.py",
+      "current_path": "_gen/gen_wb.py.retired",
+      "sha256": "7904dfe0ec4fe5951fc77c48cf574402f5eee5a08fbb1a23c11d1893d088e7fe",
+      "lines": 466,
+      "status": "fully read at original path; parent renamed without content changes; post-rename hash verified; not executed"
+    },
+    {
+      "original_path": "_gen/implement_game_service.py",
+      "current_path": "_gen/implement_game_service.py.retired",
+      "sha256": "787b8b4b3e17a269989dc856fb1197426dbe1836240e7b94bcd1e95b9cc670d0",
+      "lines": 211,
+      "status": "fully read at original path; parent renamed without content changes; post-rename hash verified; not executed"
+    },
+    {
+      "original_path": "_gen/implement_stage_flow.py",
+      "current_path": "_gen/implement_stage_flow.py.retired",
+      "sha256": "461b4a6007f400bf7238426a02e0d6a0ae821b84b8a587b5516c02e211e4c028",
+      "lines": 130,
+      "status": "fully read at original path; parent renamed without content changes; post-rename hash verified; not executed"
+    },
+    {
+      "original_path": "_gen/implement_telemetry.py",
+      "current_path": "_gen/implement_telemetry.py.retired",
+      "sha256": "7ae1f60f3f5e92d969d14b374aa70dcc461215e7b3c03a489547a05faa52d37d",
+      "lines": 42,
+      "status": "fully read at original path; parent renamed without content changes; post-rename hash verified; not executed"
+    },
+    {
+      "original_path": "_gen/patch_gs.py",
+      "current_path": "_gen/patch_gs.py.retired",
+      "sha256": "a3a4e846d3a8df42fbeda3f732d062239a1818473e86b20753bdff50011267c7",
+      "lines": 307,
+      "status": "fully read at original path; parent renamed without content changes; post-rename hash verified; not executed"
+    },
+    {
+      "original_path": "_gen/repair_story.py",
+      "current_path": "_gen/repair_story.py.retired",
+      "sha256": "a1b6bd4f8e51b82540d1e72b29e761832435ba952b402b874b51ee7a8932abb2",
+      "lines": 16,
+      "status": "fully read at original path; parent renamed without content changes; post-rename hash verified; not executed"
+    },
+    {
+      "original_path": "_gen/split_run_context.py",
+      "current_path": "_gen/split_run_context.py.retired",
+      "sha256": "a0cf16c91a5311a669387e62d2594585213625081616197b2cf2be4a288c0ab0",
+      "lines": 54,
+      "status": "fully read at original path; parent renamed without content changes; post-rename hash verified; not executed"
+    },
+    {
+      "original_path": "_gen/update_readme.py",
+      "current_path": "_gen/update_readme.py.retired",
+      "sha256": "8dc9d2d55e9b8ea0d27c9ca2b3e9cbf2928b3437d70f1da7009adb092fab063b",
+      "lines": 56,
+      "status": "fully read at original path; parent renamed without content changes; post-rename hash verified; not executed"
+    }
+  ],
+  "total_lines": 4258,
+  "current_entrypoint_references": [],
+  "network_or_secrets": "No network request, credential, secret, or remote/client-callable execution path found in these scripts.",
+  "filesystem_deletion": "No Python deletion, recursive deletion, or move call found. Writes/copies overwrite existing source or reports without backups.",
+  "recommendation": "Retirement completed for all 22 scripts. Retain as noncanonical historical text; current tooling is described in the fully read _gen/README.md. Explicit Python invocation can still execute retired text; this is operational quarantine, not a security sandbox.",
+  "retirement_verified_utc": "2026-09-05T07:00:27.176046+00:00",
+  "retirement_complete": true
+}

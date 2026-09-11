@@ -26,8 +26,8 @@ local list: { ItemDef } = {
 		statText="+Move Speed", hpBonus=0, damageBonus=0, speedBonus=2, luckBonus=0, dodgeBonus=0.05, healOnPickup=0, special="" },
 	{ id="CrackedVisor", name="Cracked Visor", description="Blocks 40% of glare and 0% of bad decisions.", rarity="Common", inscription="HEROIC",
 		statText="+HP", hpBonus=15, damageBonus=0, speedBonus=0, luckBonus=0, dodgeBonus=0, healOnPickup=0, special="" },
-	{ id="LiveBait", name="Live Bait", description="Enemies get interested. You get openings.", rarity="Common", inscription="FERAL",
-		statText="+Damage", hpBonus=0, damageBonus=3, speedBonus=0, luckBonus=0, dodgeBonus=0, healOnPickup=0, special="aggro" },
+	{ id="LiveBait", name="Live Bait", description="Fresh bait. Suspiciously effective when you swing first.", rarity="Common", inscription="FERAL",
+		statText="+Damage", hpBonus=0, damageBonus=3, speedBonus=0, luckBonus=0, dodgeBonus=0, healOnPickup=0, special="" },
 	{ id="ExpiredSunscreen", name="Expired Sunscreen", description="Sticky armor. SPF: emotional.", rarity="Common", inscription="HUMID",
 		statText="+HP, slight slow", hpBonus=20, damageBonus=0, speedBonus=-1, luckBonus=0, dodgeBonus=0, healOnPickup=0, special="" },
 	{ id="IHeartFLShirt", name="I♥FL Shirt", description="Tourist camouflage. +swagger.", rarity="Rare", inscription="CHAOS",
@@ -49,29 +49,29 @@ local list: { ItemDef } = {
 	{ id="RadioCollar", name="Radio Collar", description="GulfGulp tracking tech. Proof gators are science experiments.", rarity="Unique", inscription="GREASY",
 		statText="+Damage vs Oil Gators", hpBonus=5, damageBonus=3, speedBonus=0, luckBonus=0, dodgeBonus=0, healOnPickup=0, special="radio" },
 	{ id="SpillAbsorbent", name="Spill Absorbent", description="Pads that drink sludge so turtles don't have to.", rarity="Unique", inscription="HEROIC",
-		statText="+Resist oil spit", hpBonus=15, damageBonus=0, speedBonus=0, luckBonus=0, dodgeBonus=0.05, healOnPickup=0, special="absorb" },
+		statText="+15 HP, 25% less incoming damage, shorter dodge cooldown", hpBonus=15, damageBonus=0, speedBonus=0, luckBonus=0, dodgeBonus=0.05, healOnPickup=0, special="absorb" },
 	{ id="LabBadge", name="Lab Badge", description="GulfGulp Energy — TEMPORARY. Very temporary.", rarity="Legendary", inscription="GREASY",
 		statText="+HP +Damage (badge privilege)", hpBonus=20, damageBonus=6, speedBonus=1, luckBonus=0.1, dodgeBonus=0, healOnPickup=0, special="badge" },
 	{ id="SeashellShield", name="Seashell Shield", description="Borrowed from a hermit. Refund denied.", rarity="Common", inscription="HEROIC",
-		statText="+HP + slight knock resist", hpBonus=18, damageBonus=0, speedBonus=0, luckBonus=0, dodgeBonus=0.03, healOnPickup=0, special="" },
+		statText="+18 HP, 3% shorter dodge cooldown", hpBonus=18, damageBonus=0, speedBonus=0, luckBonus=0, dodgeBonus=0.03, healOnPickup=0, special="" },
 	{ id="MosquitoNet", name="Mosquito Net Cape", description="Fashionable. Buzz-proof-ish.", rarity="Common", inscription="HUMID",
-		statText="+Dodge", hpBonus=5, damageBonus=0, speedBonus=1, luckBonus=0, dodgeBonus=0.08, healOnPickup=0, special="" },
+		statText="+5 HP, +speed, 8% shorter dodge cooldown", hpBonus=5, damageBonus=0, speedBonus=1, luckBonus=0, dodgeBonus=0.08, healOnPickup=0, special="" },
 	{ id="PelicanWhistle", name="Pelican Whistle", description="Captain Steve merch. Summons confidence.", rarity="Rare", inscription="LUCKY",
 		statText="+Luck +Damage", hpBonus=0, damageBonus=2, speedBonus=0, luckBonus=0.12, dodgeBonus=0, healOnPickup=0, special="" },
 	{ id="MustardPacket", name="Industrial Mustard", description="From the runaway cart. Greasy power.", rarity="Common", inscription="GREASY",
 		statText="+Damage", hpBonus=0, damageBonus=4, speedBonus=0, luckBonus=0, dodgeBonus=0, healOnPickup=8, special="" },
 	{ id="RedTideFilter", name="Red Tide Filter Mask", description="Looks ridiculous. Works anyway.", rarity="Rare", inscription="HEROIC",
-		statText="+HP vs blobs", hpBonus=22, damageBonus=0, speedBonus=0, luckBonus=0, dodgeBonus=0, healOnPickup=0, special="absorb" },
+		statText="+22 HP, 25% less incoming damage", hpBonus=22, damageBonus=0, speedBonus=0, luckBonus=0, dodgeBonus=0, healOnPickup=0, special="absorb" },
 	{ id="CondoPass", name="Stolen Condo Pass", description="Access to nowhere useful. +chaos.", rarity="Unique", inscription="CHAOS",
 		statText="+Speed +Luck", hpBonus=0, damageBonus=0, speedBonus=3, luckBonus=0.1, dodgeBonus=0.04, healOnPickup=0, special="" },
 	{ id="JetSkiKey", name="Jet Ski Key", description="Ignition for bad decisions.", rarity="Rare", inscription="CHAOS",
-		statText="+Speed +Dodge", hpBonus=0, damageBonus=1, speedBonus=4, luckBonus=0, dodgeBonus=0.06, healOnPickup=0, special="" },
+		statText="+speed, +damage, 6% shorter dodge cooldown", hpBonus=0, damageBonus=1, speedBonus=4, luckBonus=0, dodgeBonus=0.06, healOnPickup=0, special="" },
 	{ id="CypressCharm", name="Cypress Knee Charm", description="Swamp luck carved wrong on purpose.", rarity="Common", inscription="FERAL",
 		statText="+Damage +HP", hpBonus=8, damageBonus=2, speedBonus=0, luckBonus=0, dodgeBonus=0, healOnPickup=0, special="" },
 	{ id="BonfireEmber", name="Bonfire Ember", description="Still warm from the hub. Dodge fans the coals.", rarity="Rare", inscription="FERAL",
 		statText="+Damage after dodge", hpBonus=0, damageBonus=5, speedBonus=0, luckBonus=0, dodgeBonus=0.02, healOnPickup=0, special="ember" },
-	{ id="TurtleSnack", name="Turtle Snack Pack", description="For turtles. You may have one crumb.", rarity="Common", inscription="HEROIC",
-		statText="Heal + turtle empathy", hpBonus=0, damageBonus=0, speedBonus=0, luckBonus=0.05, dodgeBonus=0, healOnPickup=20, special="" },
+	{ id="TurtleSnack", name="Turtle Snack Pack", description="For turtles. You may have one crumb.", rarity="Common", inscription="LUCKY",
+		statText="Heal 20 HP, +luck", hpBonus=0, damageBonus=0, speedBonus=0, luckBonus=0.05, dodgeBonus=0, healOnPickup=20, special="" },
 	{ id="OilProofBoots", name="Oil-Proof Boots", description="Slick floors hate these.", rarity="Unique", inscription="GREASY",
 		statText="+Speed +HP, absorb hits", hpBonus=12, damageBonus=0, speedBonus=2, luckBonus=0, dodgeBonus=0.05, healOnPickup=0, special="absorb" },
 	{ id="HeadlinePressPass", name="Headline Press Pass", description="BREAKING: you are the story.", rarity="Legendary", inscription="CHAOS",
@@ -91,7 +91,7 @@ Items.SetBonuses = {
 	FERAL = { name = "Bite Back", text = "+12% damage", damageBonus = 0.12 },
 	LUCKY = { name = "Pelican Favor", text = "+better draft rarity", luckBonus = 0.2 },
 	GREASY = { name = "Deep Fry Defense", text = "+15 HP, oil resist (milder slicks / half oil hazard dmg)", hpBonus = 15, special = "oilResist" },
-	HEROIC = { name = "Turtle Oath", text = "+heal ~2 HP on hit", special = "lifesteal" },
+	HEROIC = { name = "Turtle Oath", text = "Heal 6% of damage actually dealt", special = "lifesteal" },
 	CHAOS = { name = "Headline Energy", text = "+8% damage", damageBonus = 0.08 },
 }
 
@@ -103,8 +103,11 @@ function Items.Count(): number
 	return #list
 end
 
-function Items.RollDraft(rng: Random, luck: number, count: number): { ItemDef }
-	local pool = table.clone(list)
+function Items.RollDraft(rng: Random, luck: number, count: number, owned: {string}?): { ItemDef }
+	local pool = {}
+	for _, item in list do
+		if not owned or not table.find(owned, item.id) then table.insert(pool, item) end
+	end
 	local picks = {}
 	local n = math.min(count, #pool)
 	for _ = 1, n do

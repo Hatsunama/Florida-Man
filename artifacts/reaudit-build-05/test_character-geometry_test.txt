@@ -1,0 +1,1 @@
+PASS: R6/R15/scaled standing geometry

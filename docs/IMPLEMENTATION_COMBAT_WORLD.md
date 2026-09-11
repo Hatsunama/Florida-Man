@@ -1,0 +1,55 @@
+# Combat and world implementation record — 2026-09-04
+
+Scope: the assigned W0 repairs, combat/enemy/hazard portions of W4/W6, and layout/checkpoint portions of W7. The root implementation owns run phases, solo admission, session generation, stage objectives, progression, finale, build validation, and campaign/balance exports. The client implementation owns controls, motion integration, animation, accessibility, and small popup text. This record describes source changes and headless evidence; it is not a Studio playtest report.
+
+## W0 — compiler and boss cleanup
+
+- Replaced the reserved `until` local by the hazard rewrite.
+- Defined Spillfather slick-ring phase behavior. Phase selection evaluates current HP directly, including a hit crossing both thresholds.
+- Lethal damage removes the hostile from the registry before phase/presentation work. Kills return accepted/applied/killed results. Completion callbacks run before model destruction; callback failures warn visibly and cleanup still occurs. Those callbacks remain responsible for their own domain transaction and recovery.
+- Removed unsafe enemy and telegraph pooling. Models are destroyed at death/clear; no zero-HP Humanoid, stale attribute, or delayed release can be reused as a new enemy.
+
+Audit after this stage: the missing phase function no longer sits before lethal cleanup. The root compiler run reported 48/48 source files passing at that checkpoint. Later source additions require the latest root validation artifacts, not that historical count.
+
+## W6 — action and damage rules
+
+- `CombatService` owns attack/cancel/skill/swap/dodge eligibility timestamps and exposes `ResetPlayer`. Skill, swap, and dodge check the accepted cancel window and then start their own recovery. Facing intent is accepted with each action and restricted to ±1.
+- Combo grace starts after the previous accepted recovery end. Slow weapon/persona combinations can reach the second and third attacks. Declarative action tables moved to pure `shared/Movesets.lua`; the simulation and root balance exporter use that same table.
+- Melee, beam, area, dash, and lingering attacks check X/Y/Z extents and collidable-world obstruction. Dash uses a swept character box, respects locked collision geometry, and hits once along its traveled segment. Anchored enemy knockback remains horizontal and stops at collision geometry.
+- Projectiles sweep subdivided portions of their rendered trajectory and sort contacts from near to far. Obstacles limit eligible contacts, ranged pierce is bounded, and allies/removed/dead actors are excluded. A feet-relative muzzle reaches small grounded crab/snake hitboxes; jumping raises both the visible shot and its collision path.
+- Damage returns actual accepted damage. Overkill cannot create excess healing, and rejected targets do not receive secondary effects. Net mechanics are named in the weapon definition, root and interrupt nonboss enemies, and are independent of visual IDs. Foam/fire bonus is likewise an explicit mechanical field.
+- Player feedback is scoped to the acting player. Delayed cancel/shield/dodge/cart events, projectiles, and lingering attacks check their stage generation and/or original character/run owner. Client hitstop is visual; it does not own server physics.
+
+Audit after this stage: all three owned pure test entrypoints passed through root validation. A final review found and repaired the flat-projectile muzzle-height regression, then added a low-crab-hit and jumping-shot fixture. The latest tests print 20 combat assertions and 8 movement-envelope assertions; use root's final validation report for their final executed result.
+
+## W6 — enemy and hazard ownership
+
+- Enemy windup captures generation, attack revision, living target, and target character. Flinch and net root increment the revision, interrupting windup; hyperarmor explicitly resists ordinary flinch. Clear destroys zones and cancels pending work by generation.
+- The visible telegraph Parts are the damage volumes, with body/feet overlap and obstruction checks. Attack acquisition uses actual physical distance after aggro target selection. Enemy-created oil puddles enter the hazard registry and therefore apply their advertised slow.
+- One active-hostile cap covers ordinary spawns and reinforcements. Unmet wave demand queues; `GetPendingCount`/`GetOutstandingCount` prevent clearing an encounter while requested enemies are waiting. Summons respect active plus pending demand instead of adding an unbounded backlog. Clear discards old demand.
+- Active targets and turtle rescues require a living participant with `RunActive`. Turtle rescue also checks distance and obstruction, commits the rescued flag and registry removal before optional visuals, and remains idempotent.
+- `shared/HazardDefinitions.lua` owns damage, cadence, resistance, slow, and continuous-force rules. WorldBuilder supplies geometry/appearance; boss phase intentionally overrides the slick ring cadence. HazardService binds one registry to the current world and listens for additions/removals, replacing per-player whole-world descendant scans.
+- Hazard overlap uses X/Z shape extents plus character feet/head Y. Overlapping forces combine once into a bounded result. Continuous movement publishes character `ExternalVelocityX`, `ExternalVelocityY`, and `ExternalMotionUntil` using server time; Y is a velocity contribution. Pads/pipe bursts use `ImpulseY` plus `ImpulseRevision`. Physics authority stays with the agreed movement controller contract.
+- Removed server-generated audio from the owned files. Enemy descriptions no longer promise absent attacks/phase systems or sound cues. Server telegraphs publish semantic geometry while the client applies each player's accessibility preference.
+
+Audit after this stage: there is no lazy EnemyService/CombatService require cycle; an explicit provider supplies the enemy query interface. There is no live-model/telegraph pool. Factory animation caches rig descendants, clears its cache on destruction, and uses one revision-checked hit-flash restore. Imported rigs receive an explicit root collider, bounded definition size, and whole-model placement; imported art still requires visual alignment acceptance.
+
+## W4/W7 — safe traversal and supported endpoints
+
+- Pure `shared/LayoutPlan.lua` partitions the fixed interval from -10 through stage length +20. Gaps consume part of that interval rather than shortening the route. Optional gaps are capped at six studs and avoided around start, exit, midroom, wave spawn, miniboss, and rescue reservations.
+- WorldBuilder realizes the spans and adds a `LayoutManifest` with start, exit, maximum gap, and supported/gap intervals. The root campaign exporter adds actual catalog encounter/objective data for all 20 stages and the hub.
+- Checkpoints require two upward-facing floor supports, low vertical velocity, clear body space, and no hazard overlap. Decorative/noncolliding parts and enemy hitboxes cannot become safe support. Soft fall revalidates the saved support and body space, falls back to the reserved spawn if needed, resets internal motion by revision, and grants a short recovery iframe.
+- Server motion validation checks world bounds, finite coordinates, collidable obstruction, per-sample movement, and a 0.35-second aggregate displacement window. Repeated small excess motion cannot continually obtain a fresh per-frame allowance. Corrections reset velocity and increment `MotionResetRevision`; they do not kick the player. A changed trusted teleport deadline is consumed once, rather than exempting movement for its full second.
+- Explicit actor/generation/reset revisions let trusted teleports and swept dash replace the movement baseline. Root runs this correction before progression/pickup checks and owns objective completion predicates.
+
+Audit after this stage: pure layout tests cover actual stage lengths, both gap modes, continuous partitions, start/exit support, bounded gaps, and reservations. The layout is deliberately conservative: canal stages have safe landings, water timeout and pads; this source change does not prove pad-only traversal or every legal build's route reachability.
+
+## Verification and acceptance still requiring the engine
+
+The owned deterministic fixtures are `tests/combat-geometry.test.luau`, `tests/movement-envelope.test.luau`, and `tests/layout-plan.test.luau`. They exercise production pure modules. Root runs official Luau compilation, Roblox-aware type analysis, these tests, full build checks, and the executable catalog exporter sequentially. No local browser, Studio, or memory-heavy build was run by this worker.
+
+Final connection check: WorldBuilder and `scripts/export_catalog.py` now both call `LayoutPlan.ForStage`; the exporter no longer substitutes different gap selection or landing reservations. Turtle reservations use the actual `length * (0.2 + 0.12 * i)` spawn formula. The executed exporter passed 194 support assertions across all 21 stage definitions, plus ordered, continuous route and bounded-gap checks. Wave checks cover the authored landing reservation, not every dynamic player-relative spawn/jitter position. Exported inventory bounds now appear in numerical slot order.
+
+Final tutorial connection check (F43): removed the unused client `TutorialBeat` claim channel and its server listener. Server observation now runs after HazardService for a ready character in the hub or active stage. A per-player sample is replaced on character/session/tutorial/reset/teleport/impulse changes and removed after movement+jump completion or player removal. It observes four studs of movement and a grounded-to-rising jump, excludes external launch impulses, and does not infer player input or successful attack avoidance. Accepted attack already advances its tutorial beat; the accepted-dodge handler now calls `OnDodgeAccepted`, replacing the inaccurate telegraph-specific name/flag. Hub-only bonfire guidance is not shown after an in-stage jump. All three changed Luau files compiled, targeted TutorialService Roblox-aware analysis reported no TypeErrors, and the source scan found no old tutorial remote/method/flag references. Actual avatar jump observation still needs engine acceptance.
+
+Engine acceptance must still check: legal movement/replication bursts versus correction, floor/body-clearance queries on actual avatars, wall and low-target projectile contacts, thrown-arc hit opportunities, jump avoidance against every telegraph, net/flinch interruption and hyperarmor, summon pressure at the cap, dash near gates/gaps, water/pad timing, twenty-stage repeated lifecycle cleanup, and imported-model visual/collider alignment. The balance export describes accepted-hit theoretical damage, not measured hit accuracy or encounter time. Procedural silhouettes and short popup readability require screenshots/device checks; no-audio correctness does not establish those visual results. Parent/client reports own the necessary conversation queue and finale acceptance.

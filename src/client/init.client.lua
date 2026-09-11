@@ -1,243 +1,179 @@
 --!strict
---[[ Florida Man — client entry ]]
-
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Debris = game:GetService("Debris")
-local TweenService = game:GetService("TweenService")
-
-local Shared = ReplicatedStorage:WaitForChild("Shared", 30)
-assert(Shared, "Shared missing — connect Rojo")
-
-local Remotes = require(Shared:WaitForChild("Remotes"))
-
-local Controllers = script:WaitForChild("Controllers")
-local UI = script:WaitForChild("UI")
-
-local InputController = require(Controllers:WaitForChild("InputController"))
-local CameraController = require(Controllers:WaitForChild("CameraController"))
-local MovementController = require(Controllers:WaitForChild("MovementController"))
-local VFX = require(Controllers:WaitForChild("VFX"))
-local HUD = require(UI:WaitForChild("HUD"))
-local Newspaper = require(UI:WaitForChild("Newspaper"))
-local ItemDraft = require(UI:WaitForChild("ItemDraft"))
-local Credits = require(UI:WaitForChild("Credits"))
-local Tagline = require(UI:WaitForChild("Tagline"))
-local CaptainSteveUI = require(UI:WaitForChild("CaptainSteveUI"))
-local MobileControls = require(UI:WaitForChild("MobileControls"))
-local LoadingGui = require(UI:WaitForChild("LoadingGui"))
-local TutorialController = require(Controllers:WaitForChild("TutorialController"))
-local AnimController = require(Controllers:WaitForChild("AnimController"))
-local AudioDirector = require(Controllers:WaitForChild("AudioDirector"))
-local Settings = require(Shared:WaitForChild("Settings"))
-
-Settings.EnsureDefaults(Players.LocalPlayer)
-AudioDirector.Start()
-LoadingGui.Init()
-HUD.Init()
-AnimController.Start()
-MovementController.Start()
-CameraController.Start()
-InputController.BindMovement(MovementController)
-InputController.Start()
-MobileControls.Init(InputController)
-TutorialController.Start()
-Newspaper.BindInput(InputController)
-ItemDraft.BindInput(InputController)
-
+-- Client composition owns presentation and intent. Server snapshots own progression and permissions.
+local Players=game:GetService("Players")
+local ReplicatedStorage=game:GetService("ReplicatedStorage")
+local Debris=game:GetService("Debris")
+local TweenService=game:GetService("TweenService")
+local StarterGui=game:GetService("StarterGui")
+-- Hide duplicate gameplay overlays; retain the Roblox menu and platform controls.
+task.spawn(function()
+ for _=1,8 do
+  local ok=pcall(function()
+   for _,kind in {Enum.CoreGuiType.Chat,Enum.CoreGuiType.PlayerList,Enum.CoreGuiType.Health,Enum.CoreGuiType.Backpack} do
+    StarterGui:SetCoreGuiEnabled(kind,false)
+   end
+  end)
+  if ok then return end
+  task.wait(0.25)
+ end
+end)
+local Shared=ReplicatedStorage:WaitForChild("Shared")
+local Remotes=require(Shared:WaitForChild("Remotes"))
+local Settings=require(Shared:WaitForChild("Settings"))
+local Stages=require(Shared:WaitForChild("Stages"))
+local Controllers=script:WaitForChild("Controllers")
+local UI=script:WaitForChild("UI")
+local Silence=require(Controllers:WaitForChild("SilenceController"))
+Silence.Start()
+local Input=require(Controllers:WaitForChild("InputController"))
+local Camera=require(Controllers:WaitForChild("CameraController"))
+local Movement=require(Controllers:WaitForChild("MovementController"))
+local Anim=require(Controllers:WaitForChild("AnimController"))
+local Presentation=require(Controllers:WaitForChild("PresentationState"))
+local Accessibility=require(Controllers:WaitForChild("AccessibilityController"))
+local Equipment=require(Controllers:WaitForChild("EquipmentController"))
+local VFX=require(Controllers:WaitForChild("VFX"))
+local HUD=require(UI:WaitForChild("HUD"))
+local Newspaper=require(UI:WaitForChild("Newspaper"))
+local Draft=require(UI:WaitForChild("ItemDraft"))
+local Credits=require(UI:WaitForChild("Credits"))
+local Tagline=require(UI:WaitForChild("Tagline"))
+local Steve=require(UI:WaitForChild("CaptainSteveUI"))
+local Mobile=require(UI:WaitForChild("MobileControls"))
+local Loading=require(UI:WaitForChild("LoadingGui"))
+local player=Players.LocalPlayer
+local hasState=false
+local lastGeneration: number?=nil
+local lastVersion=-1
+Settings.EnsureDefaults(player)
+Loading.Init()
+HUD.Init(Input)
+Anim.Start()
+Movement.Start()
+Camera.Start()
+Input.BindMovement(Movement)
+Input.Start()
+Mobile.Init(Input)
+Accessibility.Start()
+Equipment.Start()
+local function ready()
+ local char=player.Character
+ local root=char and char:FindFirstChild("HumanoidRootPart")
+ local state=Presentation.Get()
+ if hasState and state and state.characterReady==true and state.phase~="Loading" and root and root:IsA("BasePart") then Loading.Ready() end
+end
 Remotes.Get("StateUpdate").OnClientEvent:Connect(function(state)
-	HUD.Update(state)
-	CaptainSteveUI.SetState(state)
-	if state then
-		InputController.SyncAttackReady(state.attackReadyAt, state.serverNow, nil)
-		InputController.SetWeaponState(state.weaponId, state.unlockedWeapons)
-		if typeof(state.personas) == "table" and typeof(state.activePersona) == "number" then
-			local pid = state.personas[state.activePersona]
-			if typeof(pid) == "string" then
-				AnimController.SetPersona(pid)
-			end
-		end
-		if state.moveSpeed then
-			MovementController.SetBaseSpeed(state.moveSpeed)
-		end
-		MovementController.SetHangover(state.hangoverActive == true)
-	end
+ if typeof(state)~="table" then return end
+ if typeof(state.generation)=="number" and lastGeneration and state.generation<lastGeneration then return end
+ if state.generation==lastGeneration and typeof(state.stateVersion)=="number" and state.stateVersion<=lastVersion then return end
+ if typeof(state.stateVersion)=="number" then lastVersion=state.stateVersion end
+ if lastGeneration~=state.generation then
+  lastGeneration=state.generation
+  local stage=Stages.Get(state.stageId)
+  Camera.Reset(if stage then stage.length else nil)
+  Tagline.SetGeneration(state.generation,state.phase)
+  Newspaper.Close()
+  Credits.Close()
+ end
+ Presentation.Update(state)
+ if typeof(state.settings)=="table" then
+  for _,key in Settings.BOOL_KEYS do
+   if typeof(state.settings[key])=="boolean" then Settings.SetBool(player,key,state.settings[key]) end
+  end
+  if typeof(state.settings.TextSpeed)=="string" then Settings.SetTextSpeed(player,state.settings.TextSpeed) end
+ end
+ Input.SetState(state)
+ HUD.Update(state)
+ Steve.SetState(state)
+ Draft.Update(state)
+ if state.awaitingNewspaper==false then Newspaper.Close() end
+ if state.phase~="Ending" then Credits.Close() end
+ local persona=(state.personas or {})[state.activePersona or 1]
+ if typeof(persona)=="string" then Anim.SetPersona(persona) end
+ hasState=true
+ ready()
 end)
-
-Remotes.Get("Toast").OnClientEvent:Connect(function(text)
-	HUD.Toast(tostring(text))
+Remotes.Get("Toast").OnClientEvent:Connect(function(text) if typeof(text)=="string" then HUD.Toast(text) end end)
+Remotes.Get("ShowTagline").OnClientEvent:Connect(function(value,speaker) Tagline.Show(value,speaker) end)
+Remotes.Get("ShowNewspaper").OnClientEvent:Connect(Newspaper.Show)
+Remotes.Get("ShowDraft").OnClientEvent:Connect(function(offer) Newspaper.Close(); Draft.Show(offer) end)
+Remotes.Get("ShowCredits").OnClientEvent:Connect(Credits.Show)
+Remotes.Get("OpenShop").OnClientEvent:Connect(function() Steve.Open() end)
+Remotes.Get("StageLoaded").OnClientEvent:Connect(function(stageId)
+ local stage=Stages.Get(stageId)
+ Camera.Reset(if stage then stage.length else nil)
+ Newspaper.Close()
+ Credits.Close()
 end)
-
-Remotes.Get("ShowNewspaper").OnClientEvent:Connect(function(payload)
-	Newspaper.Show(payload)
+Remotes.Get("CommandResult").OnClientEvent:Connect(function(result)
+ if typeof(result)~="table" then return end
+ Newspaper.Result(result); Draft.Result(result); Steve.Result(result); Credits.Result(result); Input.Result(result)
+ if result.accepted==false and result.command~="ContinueFromNewspaper" and result.command~="PickDraftItem"
+  and result.command~="EquipPersona" and result.command~="SmashPersona" and result.command~="UpgradePersona" and result.command~="DismissCredits" then
+  HUD.Toast(result.reason or "That action is unavailable right now.")
+ end
 end)
-
-Remotes.Get("ShowDraft").OnClientEvent:Connect(function(picks)
-	ItemDraft.Show(picks)
+-- Bounded visual damage labels. They never intercept movement or query casts.
+local damageLabels=0
+Remotes.Get("DamageNumber").OnClientEvent:Connect(function(pos,amount,isPlayer)
+ if typeof(pos)~="Vector3" or typeof(amount)~="number" or amount~=amount or damageLabels>=18 then return end
+ damageLabels+=1
+ local part=Instance.new("Part")
+ part.Name="FM_DamageText"; part.Anchored=true; part.CanCollide=false; part.CanQuery=false; part.CanTouch=false; part.Transparency=1
+ part.Size=Vector3.one; part.Position=pos+Vector3.new(0,3,0); part.Parent=workspace
+ local bb=Instance.new("BillboardGui")
+ bb.Size=UDim2.fromOffset(80,40); bb.AlwaysOnTop=true; bb.Adornee=part; bb.Parent=part
+ local label=Instance.new("TextLabel")
+ label.Size=UDim2.fromScale(1,1); label.BackgroundTransparency=1; label.Font=Enum.Font.GothamBold
+ label.TextSize=if Settings.GetBool(player,"LargeText") then 22 else 18
+ label.TextColor3=if isPlayer then Color3.fromRGB(255,240,230) else Color3.fromRGB(255,220,80)
+ label.TextStrokeTransparency=0.4; label.Text=tostring(math.floor(amount)); label.Parent=bb
+ if not Settings.IsReduceMotion(player) then TweenService:Create(part,TweenInfo.new(0.6),{Position=part.Position+Vector3.new(0,2,0)}):Play() end
+ part.Destroying:Once(function() damageLabels-=1 end)
+ Debris:AddItem(part,0.65)
 end)
-
-Remotes.Get("ShowTagline").OnClientEvent:Connect(function(text, speaker)
-	Tagline.Show(tostring(text), speaker)
+Remotes.Get("CombatEvent").OnClientEvent:Connect(function(event)
+ if typeof(event)~="table" then return end
+ local kind=event.kind
+ if kind=="shake" then Camera.Shake(event.amount or 0.4,0.18); return end
+ if kind=="focus" then if typeof(event.pos)=="Vector3" then Camera.Focus(event.pos,event.duration) end; return end
+ if kind=="arenaLock" then if typeof(event.pos)=="Vector3" then Camera.LockArena(event.pos) end; HUD.Toast("Clear the room to open the gate."); return end
+ if kind=="arenaUnlock" then Camera.UnlockArena(event.pos); HUD.Toast("Room clear."); return end
+ if kind=="cancelWindow" then HUD.FlashCancel(tostring(event.label or "Swap cancel ready")); return end
+ if kind=="hitConnect" then
+  Anim.Hitstop(event.hitstop or 0.04)
+  if typeof(event.pos)=="Vector3" then VFX.HitSpark(event.pos,event.heavy==true) end
+  Camera.Shake(event.amount or 0.3,0.14)
+  return
+ end
+ if kind=="attack" then Input.AcceptAttack(event) end
+ if kind=="dodge" then Input.AcceptDodge(event); return end
+ local char=player.Character
+ local root=char and char:FindFirstChild("HumanoidRootPart")
+ if not root or not root:IsA("BasePart") then return end
+ local facing=if typeof(event.facing)=="number" then event.facing else Movement.GetFacing()
+ if kind=="attack" then Movement.LockFacing(facing,0.2)
+ elseif kind=="skill" then Anim.PlaySkill(); VFX.SkillPattern(root,tostring(event.skillKind or "aoe"),facing); Camera.Shake(0.35,0.18)
+ elseif kind=="swap" then
+  if typeof(event.personaId)=="string" then Anim.SetPersona(event.personaId) end
+  Anim.PlaySwap()
+  local color=Color3.fromRGB(255,160,40)
+  if typeof(event.color)=="table" and #event.color==3 then color=Color3.new(event.color[1],event.color[2],event.color[3]) end
+  VFX.SwapBurst(root,color)
+  if event.punish then HUD.FlashPunish() end
+  Camera.Shake(0.3,0.15)
+ elseif kind=="hit" then Camera.Shake(0.45,0.2) end
 end)
-
-Remotes.Get("ShowCredits").OnClientEvent:Connect(function(payload)
-	Credits.Show(payload)
+player.CharacterAdded:Connect(function(char)
+ local root=char:WaitForChild("HumanoidRootPart",10)
+ if player.Character==char and root then ready() end
 end)
-
-Remotes.Get("StageLoaded").OnClientEvent:Connect(function(stageId, name)
-	HUD.Toast("Stage: " .. tostring(name))
-	TutorialController.ResetForStage(tostring(stageId))
-	task.defer(function()
-		AudioDirector.SyncBiomeFromWorld()
-	end)
+-- Listener registration precedes handshake, so loading and initial UI use real snapshot readiness.
+local function hello()
+ Remotes.Get("ClientReady"):FireServer({cohort=Input.GetCohort()})
+end
+hello()
+task.spawn(function()
+ while not hasState do task.wait(2); if not hasState then hello() end end
 end)
-
-Remotes.Get("PlaySound").OnClientEvent:Connect(function(soundName: string)
-	AudioDirector.PlayFromWorld(tostring(soundName))
-end)
-
-Remotes.Get("DamageNumber").OnClientEvent:Connect(function(pos: Vector3, amount: number, _isPlayer: boolean?)
-	local part = Instance.new("Part")
-	part.Anchored = true
-	part.CanCollide = false
-	part.Transparency = 1
-	part.Size = Vector3.new(1, 1, 1)
-	part.Position = pos + Vector3.new(0, 3, 0)
-	part.Parent = workspace
-	local bb = Instance.new("BillboardGui")
-	bb.Size = UDim2.fromOffset(80, 40)
-	bb.AlwaysOnTop = true
-	bb.Parent = part
-	local t = Instance.new("TextLabel")
-	t.Size = UDim2.fromScale(1, 1)
-	t.BackgroundTransparency = 1
-	t.Font = Enum.Font.GothamBold
-	t.TextScaled = true
-	t.TextColor3 = Color3.fromRGB(255, 220, 80)
-	t.TextStrokeTransparency = 0.3
-	t.Text = tostring(amount)
-	t.Parent = bb
-	TweenService:Create(part, TweenInfo.new(0.7), { Position = part.Position + Vector3.new(0, 4, 0) }):Play()
-	Debris:AddItem(part, 0.75)
-end)
-
-Remotes.Get("CombatEvent").OnClientEvent:Connect(function(ev)
-	if typeof(ev) ~= "table" then
-		return
-	end
-	local player = Players.LocalPlayer
-	local char = player.Character
-	local hrp = char and char:FindFirstChild("HumanoidRootPart") :: BasePart?
-	if ev.kind == "shake" then
-		CameraController.Shake(ev.amount or 0.4, 0.18)
-		return
-	end
-	if ev.kind == "focus" then
-		if typeof(ev.pos) == "Vector3" then
-			CameraController.Focus(ev.pos, ev.duration or 0.36)
-		end
-		CameraController.Shake(ev.amount or 0.3, 0.14)
-		return
-	end
-	if ev.kind == "arenaLock" then
-		if typeof(ev.pos) == "Vector3" then
-			CameraController.LockArena(ev.pos)
-		end
-		HUD.Toast("ROOM LOCKED")
-		return
-	end
-	if ev.kind == "arenaUnlock" then
-		if typeof(ev.pos) == "Vector3" then
-			CameraController.UnlockArena(ev.pos)
-		end
-		HUD.Toast("★ ROOM CLEAR ★")
-		return
-	end
-	if ev.kind == "hitConnect" then
-		-- Every connect: hitstop + spark + shake (never on empty swings)
-		MovementController.Hitstop(ev.hitstop)
-		if typeof(ev.pos) == "Vector3" then
-			VFX.HitSpark(ev.pos, ev.heavy == true)
-		end
-		CameraController.Shake(ev.amount or 0.4, if ev.heavy then 0.22 else 0.14)
-		return
-	end
-	if ev.kind == "cancelWindow" then
-		HUD.FlashCancel(tostring(ev.label or "cancel"))
-		return
-	end
-	if ev.kind == "attack" then
-		InputController.SyncAttackReady(ev.attackReadyAt, ev.serverNow, ev.recovery)
-	end
-	if not hrp then
-		return
-	end
-	if ev.kind == "attack" then
-		local facing = ev.facing or MovementController.GetFacing()
-		MovementController.LockFacing(facing, 0.25)
-	elseif ev.kind == "skill" then
-		local facing = ev.facing or MovementController.GetFacing()
-		AnimController.PlaySkill()
-		VFX.SkillPattern(hrp, tostring(ev.skillKind or "aoe"), facing)
-		HUD.Toast(tostring(ev.skill or "Skill") .. "!")
-		CameraController.Shake(0.55, 0.22)
-		MovementController.Hitstop(0.05)
-	elseif ev.kind == "dodge" then
-		-- trail already from MovementController
-	elseif ev.kind == "swap" then
-		local col = Color3.fromRGB(255, 160, 40)
-		if typeof(ev.color) == "table" and ev.color[1] then
-			col = Color3.new(ev.color[1], ev.color[2], ev.color[3])
-		end
-		if ev.punish then
-			col = Color3.fromRGB(255, 80, 60)
-			HUD.FlashPunish()
-		end
-		if typeof(ev.personaId) == "string" then
-			AnimController.SetPersona(ev.personaId)
-		end
-		VFX.SwapBurst(hrp, col)
-		AnimController.PlaySwap()
-		CameraController.Shake(if ev.punish then 0.55 else 0.35, if ev.punish then 0.22 else 0.16)
-		MovementController.Hitstop(if ev.punish then 0.06 else 0.04)
-	elseif ev.kind == "hit" then
-		HUD.Toast("Ouch! -" .. tostring(ev.damage))
-		CameraController.Shake(0.65, 0.25)
-	end
-end)
-
--- Open Steve upgrade panel only on intentional interact (prompt / E), not stage taglines
-local ProximityPromptService = game:GetService("ProximityPromptService")
-ProximityPromptService.PromptTriggered:Connect(function(prompt, plr)
-	if plr ~= Players.LocalPlayer then
-		return
-	end
-	if prompt:GetAttribute("FM_Action") == "TalkCaptainSteve" then
-		CaptainSteveUI.Open()
-	end
-end)
-
-local player = Players.LocalPlayer
-player.CameraMode = Enum.CameraMode.Classic
-player.DevEnableMouseLock = false
-
--- sync move speed from character attributes
-RunService.Heartbeat:Connect(function()
-	local char = player.Character
-	if not char then
-		return
-	end
-	local spd = char:GetAttribute("MoveSpeed")
-	if typeof(spd) == "number" then
-		MovementController.SetBaseSpeed(spd)
-	end
-	local hang = char:GetAttribute("Hangover")
-	if typeof(hang) == "boolean" then
-		MovementController.SetHangover(hang)
-	end
-end)
-
-print("[Florida Man] Client ready — 2.5D mover online.")
-
--- Phase 1: forever hub toast spam removed — TutorialController + TutorialService are once-through.
+ready()

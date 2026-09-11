@@ -11,6 +11,7 @@ local EnemyService = require(script.Parent:WaitForChild("EnemyService"))
 local CombatService = require(script.Parent:WaitForChild("CombatService"))
 local AttackService = require(script.Parent:WaitForChild("AttackService"))
 local RunContext = require(script.Parent:WaitForChild("RunContext"))
+local MovementAuthority = require(script.Parent:WaitForChild("MovementAuthority"))
 
 local SwapService = {}
 
@@ -21,14 +22,16 @@ function SwapService.DoDodge(player: Player, facingArg: number?)
 	end
 	local now = os.clock()
 	local cd = Constants.DODGE_COOLDOWN * (1 - math.clamp(s.dodgeBonus, 0, 0.5))
-	if now < s.dodgeReadyAt then
+	if not CombatService.CanDodge(player) then
 		return
 	end
-	s.dodgeReadyAt = now + cd
-	if typeof(facingArg) == "number" then
-		s.facing = if facingArg >= 0 then 1 else -1
-	end
+	CombatService.MarkDodge(player, cd)
+	MovementAuthority.AllowDodge(player, Constants.DODGE_DISTANCE, Constants.DODGE_DURATION)
+	s.dodgeReadyAt = CombatService.GetDodgeReadyAt(player)
+	CombatService.MarkAttack(player, Constants.DODGE_IFRAME, Constants.DODGE_IFRAME)
+	s.facing = CombatService.ResolveFacing(player, facingArg, s.facing)
 	local char = player.Character
+	local generation = EnemyService.GetGeneration()
 
 	CombatService.SetIFrames(player, Constants.DODGE_IFRAME)
 	if RunContext.HasItemSpecial(s, "ember") then
@@ -37,17 +40,16 @@ function SwapService.DoDodge(player: Player, facingArg: number?)
 	if char then
 		char:SetAttribute("IFrameVFX", true)
 		task.delay(Constants.DODGE_IFRAME, function()
-			if char then
+			if char and player.Character == char and generation == EnemyService.GetGeneration() and not CombatService.HasIFrames(player) then
 				char:SetAttribute("IFrameVFX", nil)
 			end
 		end)
 	end
-	Remotes.Get("CombatEvent"):FireClient(player, { kind = "dodge" })
-	Remotes.Get("PlaySound"):FireClient(player, "SFX_Dodge")
+	Remotes.Get("CombatEvent"):FireClient(player, { kind = "dodge", facing = s.facing, dodgeReadyAt = s.dodgeReadyAt, serverNow = now })
 	RunContext.PushState(player)
 end
 
-function SwapService.DoSwap(player: Player)
+function SwapService.DoSwap(player: Player, facingArg: number?)
 	local s = RunContext.GetState(player)
 	if not s or not s.runActive then
 		return
@@ -57,11 +59,14 @@ function SwapService.DoSwap(player: Player)
 		return
 	end
 	local now = os.clock()
-	if now < s.swapReadyAt or not CombatService.CanSwap(player) then
+	if not CombatService.CanSwap(player) then
 		return
 	end
-	s.swapReadyAt = now + Constants.SWAP_COOLDOWN
 	CombatService.MarkSwap(player, Constants.SWAP_COOLDOWN)
+	s.swapReadyAt = CombatService.GetSwapReadyAt(player)
+	CombatService.MarkAttack(player, 0.22, 0.15)
+	s.facing = CombatService.ResolveFacing(player, facingArg, s.facing)
+	local generation = EnemyService.GetGeneration()
 	s.activePersona = if s.activePersona == 1 then 2 else 1
 	RunContext.ApplyCharacterSpeed(player)
 
@@ -72,7 +77,7 @@ function SwapService.DoSwap(player: Player)
 		CombatService.SetIFrames(player, Constants.SWAP_IFRAME)
 		char:SetAttribute("IFrameVFX", true)
 		task.delay(Constants.SWAP_IFRAME, function()
-			if char then
+			if char and player.Character == char and generation == EnemyService.GetGeneration() and not CombatService.HasIFrames(player) then
 				char:SetAttribute("IFrameVFX", nil)
 			end
 		end)
@@ -87,7 +92,7 @@ function SwapService.DoSwap(player: Player)
 				continue
 			end
 			local root = model.PrimaryPart
-			if root and (root.Position - hrp.Position).Magnitude < 14 then
+			if root and CombatService.InHitVolume(hrp.Position, s.facing, root, 14, 3, player, true) then
 				AttackService.HitEnemy(player, s, model, dmg, Constants.KNOCKBACK_BASE * 0.75, true, nil)
 			end
 		end

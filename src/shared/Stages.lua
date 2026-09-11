@@ -66,8 +66,8 @@ local list: { StageDef } = {
 		},
 		miniboss = "CrabKingBoss", boss = nil, unlockPersona = "CrabKing", rescueTurtles = 0,
 		showMutantTagline = false, isHub = false, coldOnePickup = true, hangover = true,
-		propTheme = "beach", biome = "beach", setPiece = "collapsingPier", hazards = { "sandSlow" },
-		lighting = "dawnGold", storyBeat = "Comedy first: reclaim the Cold One. The collar beeps come later.",
+		propTheme = "beach", biome = "beach", setPiece = "pierWalkway", hazards = { "sandSlow" },
+		lighting = "dawnGold", storyBeat = "The crabs stole your Florida Dew. Reclaim the glowing can, then follow the beach.",
 		scalingTier = 1, goalLabel = "PIER LIGHT →", steveAct = 1, platformLedges = 0,
 	},
 	{
@@ -86,7 +86,7 @@ local list: { StageDef } = {
 		miniboss = nil, boss = nil, unlockPersona = nil, rescueTurtles = 0,
 		showMutantTagline = false, isHub = false, coldOnePickup = false, hangover = false,
 		propTheme = "beach", biome = "beach", setPiece = "fryerOil", hazards = { "fryerOil", "hoaCone" },
-		lighting = "midBeach", storyBeat = "Comedy still sells. Something beeps under a tourist's cooler.",
+		lighting = "midBeach", storyBeat = "Steve spots GulfGulp's logo on the cooler shipment. Why is a soda company shipping wildlife equipment?",
 		scalingTier = 1, goalLabel = "BOARDWALK EXIT →", steveAct = 1, platformLedges = 1,
 	},
 	{
@@ -104,7 +104,7 @@ local list: { StageDef } = {
 		miniboss = "SlushieKing", boss = nil, unlockPersona = "GolfCartBandit", rescueTurtles = 0,
 		showMutantTagline = false, isHub = false, coldOnePickup = false, hangover = false,
 		propTheme = "gas", biome = "town", setPiece = "neonCanopy", hazards = { "slushPuddle", "hoaCone" },
-		lighting = "neonGas", storyBeat = "Parody convenience-store chaos. Still funny. Still uneasy.",
+		lighting = "neonGas", storyBeat = "GulfGulp deliveries pass through this gas station. The slushie line is guarded far better than it should be.",
 		scalingTier = 1, goalLabel = "OPEN 24HRS →", steveAct = 1, platformLedges = 1,
 	},
 	{
@@ -122,7 +122,7 @@ local list: { StageDef } = {
 		miniboss = "HOAHydra", boss = nil, unlockPersona = nil, rescueTurtles = 0,
 		showMutantTagline = false, isHub = false, coldOnePickup = false, hangover = false,
 		propTheme = "gas", biome = "town", setPiece = "parkingArena", hazards = { "hoaCone" },
-		lighting = "stripMall", storyBeat = "Last pure comedy beat before the collar beeps.",
+		lighting = "stripMall", storyBeat = "The delivery route leads to the drive-thru. Its newest employee has scales and a suspicious uniform.",
 		scalingTier = 1, goalLabel = "MALL EXIT →", steveAct = 1, platformLedges = 1,
 	},
 	{
@@ -140,7 +140,7 @@ local list: { StageDef } = {
 		miniboss = "DriveThruGator", boss = nil, unlockPersona = "GatorHauler", rescueTurtles = 0,
 		showMutantTagline = false, isHub = false, coldOnePickup = false, hangover = false,
 		propTheme = "drive", biome = "town", setPiece = "driveThruLane", hazards = { "fryerOil" },
-		lighting = "lateAfternoon", storyBeat = "The collar is the first real clue. Comedy cracks.",
+		lighting = "lateAfternoon", storyBeat = "A collared gator guards the drive-thru. Get past it so Steve can trace who supplied that hardware.",
 		scalingTier = 1, goalLabel = "ORDER WINDOW →", steveAct = 1, platformLedges = 1,
 	},
 	-- ACT 2: The Swamp That Isn't Wild (6–10)
@@ -160,7 +160,7 @@ local list: { StageDef } = {
 		miniboss = nil, boss = nil, unlockPersona = nil, rescueTurtles = 0,
 		showMutantTagline = false, isHub = false, coldOnePickup = false, hangover = false,
 		propTheme = "drive", biome = "swamp", setPiece = "canalPads", hazards = { "canalWater" },
-		lighting = "swampGreen", storyBeat = "Snakes first. Mutants next. Steve is watching.",
+		lighting = "swampGreen", storyBeat = "The collar shipment came through this canal. Follow it into the swamp, using the pads to escape deep water.",
 		scalingTier = 2, goalLabel = "LOCK GATE →", steveAct = 2, platformLedges = 3,
 	},
 	{
@@ -180,7 +180,7 @@ local list: { StageDef } = {
 		miniboss = nil, boss = nil, unlockPersona = "LizardBreath", rescueTurtles = 0,
 		showMutantTagline = true, isHub = false, coldOnePickup = false, hangover = false,
 		propTheme = "swamp", biome = "swamp", setPiece = "cypressCanopy", hazards = { "oilSlick", "fireCone" },
-		lighting = "greenBlack", storyBeat = "Steve says the line once. Then you see the collars — animals aren't the enemy.",
+		lighting = "greenBlack", storyBeat = "The oil gators and fire lizards wear matching collars. GulfGulp turned wildlife into security guards.",
 		scalingTier = 2, goalLabel = "CYPRESS PASS →", steveAct = 2, platformLedges = 2,
 	},
 	{
@@ -199,7 +199,7 @@ local list: { StageDef } = {
 		miniboss = nil, boss = nil, unlockPersona = "SnakeCharmer", rescueTurtles = 0,
 		showMutantTagline = true, isHub = false, coldOnePickup = false, hangover = false,
 		propTheme = "swamp", biome = "swamp", setPiece = "cypressCanopy", hazards = { "oilSlick" },
-		lighting = "greenBlack", storyBeat = "The conspiracy gets a soundtrack.",
+		lighting = "greenBlack", storyBeat = "The conspiracy leaves a paper trail.",
 		scalingTier = 2, goalLabel = "ROOT BRIDGE →", steveAct = 2, platformLedges = 2,
 	},
 	{
@@ -295,7 +295,7 @@ local list: { StageDef } = {
 		miniboss = nil, boss = nil, unlockPersona = nil, rescueTurtles = 0,
 		showMutantTagline = false, isHub = false, coldOnePickup = false, hangover = false,
 		propTheme = "rig", biome = "facility", setPiece = "corpGate", hazards = { "oilSlick", "hoaCone" },
-		lighting = "clinicalLab", storyBeat = "Inside the logo. No more jokes about vibes.",
+		lighting = "clinicalLab", storyBeat = "The logo on the gate matches the collars. Follow the pipes to the lab and find the records.",
 		scalingTier = 4, goalLabel = "BADGE SCAN →", steveAct = 4, platformLedges = 2,
 	},
 	{
@@ -432,7 +432,7 @@ local list: { StageDef } = {
 		miniboss = nil, boss = "Spillfather", unlockPersona = "FireworksEnthusiast", rescueTurtles = 3,
 		showMutantTagline = true, isHub = false, coldOnePickup = false, hangover = false,
 		propTheme = "rig", biome = "offshore", setPiece = "spillfatherArena", hazards = { "oilSlick", "fireCone" },
-		lighting = "finaleRig", storyBeat = "Refuse the bargain. Save the nests. Earn the sunrise.",
+		lighting = "finaleRig", storyBeat = "The Spillfather and the last captive turtles are here. Defeat the mech and free every turtle before sunrise.",
 		scalingTier = 5, goalLabel = "SUNRISE →", steveAct = 5, platformLedges = 1,
 	},
 }
@@ -476,7 +476,7 @@ end
 Stages.ACT_VERB = {
 	[1] = "timedRhythm",
 	[2] = "padWater",
-	[3] = "turtleEscort",
+	[3] = "turtleRescue",
 	[4] = "conveyorFlip",
 	[5] = "windGaps",
 }
@@ -486,7 +486,7 @@ Stages.VERB_LABEL = {
 	timedRhythm = "Timed hazard rhythm — jump when HOT",
 	padWater = "Pad-only traversal — leave deep water or soft-fall",
 	oilSlick = "Oil slicks — skim or slip",
-	turtleEscort = "Turtle escort — stay near to guide nests",
+	turtleRescue = "Turtle rescue — use Interact beside each turtle",
 	midGate = "MidGate room lock — clear the wave",
 	conveyorFlip = "Conveyors flip direction on a timer",
 	windGaps = "Barge gaps + wind opposing jumps",
@@ -504,7 +504,7 @@ function Stages.LevelVerb(stage: StageDef): string
 		return "bossArena"
 	end
 	if stage.rescueTurtles > 0 then
-		return "turtleEscort"
+		return "turtleRescue"
 	end
 	local sp = stage.setPiece or ""
 	if sp == "canalPads" then

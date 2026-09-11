@@ -1,0 +1,25 @@
+[INFO] Loading definitions file: @roblox - C:\Users\1thea\AppData\Local\Temp\florida-man-audit-tools-20260904\luau-lsp-1.69.0\globalTypes.d.luau
+[WARN] client does not allow didChangeWatchedFiles registration - automatic updating on sourcemap changes disabled
+c:\Users\1thea\Projects\Florida-Man\src\client\Controllers\AccessibilityController.lua [game/StarterPlayer/StarterPlayerScripts/Client/Controllers/AccessibilityController](16,78): TypeError: Expected this to be 'Definition?', but got 'HazardDef?'
+caused by:
+  Not all union options are compatible.
+Expected this to be 'Definition?', but got 'HazardDef'
+caused by:
+  None of the union options are compatible. For example:
+Expected this to be exactly 'Definition', but got 'HazardDef'
+caused by:
+  Property 'slow' is not compatible.
+Expected this to be exactly 'boolean?', but got '("environment" | "oil")?'
+caused by:
+  Not all union options are compatible.
+Expected this to be exactly 'boolean?', but got '"environment" | "oil"'
+caused by:
+  Not all union options are compatible.
+Expected this to be exactly 'boolean?', but got '"oil"'
+caused by:
+  None of the union options are compatible. For example:
+Expected this to be exactly 'boolean', but got '"oil"'
+c:\Users\1thea\Projects\Florida-Man\src\client\Controllers\AccessibilityController.lua [game/StarterPlayer/StarterPlayerScripts/Client/Controllers/AccessibilityController](61,36): TypeError: Expected this to be 'number', but got 'number?'
+c:\Users\1thea\Projects\Florida-Man\src\client\Controllers\AccessibilityController.lua [game/StarterPlayer/StarterPlayerScripts/Client/Controllers/AccessibilityController](67,17): TypeError: Type 'nil' does not have key 'connections'
+c:\Users\1thea\Projects\Florida-Man\src\client\Controllers\AccessibilityController.lua [game/StarterPlayer/StarterPlayerScripts/Client/Controllers/AccessibilityController](68,150): TypeError: Expected this to be 'Marker', but got 'nil'
+c:\Users\1thea\Projects\Florida-Man\src\client\Controllers\AccessibilityController.lua [game/StarterPlayer/StarterPlayerScripts/Client/Controllers/AccessibilityController](71,16): TypeError: Expected this to be 'Marker', but got 'Marker?'

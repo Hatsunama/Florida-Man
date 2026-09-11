@@ -1,0 +1,23 @@
+{
+  "status": "aborted-for-memory-pressure-before-usable-window",
+  "pidLaunchedAndClosed": 9432,
+  "place": "artifacts/validation-07/FloridaMan.rbxlx",
+  "before": {
+    "freePhysicalKiB": 1161100,
+    "freeVirtualKiB": 5605176
+  },
+  "during": {
+    "freePhysicalKiB": 192396,
+    "freeVirtualKiB": 2706700,
+    "studioWorkingSetBytes": 1024921600,
+    "studioPrivateMemoryBytes": 2271088640
+  },
+  "afterClose": {
+    "freePhysicalKiB": 1557920,
+    "freeVirtualKiB": 4870424
+  },
+  "pagefileConfigurationChanged": false,
+  "unrelatedProcessesTerminated": false,
+  "engineBootVerified": false,
+  "runtimeHelpersExecuted": false
+}

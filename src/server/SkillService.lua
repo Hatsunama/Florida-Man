@@ -6,21 +6,23 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Constants = require(Shared:WaitForChild("Constants"))
 local Remotes = require(Shared:WaitForChild("Remotes"))
 local Balance = require(Shared:WaitForChild("Balance"))
+local Geometry = require(Shared:WaitForChild('CombatGeometry'))
+local CharacterGeometry = require(Shared:WaitForChild('CharacterGeometry'))
 
 local EnemyService = require(script.Parent:WaitForChild("EnemyService"))
 local CombatService = require(script.Parent:WaitForChild("CombatService"))
 local AttackService = require(script.Parent:WaitForChild("AttackService"))
 local RunContext = require(script.Parent:WaitForChild("RunContext"))
+local MovementAuthority = require(script.Parent:WaitForChild("MovementAuthority"))
 
 local SkillService = {}
 
-function SkillService.DoSkill(player: Player)
+function SkillService.DoSkill(player: Player, facingArg: number?)
 	local s = RunContext.GetState(player)
 	if not s or not s.runActive then
 		return
 	end
-	local now = os.clock()
-	if now < s.skillReadyAt or not CombatService.CanSkill(player) then
+	if not CombatService.CanSkill(player) then
 		return
 	end
 	local persona = RunContext.ActivePersonaDef(s)
@@ -29,20 +31,26 @@ function SkillService.DoSkill(player: Player)
 	end
 	local rarity = s.personaRarity[persona.id] or "Common"
 	local cd = persona.skillCooldown * Balance.SkillCooldownMult(rarity)
-	s.skillReadyAt = now + cd
-	CombatService.MarkSkill(player, cd)
 	local char = player.Character
 	local hrp = char and char:FindFirstChild("HumanoidRootPart") :: BasePart?
 	if not hrp then
 		return
 	end
+	CombatService.MarkSkill(player, cd)
+	s.skillReadyAt = CombatService.GetSkillReadyAt(player)
+	CombatService.MarkAttack(player, 0.3, 0.2)
+	local generation = EnemyService.GetGeneration()
+	local function isCurrent(): boolean
+		return generation == EnemyService.GetGeneration() and RunContext.GetState(player) == s and s.runActive and player.Character == char
+	end
 	local dmg = persona.skillDamage * s.damageMult * Balance.RarityMult(rarity)
-	local facing = s.facing
+	local facing = CombatService.ResolveFacing(player, facingArg, s.facing)
+	s.facing = facing
 	local origin = hrp.Position
 	local weapon = nil
 
 	local function hit(model: Model, amount: number, knock: number, heavy: boolean)
-		AttackService.HitEnemy(player, s, model, amount, knock, heavy, weapon)
+		if isCurrent() then AttackService.HitEnemy(player, s, model, amount, knock, heavy, weapon) end
 	end
 
 	if persona.skillKind == "shield" then
@@ -51,6 +59,7 @@ function SkillService.DoSkill(player: Player)
 		if char then
 			char:SetAttribute("ShieldAbsorbVFX", true)
 			task.delay(3.5, function()
+				if not isCurrent() then return end
 				if char then
 					char:SetAttribute("ShieldAbsorbVFX", nil)
 				end
@@ -61,8 +70,13 @@ function SkillService.DoSkill(player: Player)
 		end
 		RunContext.Toast(player, persona.skillName .. "! Shell sanctuary — absorb ready.")
 	elseif persona.skillKind == "summon" then
+		local humanoid = char and char:FindFirstChildOfClass('Humanoid')
+		local height = 3
+		local feetDistance = if char and humanoid then CharacterGeometry.FeetDistance(char,hrp,humanoid) else hrp.Size.Y*0.5+2
+		local centerY = Geometry.GroundedCenterY(origin.Y, feetDistance, height)
 		CombatService.SpawnLingeringHitbox({
-			origin = origin,
+			origin = Vector3.new(origin.X, centerY, origin.Z),
+			height = height,
 			facing = facing,
 			duration = Constants.SUMMON_LINGER,
 			radius = 7,
@@ -70,6 +84,7 @@ function SkillService.DoSkill(player: Player)
 			knockback = Constants.KNOCKBACK_BASE * 0.35,
 			tick = Constants.SUMMON_TICK,
 			attacker = player,
+			isCurrent = isCurrent,
 			onHit = function(model, amount, knock, heavy)
 				hit(model, amount, knock, heavy)
 			end,
@@ -85,8 +100,8 @@ function SkillService.DoSkill(player: Player)
 			if not root then
 				continue
 			end
-			local dx = root.Position.X - origin.X
-			if dx * facing >= 0 and math.abs(dx) < 28 then
+			local skillRange = if persona.skillKind == "beam" then 28 else 16
+			if CombatService.InHitVolume(origin, facing, root, skillRange, 2.5, player) then
 				local mult = if persona.id == "LizardBreath" and (model:GetAttribute("EnemyId") == "OilGator") then 1.4 else 1
 				hit(model, dmg * mult, Constants.KNOCKBACK_BASE * 0.6, true)
 			end
@@ -97,7 +112,7 @@ function SkillService.DoSkill(player: Player)
 				continue
 			end
 			local root = model.PrimaryPart
-			if root and (root.Position - origin).Magnitude < 18 then
+			if root and CombatService.InHitVolume(origin, facing, root, 18, 4, player, true) then
 				hit(model, dmg, Constants.KNOCKBACK_BASE * 0.5, true)
 			end
 		end
@@ -108,20 +123,23 @@ function SkillService.DoSkill(player: Player)
 			if char then
 				char:SetAttribute("IFrameVFX", true)
 				task.delay(Constants.CART_DASH_IFRAME, function()
-					if char then
+					if isCurrent() and char and not CombatService.HasIFrames(player) then
 						char:SetAttribute("IFrameVFX", nil)
 					end
 				end)
 			end
 			RunContext.Toast(player, persona.skillName .. "! Armor frames — full send.")
 		end
-		hrp.CFrame = hrp.CFrame + Vector3.new(facing * (if isCart then 16 else 14), 0, 0)
+		local destination = CombatService.SweepDash(player, hrp, facing * (if isCart then 16 else 14))
+		MovementAuthority.Reset(player, CFrame.new(destination) * (hrp.CFrame - hrp.Position))
+		local center = (origin + destination) * 0.5
+		local reach = math.abs(destination.X - origin.X) * 0.5 + 2
 		for _, model in EnemyService.GetAlive() do
 			if model:GetAttribute("IsAlly") then
 				continue
 			end
 			local root = model.PrimaryPart
-			if root and math.abs(root.Position.X - hrp.Position.X) < 12 then
+			if root and CombatService.InHitVolume(center, facing, root, reach, 2.5, player, true) then
 				hit(model, dmg, Constants.KNOCKBACK_BASE * 0.55, true)
 			end
 		end

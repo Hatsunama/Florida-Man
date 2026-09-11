@@ -1,0 +1,71 @@
+from pathlib import Path
+import subprocess, json, re, os
+
+root = Path(__file__).resolve().parents[1]
+out = root / 'docs' / 'audit-evidence-2026-09-04'
+out.mkdir(exist_ok=True)
+compiler = Path(os.environ['TEMP']) / 'florida-man-audit-tools-20260904/luau-0.737/luau-compile.exe'
+files = sorted((root/'src').rglob('*.lua'))
+results=[]
+for f in files:
+    p=subprocess.run([str(compiler),'--null',str(f)],capture_output=True,text=True)
+    results.append({'file':f.relative_to(root).as_posix(),'exit_code':p.returncode,'diagnostics':p.stderr.strip()})
+data={'revision':subprocess.check_output(['git','rev-parse','HEAD'],cwd=root,text=True).strip(),'compiler':'Luau 0.737 official Windows release','files':len(files),'passed':sum(x['exit_code']==0 for x in results),'failed':sum(x['exit_code']!=0 for x in results),'results':results}
+(out/'compiler.json').write_text(json.dumps(data,indent=2)+'\n',encoding='utf-8')
+print(json.dumps({k:v for k,v in data.items() if k!='results'},indent=2))
+for x in results:
+    if x['exit_code']: print(json.dumps(x,indent=2))
+source={f.stem:f.read_text(encoding='utf-8') for f in files}
+missing=[]
+for name,body in source.items():
+    for call in sorted(set(re.findall(r'\b([A-Z][A-Za-z]+Service)\.([A-Za-z_]+)\(',body))):
+        mod,fn=call
+        if mod in source and not re.search(r'(?:function\s+'+re.escape(mod)+r'\.'+fn+r'\b|'+re.escape(mod)+r'\.'+fn+r'\s*=)',source[mod]):
+            missing.append({'caller':name,'callee':mod+'.'+fn})
+print('UNRESOLVED SERVICE CALLS',json.dumps(missing,indent=2))
+(out/'service-connections.json').write_text(json.dumps(missing,indent=2)+'\n',encoding='utf-8')
+# Exact X-axis camera equations from CameraController, scalar execution only.
+def simulate(hz):
+    pos,vel=108.0,0.0
+    for _ in range(hz*5):
+        focus=106.0
+        dx=focus-(pos-8)
+        if abs(dx)>3.5: focus=pos-8+(1 if dx>0 else -1)*(abs(dx)-3.5)*.15+focus*.85
+        target=focus+8
+        vel+=((target-pos)*48-vel*15)/hz
+        pos+=vel/hz
+    return {'hz':hz,'player_x':106,'initial_look_x':108,'look_x_after_5_seconds':pos,'expected_look_near':114}
+camera=[simulate(hz) for hz in (30,60,120)]
+for hz in (30,60,120):
+    for start in (100,400,800):
+        pos,vel=start+8.0,0.0
+        errors=[]
+        for i in range(hz*5):
+            player=start+min(i/hz,3)*18
+            focus=player
+            dx=focus-(pos-8)
+            if abs(dx)>3.5: focus=pos-8+(1 if dx>0 else -1)*(abs(dx)-3.5)*.15+focus*.85
+            vel+=((focus+8-pos)*48-vel*15)/hz
+            pos+=vel/hz
+            errors.append(pos-player-8)
+        camera.append({'scenario':'move 18 studs/s for 3 seconds then stop for 2','hz':hz,'start_x':start,'min_look_error':min(errors),'max_look_error':max(errors),'final_look_error':errors[-1]})
+(out/'camera-math.json').write_text(json.dumps(camera,indent=2)+'\n',encoding='utf-8')
+print('CAMERA',json.dumps(camera,indent=2))
+inv=subprocess.run(['C:/Program Files/Git/bin/bash.exe','scripts/check_invariants.sh'],cwd=root,capture_output=True,text=True,encoding='utf-8')
+(out/'invariants.txt').write_text(f'exit_code={inv.returncode}\n'+inv.stdout+inv.stderr,encoding='utf-8')
+print('INVARIANTS',inv.returncode,len(re.findall(r'^OK ',inv.stdout,re.M)))
+# Local ignored place is read as XML only, never loaded or changed.
+import xml.etree.ElementTree as ET
+scripts=[]
+for it in ET.parse(root/'FloridaMan.rbxlx').iter('Item'):
+    props=it.find('Properties')
+    if props is None: continue
+    src=props.find('*[@name="Source"]')
+    name=props.find('*[@name="Name"]')
+    if src is None: continue
+    key=name.text if name is not None else '?'
+    mapped=key if key in source else 'init.server' if key=='Server' else 'init.client' if key=='Client' else key
+    current=source.get(mapped)
+    scripts.append({'name':key,'source_key':mapped,'matches_source':current.replace('\r\n','\n')==(src.text or '').replace('\r\n','\n') if current is not None else None})
+(out/'place-source-comparison.json').write_text(json.dumps(scripts,indent=2)+'\n',encoding='utf-8')
+print('LOCAL PLACE',len(scripts),'matching',sum(s['matches_source'] is True for s in scripts),'different',sum(s['matches_source'] is False for s in scripts))

@@ -25,7 +25,14 @@
       }
     },
     "StarterPlayer": {
+      "$properties": {
+        "DevComputerMovementMode": "Scriptable",
+        "DevTouchMovementMode": "Scriptable"
+      },
       "StarterPlayerScripts": {
+        "RbxCharacterSounds": {
+          "$path": "src/character/RbxCharacterSounds.client.lua"
+        },
         "Client": {
           "$path": "src/client"
         }

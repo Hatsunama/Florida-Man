@@ -18,8 +18,10 @@ local WorldBuilder = require(script.Parent:WaitForChild("WorldBuilder"))
 local EnemyService = require(script.Parent:WaitForChild("EnemyService"))
 local TutorialService = require(script.Parent:WaitForChild("TutorialService"))
 local FunnelService = require(script.Parent:WaitForChild("FunnelService"))
-local MetaService = require(script.Parent:WaitForChild("MetaService"))
 local RunContext = require(script.Parent:WaitForChild("RunContext"))
+
+local SessionService = require(script.Parent:WaitForChild("SessionService"))
+local ProgressionRules = require(Shared:WaitForChild("ProgressionRules"))
 
 local StageFlowService = {}
 
@@ -29,7 +31,7 @@ function StageFlowService.Init(d: any)
 	deps = d
 end
 
-local function spawnStageThreats(player: Player)
+local function spawnStageTurtles(player: Player)
 	local s = RunContext.GetState(player)
 	if not s then
 		return
@@ -41,14 +43,9 @@ local function spawnStageThreats(player: Player)
 	if stage.rescueTurtles > 0 then
 		s.turtlesNeeded = stage.rescueTurtles
 		s.turtlesRescued = 0
-		local goalX = stage.length - 14
 		for i = 1, stage.rescueTurtles do
 			local x = stage.length * (0.2 + 0.12 * i)
-			local m = EnemyService.SpawnTurtle(x)
-			if m then
-				m:SetAttribute("EscortGoalX", goalX)
-				m:SetAttribute("EscortEnabled", true)
-			end
+			EnemyService.SpawnTurtle(x)
 		end
 	end
 end
@@ -58,8 +55,20 @@ function StageFlowService.LoadHub(player: Player)
 	if not s then
 		return
 	end
+	if not SessionService.IsOwner(player) then return end
+	RunContext.BeginPhase(player, "Hub")
+	FunnelService.OnTransition(player)
 	s.inHub = true
 	s.runActive = false
+	s.deathProcessed = false
+	s.bossState = nil
+	s.hangoverUntil = 0
+	s.emberUntil = 0
+	local character = player.Character
+	if character then
+		for _, name in {'OilSlowUntil','OilSlow','EnvironmentalSlowUntil','WaterSince','ShieldAbsorbVFX','LastSolidX','LastSolidY','LastHazardAt','LastSoftFallAt'} do character:SetAttribute(name,nil) end
+	end
+	player:SetAttribute("RunActive",false)
 	s.stageId = "Hub"
 	s.stageIndex = 0
 	s.awaitingDraft = false
@@ -76,8 +85,8 @@ function StageFlowService.LoadHub(player: Player)
 		s.pendingSteveEvent = nil
 	end
 	RunContext.Toast(player, if s.deaths > 0 then Story.HubHeadline(s.deaths) else "Dawn. Bonfire. Crabs stole your Cold One.")
-	task.delay(1.5, function()
-		Remotes.Get("ShowTagline"):FireClient(player, line, "Captain Steve")
+	SessionService.Delay(player, 1.5, function()
+		RunContext.Say(player, line, "Captain Steve")
 	end)
 	TutorialService.OnHubLoaded(player, s.tutorial)
 	RunContext.PersistMeta(player, s)
@@ -89,14 +98,19 @@ function StageFlowService.LoadStage(player: Player, stageId: string)
 		return
 	end
 	local stage = Stages.Get(stageId)
-	assert(stage, "bad stage")
+	if not stage or not SessionService.IsOwner(player) then return end
+	RunContext.BeginPhase(player, if stage.isHub then "Hub" else "Active")
+	FunnelService.OnTransition(player)
+	s.bossState = nil
+	s.itemSlots = ProgressionRules.ItemCapacity(stage.index)
 	s.stageId = stageId
 	s.stageIndex = stage.index
 	if stage.index > 0 then
-		MetaService.CaptureFromRun(player, s.deaths, s.sunburn, s.unlockedPersonas, stage.index)
+		RunContext.PersistMeta(player,s)
 	end
 	s.inHub = stage.isHub
 	s.runActive = not stage.isHub
+	player:SetAttribute("RunActive",s.runActive)
 	s.waveFlags = {}
 	s.minibossSpawned = false
 	s.bossSpawned = false
@@ -117,6 +131,7 @@ function StageFlowService.LoadStage(player: Player, stageId: string)
 			char:SetAttribute("LastSolidX", nil)
 			char:SetAttribute("LastSolidY", nil)
 			char:SetAttribute("OilSlowUntil", nil)
+			char:SetAttribute("EnvironmentalSlowUntil", nil)
 			char:SetAttribute("OilSlow", nil)
 			char:SetAttribute("WaterSince", nil)
 		end
@@ -126,13 +141,12 @@ function StageFlowService.LoadStage(player: Player, stageId: string)
 	end
 
 	if stage.index == 2 and not s.steveEvents["collarHint"] then
-		task.delay(3.5, function()
+		SessionService.Delay(player, 3.5, function()
 			if not s.steveEvents["collarHint"] then
 				s.steveEvents["collarHint"] = true
 				local el = Story.SteveEventLine("collarHint")
 				if el then
-					Remotes.Get("ShowTagline"):FireClient(player, el, "Captain Steve")
-					RunContext.Toast(player, "Captain Steve: " .. el)
+					RunContext.Say(player, el, "Captain Steve")
 				end
 			end
 		end)
@@ -144,7 +158,7 @@ function StageFlowService.LoadStage(player: Player, stageId: string)
 		s.hangoverUntil = 0
 	end
 	RunContext.ApplyCharacterSpeed(player)
-	spawnStageThreats(player)
+	spawnStageTurtles(player)
 	Remotes.Get("StageLoaded"):FireClient(player, stageId, stage.name)
 	RunContext.PushState(player)
 
@@ -152,16 +166,16 @@ function StageFlowService.LoadStage(player: Player, stageId: string)
 	local actChanged = (act ~= s.lastActShown) and stage.index >= 1
 	if actChanged then
 		s.lastActShown = act
-		task.delay(0.35, function()
-			RunContext.Toast(player, Story.ActOpener(act))
+		SessionService.Delay(player, 0.35, function()
+			RunContext.Say(player, Story.ActOpener(act), "Chapter", "act-" .. tostring(act))
 			RunContext.Toast(player, Balance.RestToast(act))
-			Remotes.Get("ShowTagline"):FireClient(player, Story.SteveLine(act, s.deaths), "Captain Steve")
+			RunContext.Say(player, Story.SteveLine(act, s.deaths), "Captain Steve")
 		end)
 	end
 	local beat = stage.storyBeat
 	if beat and beat ~= "" then
-		task.delay(1.2, function()
-			RunContext.Toast(player, beat)
+		SessionService.Delay(player, 1.2, function()
+			RunContext.Say(player, beat, "The story", "stage-" .. stage.id)
 		end)
 	end
 	-- N5: stage mechanical verb (popup toast; dialogue stays Tagline/Toast only)
@@ -169,25 +183,26 @@ function StageFlowService.LoadStage(player: Player, stageId: string)
 		local verb = Stages.LevelVerb(stage)
 		local vt = Story.VerbToast(verb)
 		if vt then
-			task.delay(0.7, function()
+			SessionService.Delay(player, 0.7, function()
 				RunContext.Toast(player, vt)
 			end)
 		end
 	end
-	if stage.showMutantTagline then
-		task.delay(2.5, function()
-			Remotes.Get("ShowTagline"):FireClient(player, Constants.TAGLINE_MUTANTS, "Captain Steve")
+	if stage.showMutantTagline and not s.steveEvents.mutantsRevealed then
+		s.steveEvents.mutantsRevealed = true
+		SessionService.Delay(player, 2.5, function()
+			RunContext.Say(player, Constants.TAGLINE_MUTANTS, "Captain Steve")
 		end)
 	elseif (not actChanged) and stage.steveAct and stage.steveAct >= 2 then
-		task.delay(3.0, function()
-			Remotes.Get("ShowTagline"):FireClient(player, Story.SteveLine(stage.steveAct, s.deaths), "Captain Steve")
+		SessionService.Delay(player, 3.0, function()
+			RunContext.Say(player, Story.SteveLine(stage.steveAct, s.deaths), "Captain Steve")
 		end)
 	end
 end
 
 function StageFlowService.OnEnemyKilled(player: Player, enemyId: string, _model: Model)
 	local s = RunContext.GetState(player)
-	if not s then
+	if not s or not s.runActive or s.phase ~= "Active" then
 		return
 	end
 
@@ -206,19 +221,20 @@ function StageFlowService.OnEnemyKilled(player: Player, enemyId: string, _model:
 			RunContext.Toast(player, "Found: " .. (if it then it.name else def.dropsItem))
 		end
 	end
-	if enemyId == "Spillfather" then
-		s.bossDefeated = true
-		RunContext.Toast(player, "The Spillfather poofs into recycled headlines!")
-		RunContext.PushState(player)
-		task.delay(1.2, function()
-			StageFlowService.FinishRun(player)
-		end)
-		return
-	end
+    if enemyId == "Spillfather" then
+        s.bossDefeated = true
+        s.bossState = nil
+        RunContext.Say(player, "The Spillfather is defeated. Secure every remaining turtle before sunrise.")
+        RunContext.PushState(player)
+        return
+    end
 
 	local stage = Stages.Get(s.stageId)
 	if stage and stage.miniboss == enemyId and stage.unlockPersona then
 		RunContext.UnlockPersona(player, stage.unlockPersona)
+	end
+	if enemyId=='DriveThruGator' then
+		RunContext.Say(player,"GulfGulp's mark is on the gator's collar. The delivery records point into the swamp. This was planned.","Captain Steve","collar-confirmed")
 	end
 	if enemyId == "FireLizard" then
 		RunContext.UnlockPersona(player, "LizardBreath")
@@ -234,9 +250,15 @@ function StageFlowService.OnTurtleRescued(player: Player, model: Model)
 	if not s then
 		return
 	end
+	if not s.runActive or s.phase ~= "Active" or s.turtlesRescued >= s.turtlesNeeded then return end
+	if model:GetAttribute("RewardedRescue") then return end
+	model:SetAttribute("RewardedRescue",true)
 	s.turtlesRescued += 1
+	s.runTurtlesRescued += 1
+	s.totalTurtlesRescued += 1
+	RunContext.PersistMeta(player,s)
 	s.hp = math.min(s.maxHp, s.hp + 8)
-	RunContext.Toast(player, string.format("Turtle rescued! (%d/%d) — Press E near turtles.", s.turtlesRescued, s.turtlesNeeded))
+	RunContext.Toast(player, string.format("Turtle rescued! (%d/%d) — use Interact near turtles.", s.turtlesRescued, s.turtlesNeeded))
 	local root = model and model.PrimaryPart
 	local pos = if root then root.Position else Vector3.new(0, 4, Constants.LANE_Z)
 	Remotes.Get("CombatEvent"):FireClient(player, {
@@ -248,33 +270,29 @@ function StageFlowService.OnTurtleRescued(player: Player, model: Model)
 	if s.turtlesRescued >= s.turtlesNeeded and s.turtlesNeeded > 0 then
 		RunContext.UnlockPersona(player, "TurtlePaladin")
 		local stage = Stages.Get(s.stageId)
-		if stage and stage.unlockPersona then
+		if stage and stage.unlockPersona and not stage.boss then
 			RunContext.UnlockPersona(player, stage.unlockPersona)
 		end
 		RunContext.Toast(player, "Nest secure — turtles first. Gate unlocks when you clear the beach.")
-		Remotes.Get("ShowTagline"):FireClient(player, "Rescue is the mission. GulfGulp's 'cleanup' was the cover.", "Captain Steve")
+		RunContext.Say(player, "Rescue is the mission. GulfGulp's 'cleanup' was the cover.", "Captain Steve")
 	end
 	RunContext.PushState(player)
 end
 
 function StageFlowService.FinishStage(player: Player)
-	local s = RunContext.GetState(player)
-	if not s or s.awaitingNewspaper or s.awaitingDraft then
-		return
-	end
-	local stage = Stages.Get(s.stageId)
-	if not stage or stage.isHub then
-		return
-	end
-
-	if stage.rescueTurtles > 0 and s.turtlesRescued < s.turtlesNeeded then
-		RunContext.Toast(player, "Rescue all turtles before leaving! (Never harm them.)")
-		return
-	end
-	if stage.boss and not s.bossDefeated then
-		RunContext.Toast(player, "The Spillfather still blocks the exit.")
-		return
-	end
+    local s = RunContext.GetState(player)
+    if not s or s.phase ~= 'Active' or not s.runActive then return end
+    local stage = Stages.Get(s.stageId)
+    if not stage then return end
+    if stage.coldOnePickup and not s.coldOneTaken and not s.steveEvents['coldOneExitReminder'] then
+        s.steveEvents['coldOneExitReminder'] = true
+        RunContext.Say(player,'Find the glowing green Cold One on the beach before leaving.','Captain Steve','cold-one-required')
+    end
+    if not ProgressionRules.CanComplete(stage,s,EnemyService.GetOutstandingCount()) then return end
+    if not ProgressionRules.Claim(s.rewardLedger,stage.id) then return end
+    s.runActive = false
+    s.phase = 'Reward'
+    player:SetAttribute('RunActive',false)
 
 	for _, id in s.items do
 		local it = Items.Get(id)
@@ -288,87 +306,62 @@ function StageFlowService.FinishStage(player: Player)
 	end
 
 	-- N3: every Weapons.List id unlocks in-run (BareHands starter; rest stage-gated)
-	local weaponDrops: { [string]: { string } } = {
-		DaytonaHangover = { "FlipFlopSlap", "CoolerLid" },
-		BoardwalkChaos = { "PoolNoodle", "NewspaperRoll" },
-		GasStationLegends = { "GolfClub", "TrafficCone" },
-		StripMallShowdown = { "HOAClipboard", "BeachUmbrella" },
-		DriveThruDisaster = { "GatorWrestleGloves", "ShoppingCart" },
-		CanalRun = { "KayakPaddle", "WaterBalloonSling" },
-		SwampShift = { "SnakeLasso", "FishSmack" },
-		CypressCathedral = { "TikiTorch", "LawnDart" },
-		SludgeBayou = { "SpillSkimmer" },
-		ConspiracyShack = { "Skateboard", "PelicanBeakReplica" },
-		TurtleBeach = { "NetGun" },
-		GulfGulpGate = { "FireExtinguisher" },
-		LabWing = { "BugZapper" },
-		PipeGauntlet = { "OilBarrelLid" },
-		BargeCrossing = { "BoogieBoard" },
-		OilPlatformApproach = { "SludgeHose" },
-		HelipadHysteria = { "RomanCandle" },
-		GulfGulpRig = { "FinaleRocket" },
-	}
+	local weaponDrops = require(Shared:WaitForChild("ProgressionCatalog"))
 	local drops = weaponDrops[stage.id]
 	if drops then
 		for _, wid in drops do
 			if not s.unlockedWeapons[wid] and Weapons.Get(wid) then
 				s.unlockedWeapons[wid] = true
-				s.weaponId = wid
 				local wdef = Weapons.Get(wid)
 				RunContext.Toast(player, "Weapon unlocked: " .. (if wdef then wdef.name else wid))
 			end
 		end
 	end
 
-	local nextStage = Stages.NextAfter(stage.id)
-	if stage.index == 3 then
-		FunnelService.Mark(player, "stage3_clear", { stage = stage.id })
-	end
-	s.awaitingNewspaper = true
-	s.runActive = false
-	EnemyService.Clear()
-	RunContext.PushState(player)
-	local actNum = Balance.ActNumber(stage.index)
-	Remotes.Get("ShowNewspaper"):FireClient(player, {
-		headline = stage.headline,
-		blurb = stage.blurb,
-		storyBeat = stage.storyBeat,
-		actName = Balance.TierName(stage.index),
-		actNumber = actNum,
-		panels = Story.NewspaperPanels(actNum),
-		steveLine = Story.SteveLine(actNum, s.deaths),
-		stageName = stage.name,
-		nextName = if nextStage then nextStage.name else "Sunrise Credits",
-		isFinale = nextStage == nil,
-	})
+    RunContext.PersistMeta(player,s)
+    local nextStage = Stages.NextAfter(stage.id)
+    if stage.index == 3 then FunnelService.Mark(player,'stage3_clear',{stage=stage.id}) end
+    EnemyService.Clear()
+    if not nextStage then
+        StageFlowService.FinishRun(player)
+        return
+    end
+    s.awaitingNewspaper = true
+    local actNum = Balance.ActNumber(stage.index)
+    s.pendingNewspaper = {
+        headline=stage.headline,blurb=stage.blurb,storyBeat=stage.storyBeat,
+        actName=Balance.TierName(stage.index),actNumber=actNum,
+        stageName=stage.name,nextName=nextStage.name,isFinale=false,generation=s.generation,
+    }
+    RunContext.PushState(player)
+    if s.clientReady then Remotes.Get('ShowNewspaper'):FireClient(player,s.pendingNewspaper) end
 end
 
 function StageFlowService.FinishRun(player: Player)
-	local s = RunContext.GetState(player)
-	if not s then
-		return
-	end
-	s.runActive = false
-	RunContext.UnlockPersona(player, "FireworksEnthusiast")
-	local creditLines = {}
-	for _, line in Story.CREDITS do
-		table.insert(creditLines, line)
-	end
-	table.insert(creditLines, "")
-	table.insert(creditLines, "Deaths this legend: " .. tostring(s.deaths))
-	table.insert(creditLines, "Turtles rescued forever: " .. tostring(s.turtlesRescued))
-	table.insert(creditLines, "")
-	table.insert(creditLines, "Soft launch — InEngine_v3 art · dialogue = popup text only")
-	table.insert(creditLines, "Florida Dew is soda/heal — not alcohol. SFX = combat (+ optional UI click).")
-	FunnelService.Mark(player, "run_credits", { deaths = s.deaths })
-	Remotes.Get("ShowCredits"):FireClient(player, {
-		title = "FLORIDA MAN",
-		subtitle = "Sunrise over a swamp that gets to stay wild",
-		lines = creditLines,
-	})
-	task.delay(2, function()
-		StageFlowService.LoadHub(player)
-	end)
+    local s=RunContext.GetState(player)
+    local stage = s and Stages.Get(s.stageId)
+    if not s or not stage or stage.index ~= Stages.CountPlayable() or s.completionCommitted then return end
+    if not ProgressionRules.CanComplete(stage,s,EnemyService.GetOutstandingCount()) then return end
+    -- A legacy/direct caller must enter the shared reward transaction first.
+    if not s.rewardLedger[stage.id] then StageFlowService.FinishStage(player); return end
+    s.completionCommitted=true
+    s.phase='Ending'; s.runActive=false; s.awaitingDraft=false; s.awaitingNewspaper=false
+    s.pendingOffer=nil; s.pendingNewspaper=nil
+    player:SetAttribute('RunActive',false)
+    RunContext.UnlockPersona(player,'FireworksEnthusiast')
+    RunContext.PersistMeta(player,s)
+    local creditLines = {
+        'The collars are cut. The nests are safe. GulfGulp has a lot to explain.',
+        'Captain Steve: It IS Florida… and somehow you made it better.',
+        'Turtles rescued this run: '..tostring(s.runTurtlesRescued),
+        'Turtles rescued across your adventures: '..tostring(s.totalTurtlesRescued),
+        'Finale Rocket unlocked. Select it for your next adventure.',
+        'The Cold One is yours. The sunrise is actually trying.',
+    }
+    s.pendingCredits={title='FLORIDA MAN',subtitle='Sunrise over a swamp that gets to stay wild',lines=creditLines,generation=s.generation}
+    FunnelService.Mark(player,'run_credits',{deaths=s.deaths,turtles=s.runTurtlesRescued})
+    RunContext.PushState(player)
+    if s.clientReady then Remotes.Get('ShowCredits'):FireClient(player,s.pendingCredits) end
 end
 
 function StageFlowService.TryColdOnePickup(player: Player)
@@ -397,8 +390,8 @@ function StageFlowService.TryColdOnePickup(player: Player)
 			s.pendingSteveEvent = "afterColdOneHub"
 			local el = Story.SteveEventLine("coldOne")
 			if el then
-				task.delay(1.0, function()
-					Remotes.Get("ShowTagline"):FireClient(player, el, "Captain Steve")
+				SessionService.Delay(player, 1.0, function()
+					RunContext.Say(player, el, "Captain Steve")
 				end)
 			end
 		end
@@ -422,9 +415,7 @@ function StageFlowService.TickWaves(player: Player)
 	for i, wave in stage.waves do
 		if not s.waveFlags[i] and progress >= wave.atProgress then
 			s.waveFlags[i] = true
-			local maxH = Balance.MaxHostiles(stage.index)
-			local room = math.max(0, maxH - EnemyService.CountHostile())
-			local toSpawn = Balance.WaveSpawnCap(stage.index, math.min(wave.count, math.max(1, room)))
+			local toSpawn = wave.count
 			for j = 1, toSpawn do
 				local gap = if stage.index <= 3 then 10 + j * 6 else 0
 				local x = hrp.Position.X + 18 + gap + rng:NextNumber(0, if stage.index <= 3 then 8 else 12)
@@ -454,7 +445,7 @@ function StageFlowService.TickWaves(player: Player)
 		EnemyService.Spawn("MutantAdd", hrp.Position.X + 32)
 		EnemyService.Spawn("OilGator", hrp.Position.X + 36)
 		RunContext.Toast(player, "THE SPILLFATHER — GulfGulp's final headline!")
-		Remotes.Get("ShowTagline"):FireClient(player, Constants.TAGLINE_MUTANTS, "Captain Steve")
+		RunContext.Say(player, Constants.TAGLINE_MUTANTS, "Captain Steve")
 	end
 
 	do
@@ -474,22 +465,28 @@ function StageFlowService.TickWaves(player: Player)
 					s.midRoomState = "cleared"
 				end
 			end
-			local inZone = (hrp.Position - zone.Position).Magnitude < 10
+			-- A jump or long accepted frame cannot skip a required room's trigger.
+			local inZone = hrp.Position.X >= zone.Position.X-zone.Size.X*0.5
 			if s.midRoomState == "idle" and inZone and mid:GetAttribute("Locked") and stage.waves and #stage.waves > 0 then
+				if hrp.Position.X>mid.Position.X-3 then
+					RunContext.TeleportPlayer(player,CFrame.new(zone.Position.X,5,Constants.LANE_Z))
+				end
 				s.midRoomState = "locked"
 				FunnelService.Mark(player, "midgate_lock", { stage = s.stageId })
 				if barrier and barrier:IsA("BasePart") then
-					barrier.CanCollide = true
-					barrier.Transparency = 0.4
+					-- The front gate owns progression. Leave retreat open so earlier
+					-- hostiles cannot become unreachable behind a newly sealed wall.
+					barrier.CanCollide = false
+					barrier.Transparency = 1
 				end
-				RunContext.Toast(player, "ROOM LOCKED — clear the wave!")
+				RunContext.Toast(player, "GATE CLOSED — clear the enemies to continue!")
 				-- N5: one story Tagline on first MidGate lock per act
 				do
 					local act = Balance.ActNumber(stage.index)
 					local key = "midGateAct" .. tostring(act)
 					if not s.steveEvents[key] then
 						s.steveEvents[key] = true
-						Remotes.Get("ShowTagline"):FireClient(player, Story.MidGateLockLine(act), "Captain Steve")
+						RunContext.Say(player, Story.MidGateLockLine(act), "Captain Steve")
 					end
 				end
 				Remotes.Get("CombatEvent"):FireClient(player, {
@@ -506,13 +503,11 @@ function StageFlowService.TickWaves(player: Player)
 					{ id = "OilGator", n = 1 },
 				}
 				local pick = roomWave[math.clamp(math.ceil(stage.index / 4), 1, #roomWave)]
-				local maxH = Balance.MaxHostiles(stage.index)
-				local roomLeft = math.max(0, maxH - EnemyService.CountHostile())
-				local toSpawn = math.max(1, math.min(pick.n, math.max(1, roomLeft)))
+				local toSpawn = pick.n
 				for j = 1, toSpawn do
 					EnemyService.Spawn(pick.id, mid.Position.X - 6 - j * 5)
 				end
-			elseif s.midRoomState == "locked" and EnemyService.CountHostile() == 0 then
+			elseif s.midRoomState == "locked" and EnemyService.GetOutstandingCount() == 0 then
 				s.midRoomState = "cleared"
 				FunnelService.Mark(player, "midgate_clear", { stage = s.stageId })
 				mid:SetAttribute("Locked", false)
@@ -529,30 +524,26 @@ function StageFlowService.TickWaves(player: Player)
 					duration = 0.42,
 					amount = 0.45,
 				})
-				Remotes.Get("PlaySound"):FireClient(player, "SFX_DraftSting")
-			end
+				end
 		end
 	end
 
-	if progress >= 0.92 and EnemyService.CountHostile() == 0 then
-		if stage.boss and not s.bossDefeated then
-			return
-		end
-		StageFlowService.FinishStage(player)
-	elseif progress >= 0.95 and EnemyService.CountHostile() <= 1 and not stage.boss then
-		-- soft clear window (unchanged)
-	end
-
-	if progress >= 0.88 and not stage.boss and EnemyService.CountHostile() == 0 then
-		StageFlowService.FinishStage(player)
-	end
-
-	if stage.miniboss and s.minibossSpawned and progress >= 0.9 and EnemyService.CountHostile() == 0 then
-		StageFlowService.FinishStage(player)
-	end
-	if stage.rescueTurtles > 0 and s.turtlesRescued >= s.turtlesNeeded and progress >= 0.9 and EnemyService.CountHostile() == 0 then
-		StageFlowService.FinishStage(player)
-	end
+    local bossState = nil
+    for _, model in EnemyService.GetAlive() do
+        if model:GetAttribute('IsBoss') or model:GetAttribute('IsMiniboss') then
+            local hum = model:FindFirstChildOfClass('Humanoid')
+            if hum and hum.Health > 0 then
+                bossState={id=model.Name,name=model:GetAttribute('DisplayName') or model.Name,hp=hum.Health,maxHp=hum.MaxHealth,phase=model:GetAttribute('BossPhase') or 1}
+                break
+            end
+        end
+    end
+    local oldBoss=s.bossState
+    if (oldBoss == nil) ~= (bossState == nil) or (oldBoss and bossState and (oldBoss.hp ~= bossState.hp or oldBoss.phase ~= bossState.phase)) then
+        s.bossState=bossState
+        RunContext.PushState(player)
+    end
+    if progress >= 0.92 and s.midRoomState ~= 'locked' then StageFlowService.FinishStage(player) end
 end
 
 return StageFlowService

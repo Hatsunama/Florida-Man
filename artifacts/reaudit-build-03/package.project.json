@@ -1,0 +1,78 @@
+{
+  "name": "Florida-Man",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "Shared": {
+        "$path": "C:/Users/1thea/Projects/Florida-Man/src/shared"
+      },
+      "Remotes": {
+        "$className": "Folder"
+      },
+      "Assets": {
+        "$className": "Folder",
+        "Meshes": {
+          "$className": "Folder"
+        },
+        "Animations": {
+          "$className": "Folder"
+        }
+      },
+      "BuildIdentity": {
+        "$className": "StringValue",
+        "$properties": {
+          "Value": "7194054af4ab8291cb59c839854c91accb3d37863b39135fcc2c47b4f71d1ecc"
+        }
+      }
+    },
+    "ServerScriptService": {
+      "Server": {
+        "$path": "C:/Users/1thea/Projects/Florida-Man/src/server"
+      }
+    },
+    "StarterPlayer": {
+      "$properties": {
+        "DevComputerMovementMode": "Scriptable",
+        "DevTouchMovementMode": "Scriptable"
+      },
+      "StarterPlayerScripts": {
+        "RbxCharacterSounds": {
+          "$path": "C:/Users/1thea/Projects/Florida-Man/src/character/RbxCharacterSounds.client.lua"
+        },
+        "Client": {
+          "$path": "C:/Users/1thea/Projects/Florida-Man/src/client"
+        }
+      }
+    },
+    "Workspace": {
+      "$properties": {
+        "Gravity": 196.2
+      },
+      "GameWorld": {
+        "$className": "Folder"
+      }
+    },
+    "Lighting": {
+      "$properties": {
+        "Ambient": [
+          0.4,
+          0.45,
+          0.5
+        ],
+        "Brightness": 2,
+        "ClockTime": 6.5,
+        "GeographicLatitude": 28,
+        "OutdoorAmbient": [
+          0.5,
+          0.55,
+          0.45
+        ]
+      }
+    },
+    "SoundService": {
+      "$properties": {
+        "RespectFilteringEnabled": true
+      }
+    }
+  }
+}

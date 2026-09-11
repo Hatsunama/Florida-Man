@@ -1,0 +1,1 @@
+telemetry: success, timeout, abandon and retained dimensions passed

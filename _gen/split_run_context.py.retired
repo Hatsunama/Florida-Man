@@ -1,0 +1,54 @@
+from pathlib import Path
+p=Path('src/server/RunContext.lua');s=p.read_text(encoding='utf-8')
+a=s.index('function RunContext.ComputeStats')
+b=s.index('function RunContext.NewRunState',a)
+rules=s[a:b].replace('RunContext.','RunStats.')
+Path('src/server/RunStats.lua').write_text('''--!strict
+-- Derived build statistics only. No persistence, transport, or character mutation.
+local Shared = game:GetService('ReplicatedStorage'):WaitForChild('Shared')
+local Constants = require(Shared:WaitForChild('Constants'))
+local Items = require(Shared:WaitForChild('Items'))
+local Types = require(Shared:WaitForChild('Types'))
+type RunState = Types.RunState
+local RunStats = {}
+''' +rules+'\nreturn RunStats\n',encoding='utf-8')
+s=s[:a]+'''RunContext.ComputeStats = RunStats.ComputeStats
+RunContext.HasItemSpecial = RunStats.HasItemSpecial
+RunContext.HasHeroicLifesteal = RunStats.HasHeroicLifesteal
+RunContext.HasGreasyOilResist = RunStats.HasGreasyOilResist
+
+'''+s[b:]
+a=s.index('function RunContext.ApplyPersonaLook')
+b=s.index('function RunContext.UnlockPersona',a)
+present=s[a:b].replace('function RunContext.ApplyPersonaLook(player: Player)','function CharacterStatePublisher.ApplyPersonaLook(player: Player, s: RunState?)').replace('function RunContext.ApplyCharacterSpeed(player: Player)','function CharacterStatePublisher.ApplyCharacterSpeed(player: Player, s: RunState?)').replace('\tlocal s = states[player]\n','')
+present=present.replace('RunContext.HasGreasyOilResist','RunStats.HasGreasyOilResist').replace('RunContext.HasItemSpecial','RunStats.HasItemSpecial').replace('RunContext.ApplyPersonaLook(player)','CharacterStatePublisher.ApplyPersonaLook(player,s)')
+present=present.replace('\tchar:SetAttribute("PersonaId", persona.id)', '''
+    local lookKey = persona.id .. ':' .. s.weaponId
+    if char:GetAttribute('AppliedLookKey') == lookKey then return end
+    char:SetAttribute('AppliedLookKey',lookKey)
+    char:SetAttribute("PersonaId", persona.id)''')
+Path('src/server/CharacterStatePublisher.lua').write_text('''--!strict
+-- Publishes accepted movement state and procedural appearance to the character.
+-- Derivation is owned by RunStats; cloud storage and command authorization stay elsewhere.
+local Shared = game:GetService('ReplicatedStorage'):WaitForChild('Shared')
+local Constants = require(Shared:WaitForChild('Constants'))
+local Personas = require(Shared:WaitForChild('Personas'))
+local Weapons = require(Shared:WaitForChild('Weapons'))
+local Types = require(Shared:WaitForChild('Types'))
+local RunStats = require(script.Parent:WaitForChild('RunStats'))
+type RunState = Types.RunState
+local CharacterStatePublisher = {}
+'''+present+'\nreturn CharacterStatePublisher\n',encoding='utf-8')
+s=s[:a]+'''function RunContext.ApplyPersonaLook(player: Player)
+    CharacterStatePublisher.ApplyPersonaLook(player,states[player])
+end
+
+function RunContext.ApplyCharacterSpeed(player: Player)
+    CharacterStatePublisher.ApplyCharacterSpeed(player,states[player])
+end
+
+'''+s[b:]
+s=s.replace('local RunContext = {}', '''local RunStats = require(script.Parent:WaitForChild('RunStats'))
+local CharacterStatePublisher = require(script.Parent:WaitForChild('CharacterStatePublisher'))
+local RunContext = {}''')
+p.write_text(s,encoding='utf-8')

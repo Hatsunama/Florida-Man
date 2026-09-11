@@ -1,0 +1,24 @@
+from pathlib import Path
+p=Path('src/server/RunStats.lua');s=p.read_text(encoding='utf-8')
+a=s.index('function RunStats.ComputeStats');b=s.index('function RunStats.HasItemSpecial',a)
+body=s[a:b]
+body=body.replace('function RunStats.ComputeStats(s: RunState)', 'function BuildRules.Compute(ids: {string}, Items: any, Constants: any): Stats').replace('in s.items do','in ids do').replace('Items.CountInscriptions(s.items)','Items.CountInscriptions(ids)')
+x=body.index('\ts.maxHp = maxHp')
+body=body[:x]+'''    return {maxHp=maxHp,damageMult=dmg,speedBonus=speed,luck=luck,dodgeBonus=dodge}
+end
+'''
+Path('src/shared/BuildRules.lua').write_text('''--!strict
+-- Pure derivation from catalog definitions, shared by runtime and balance analysis.
+local BuildRules={}
+export type Stats={maxHp:number,damageMult:number,speedBonus:number,luck:number,dodgeBonus:number}
+'''+body+'\nreturn table.freeze(BuildRules)\n',encoding='utf-8')
+s=s[:a]+'''function RunStats.ComputeStats(s: RunState)
+    local result=BuildRules.Compute(s.items,Items,Constants)
+    s.maxHp=result.maxHp; s.damageMult=result.damageMult; s.speedBonus=result.speedBonus
+    s.luck=result.luck; s.dodgeBonus=result.dodgeBonus
+    s.hp=math.min(s.hp,s.maxHp)
+end
+
+'''+s[b:]
+s=s.replace('local RunStats = {}','local BuildRules=require(Shared:WaitForChild("BuildRules"))\nlocal RunStats = {}')
+p.write_text(s,encoding='utf-8')

@@ -1,112 +1,45 @@
 # Florida Man
 
-**Tagline:** *It IS Florida… Anything is possible in the swamp I guess.*
+A silent Roblox 2.5D side-scrolling roguelite: recover the stolen Florida Dew, follow GulfGulp's wildlife experiments, rescue the turtles, and confront the Spillfather. The campaign has 20 stages plus the bonfire hub, eight personas, 28 weapons and 28 items, presented with procedural models and small text popups.
 
-A playable Roblox **2.5D side-scroll roguelite** inspired by *Skul: The Hero Slayer* — absurdist Florida Man headlines that become a real campaign, dual personas, weapon loadouts, item drafts, and a fight against **GulfGulp Energy** to save the turtles.
+## Current status
 
-You wake after the last honest night of your life. Crabs stole your **Cold One** (**Florida Dew** — a heal/buff can, *not* alcohol). That's the joke. The truth: GulfGulp has been running "wildlife enhancement" in the swamp — radio-collared gators, fire lizards, oiled turtle nests so pipelines can claim "no habitat." **Captain Steve** (pelican) knows. He won't spell it out until the swamp.
+The re-audit has reached actual Studio gameplay: bonfire E starts Daytona, an accepted dodge moves the character, confirmed Return reaches the hub, and native E opens Steve's shop. Main08/QA08 additionally established Hub Tab, movement/jump through real Input.Intent, NPC E after that approach without relocation, and a bounded client audio scan. A separate main05 native Space trace measured a 7.323493-stud rise and return with no reset. The [consolidated audit](docs/REAUDIT_2026_09_05.md) ties each result to its build and limits. The latest [main09 package report](artifacts/reaudit-build-09/report.json) passed 78 runtime files, 15 behavioral suites and 112 checks; [QA09](artifacts/reaudit-studio-09/report.json) passed six separate checks. There is no main09/QA09 engine result.
 
-## Story arc (5 acts · 20 stages + hub)
+The full mission remains open. QA08 exposed startup conversation fragmentation. Main09 now retains whole messages, paginates only with valid layout and preserves grapheme offsets; the new production pagination suite passed, but complete-conversation engine reading remains open. O remains a Studio shortcut conflict, although native Tab worked in the 08 Hub. Stage/lifecycle/Active-combat tests were not run on 08 because commit headroom fell below the 2 GiB threshold; the task's Studio was closed. The earlier stage-support smoke failed an ownership assertion with truncated output and proves no campaign pass. Server/client audio scans were clear only within their inspected scopes; all verbs/stages and experience voice configuration remain separate gates. Use the [current ledger](docs/REAUDIT_2026_09_05.md), [release acceptance](docs/RELEASE_ACCEPTANCE.md) and [isolated QA instructions](qa/README.md). Historical scorecards do not certify current gameplay. Do not publish until current acceptance gates have evidence.
 
-| Act | Stages | Tone |
-|-----|--------|------|
-| **1 Hangover Coast** | 1–5 | Viral comedy → first radio collar on Drive-Thru Gator |
-| **2 The Swamp That Isn't Wild** | 6–10 | Snakes → mutants; Steve's tagline once; animals aren't the enemy |
-| **3 Red Tide Bargain** | 11–12 | Rescue turtles; "cleanup" is a cover; Turtle Paladin |
-| **4 Inside GulfGulp** | 13–19 | Gate → lab files → pipes → docks → barge → platform → helipad |
-| **5 The Spillfather** | 20 | Oil-exec sludge mech (3 phases); save remaining turtles; sunrise credits |
+## Build and validate
 
-Newspaper cards **advance the plot**. Hub headline board rotates after deaths. Unique Steve banter per act. Credits include character sendoffs.
-
-## Requirements
-
-- Roblox Studio
-- Rojo 7.7+ (`rojo --version`)
-- Rokit optional (`rokit.toml` pins Rojo)
-- Git
-
-## Open in Studio (Rojo)
-
-1. Open repo folder (local clone path below after pull)
-2. Run `rojo serve` at the repo root
-3. In Roblox Studio, connect the **Rojo plugin** to `localhost:34872`
-4. Press Play. Press **E** at the **bonfire** (or click the prompt) to start
+Requirements: Python 3.11+, Windows, Roblox Studio for engine tests. Pinned tools are checksum verified outside the repository; no package manager or background development server is required.
 
 ```powershell
-rojo build -o FloridaMan.rbxlx
+./scripts/bootstrap-tools.ps1
+python scripts/validate.py
 ```
 
-## Controls
+The validator compiles every mapped source, checks Roblox types and explicit contracts, executes pure rule/failure tests, and only then packages `artifacts/validation/FloridaMan.rbxlx`. It rejects concurrent changes and records the commit, source hashes, tool versions and build hash. All subprocesses run sequentially. `scripts/check_invariants.sh` is a narrow structural check only.
 
-| Action | Keyboard | Xbox |
-|--------|----------|------|
-| Move (lane) | A/D or ←/→ | Left stick |
-| Jump (coyote + variable) | Space | A |
-| Attack (3-hit combo, ~120ms buffer) | Click / J | X / RT |
-| Skill (pattern differs per persona) | K | Y / LT |
-| Swap persona (+ swap attack, brief i-frame) | Q | B |
-| Dodge dash (i-frames + trail) | Left Shift | RB |
-| Interact (bonfire / Captain Steve) | E or click prompt | LB |
+Open the resulting place in Studio. The old root `FloridaMan.rbxlx` is an ignored comparison artifact and is not automatically overwritten. Rojo 7.7.0 can also serve this project if desired.
 
-Movement is a **custom client 2.5D controller**: `AlignPosition` Z-lane lock, `AlignOrientation` via `CFrame.lookAlong` (+X when moving D), X via `AssemblyLinearVelocity` only (no CFrame stomp). Always-run with snappy accel.
+## Play and progression
 
-**Combat feel:** hitstop (0.03–0.06s) + flinch/knockback + hit sparks on every connect; screen shake **only on hits**; empty swings stay quiet.
+- One admitted player owns each server world. Set deployed MaxPlayers to 1 as well; server admission enforces the same boundary.
+- Move with A/D or arrows, left stick, or touch arrows. Jump with Space, controller A, or the touch button; hold/release controls height.
+- Attack, skill, dodge and swap share one input-intent path across devices. Keyboard defaults: click/J, K, Shift and Q. Controller hints and touch buttons expose the equivalent actions.
+- Interact beside the bonfire, Captain Steve or a turtle. Conversation stays in small nonmodal text. Necessary story facts remain available in Notes.
+- Choose up to two distinct unlocked personas in the hub. Earned personas, rarity upgrades, selected loadouts, Sunburn and weapon unlocks persist. Items last for one run.
+- Item capacity starts at 3 and grows to 4/5/6 at stages 6/11/16. Every inscription needs three distinct pieces. Full inventories can replace an item or skip a reward.
+- Every required encounter and rescue must finish before an exit opens. The finale requires both boss defeat and all final turtles; rewards commit once. The Finale Rocket remains available for later runs.
+- Options control presentation: text speed/size, reduced motion, flashes and telegraph accessibility. There are no audio settings or playback pipeline.
 
-Camera: depth ~32 (Constants.CAMERA_DEPTH), FOV 65, shake on hits only.
+## Architecture
 
-## Difficulty + power scaling
+`GameService` composes services and validates command ingress. `SessionService` owns single-player admission and generation-scoped callbacks. `RunContext` stores accepted run state and publishes snapshots, delegating stats to pure `BuildRules` through `RunStats` and character projection to `CharacterStatePublisher`. `StageFlowService` owns encounter progression and idempotent rewards. Profile schema/queue rules are separated from the Roblox storage adapter. Server combat owns timing/hits/results; clients own input prediction, camera, animation, visuals and UI. World layout/hazard definitions are separate from Part construction.
 
-Implemented in `Balance.lua` + `GameService` / `EnemyService` (curve documented in comments):
+## Deterministic content analysis
 
-- **Enemy HP** `*= (1 + 0.10 * stageIndex)` · **damage** `*= (1 + 0.075 * stageIndex)`
-- Stages 1–2 teach dodge/attack (≤2 on screen); 3–5 comedy roles; 6–10 mixes; 11–12 turtle pressure; 13–20 elites + hazards (not HP sponges)
-- **Max hostiles on screen:** 2 → 3 → 4 (never cube soup)
-- Persona rarity: **+15% / +30% / +50%** attack & skill power; skill CD **−8% / −14% / −20%**
-- Hangover **only stage 1**, clears when you reclaim The Cold One
-- Bosses use **phase pattern changes** (Spillfather slam → summon → arena slick)
-
-## Level quality
-
-Each stage has a unique **set piece**, **segmented ground** with biome materials/heights, mid/late **gaps** that make jump matter, mid-stage **room gates** (clear pocket → door opens), 3-layer parallax, cartoon hazards with telegraphs, visible goal lights, and biome lighting (Atmosphere + ColorCorrection + Bloom).
-
-## Content counts
-
-| Catalog | Count |
-|---------|------:|
-| Playable stages | **20** |
-| Personas (dual kit) | **8** |
-| Power-ups / items | **28** |
-| Weapons | **28** |
-| Enemies (unique behaviors) | **34** |
-
-### Personas
-
-Beach Burnout, Crab King, Gator Hauler, Snake Charmer, Golf Cart Bandit, Fireworks Enthusiast, Lizard Breath, Turtle Paladin.
-
-### Enemy folklore (unique telegraphs)
-
-Hangover Pinchers (pinch combo) · Influencer flash stun cone · HOA Karen slow aura + clipboard · Oil Gator sludge puddles · Fire Lizard ground fire cone · Mark Drone circle-then-dive · **The Spillfather** (3 phases). Turtles always allies.
-
-## Layout
-
-```
-default.project.json
-src/shared/   Personas Items Weapons Stages Enemies Balance Story Constants Remotes Util Types
-src/server/   GameService WorldBuilder EnemyService EnemyFactory CombatService
-src/client/   Controllers (Movement Camera Input VFX) UI (HUD Newspaper ItemDraft …)
+```powershell
+python scripts/export_catalog.py --luau "$env:LOCALAPPDATA/FloridaMan/toolchain/luau-0.737/luau.exe"
 ```
 
-## Content policy
-
-- No drugs / intoxication gameplay
-- No real alcohol — Cold One = Florida Dew heal can; hangover = slow status only
-- Cartoon poof combat; no gore; turtles always allies
-- Parody headlines only; no realistic firearms; no real names
-
-## Lore
-
-- Fire lizards + Lizard Breath persona
-- Gators = GulfGulp science experiments (radio collars, sludge armor)
-- Lab files: they engineered gators to guard spills
-- Turtles always rescued
-- Captain Steve: "It IS Florida… Anything is possible in the swamp I guess."
+The export evaluates current catalogs and all legal item combinations. Attack-cycle DPS is an uninterrupted upper bound, not an observed encounter result. Enemy HP scales by `1 + 0.09 × stageIndex`; damage by `1 + 0.075 × stageIndex`, with separate miniboss factors. Actual difficulty, frame time, avatar assets and live persistence require the engine/device acceptance pass.

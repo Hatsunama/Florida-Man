@@ -1,0 +1,20 @@
+from pathlib import Path
+hp = Path(r"C:\Users\1thea\Projects\Florida-Man\src\client\UI\HUD.lua")
+h = hp.read_text(encoding="utf-8")
+if "s.weaponId" not in h:
+    # find sunburn update line without relying on emoji
+    lines = h.splitlines(True)
+    out = []
+    for line in lines:
+        out.append(line)
+        if "sunburnLbl.Text = string.format" in line and "s.sunburn" in line:
+            out.append('\tif weaponLbl then\n')
+            out.append('\t\tlocal w = Weapons.Get(s.weaponId or "BareHands")\n')
+            out.append('\t\tweaponLbl.Text = "Weapon: " .. (if w then w.name else tostring(s.weaponId))\n')
+            out.append('\tend\n')
+    h = "".join(out)
+    hp.write_text(h, encoding="utf-8")
+    print("patched update")
+else:
+    print("already has weaponId")
+print("weaponId count", h.count("weaponId"))

@@ -1,0 +1,130 @@
+from pathlib import Path
+p=Path('src/server/StageFlowService.lua');s=p.read_text(encoding='utf-8')
+s=s.replace('local StageFlowService = {}','local SessionService = require(script.Parent:WaitForChild("SessionService"))\nlocal ProgressionRules = require(Shared:WaitForChild("ProgressionRules"))\n\nlocal StageFlowService = {}')
+s=s.replace('task.delay(', 'SessionService.Delay(player, ')
+s=s.replace('Remotes.Get("ShowTagline"):FireClient(player,','RunContext.Say(player,')
+s=s.replace('\t\t\t\t\tRunContext.Toast(player, "Captain Steve: " .. el)\n','')
+s=s.replace('\t\t\tRemotes.Get("PlaySound"):FireClient(player, "SFX_DraftSting")\n','')
+# Exact admission / phase transition ownership precedes world mutation.
+s=s.replace('\ts.inHub = true\n\ts.runActive = false', '\tif not SessionService.IsOwner(player) then return end\n\tRunContext.BeginPhase(player, "Hub")\n\ts.inHub = true\n\ts.runActive = false\n\ts.deathProcessed = false\n\ts.bossState = nil\n\tplayer:SetAttribute("RunActive",false)',1)
+s=s.replace('\tassert(stage, "bad stage")', '\tif not stage or not SessionService.IsOwner(player) then return end\n\tRunContext.BeginPhase(player, if stage.isHub then "Hub" else "Active")\n\ts.bossState = nil\n\ts.itemSlots = ProgressionRules.ItemCapacity(stage.index)')
+s=s.replace('\t\tMetaService.CaptureFromRun(player, s.deaths, s.sunburn, s.unlockedPersonas, stage.index)','\t\tRunContext.PersistMeta(player,s)')
+s=s.replace('\ts.runActive = not stage.isHub','\ts.runActive = not stage.isHub\n\tplayer:SetAttribute("RunActive",s.runActive)')
+s=s.replace('\t\t\tm:SetAttribute("EscortEnabled", true)','\t\t\tm:SetAttribute("EscortEnabled", false) -- immediate rescue; no escort claim')
+# Required facts are event-linked; incidental repeated tagline no longer every mutant room.
+s=s.replace('if stage.showMutantTagline then','if stage.showMutantTagline and not s.steveEvents.mutantsRevealed then\n\t\ts.steveEvents.mutantsRevealed = true')
+# Do not allow final boss kill to jump directly around objectives/rewards.
+a=s.index('\tif enemyId == "Spillfather" then')
+b=s.index('\n\tlocal stage = Stages.Get(s.stageId)',a)
+s=s[:a]+'''    if enemyId == "Spillfather" then
+        s.bossDefeated = true
+        s.bossState = nil
+        RunContext.Say(player, "The Spillfather is defeated. Secure every remaining turtle before sunrise.")
+        RunContext.PushState(player)
+        return
+    end
+''' + s[b:]
+a=s.index('function StageFlowService.OnEnemyKilled')
+b=s.index('\n\tif RunContext.HasItemSpecial',a)
+s=s[:a]+s[a:b].replace('if not s then','if not s or not s.runActive or s.phase ~= "Active" then')+s[b:]
+s=s.replace('\ts.turtlesRescued += 1','\tif not s.runActive or s.phase ~= "Active" or s.turtlesRescued >= s.turtlesNeeded then return end\n\tif model:GetAttribute("RewardedRescue") then return end\n\tmodel:SetAttribute("RewardedRescue",true)\n\ts.turtlesRescued += 1\n\ts.runTurtlesRescued += 1\n\ts.totalTurtlesRescued += 1\n\tRunContext.PersistMeta(player,s)')
+s=s.replace(' — Press E near turtles.', ' — use Interact near turtles.')
+a=s.index('\tlocal weaponDrops:')
+b=s.index('\n\tlocal drops = weaponDrops[stage.id]',a)
+table=s[a:b].replace('\tlocal weaponDrops:', 'local weaponDrops:',1)
+Path('src/shared/ProgressionCatalog.lua').write_text('--!strict\n-- Permanent weapon unlocks awarded once per completed stage.\n'+table+'\nreturn table.freeze(weaponDrops)\n',encoding='utf-8')
+s=s[:a]+'\tlocal weaponDrops = require(Shared:WaitForChild("ProgressionCatalog"))'+s[b:]
+s=s.replace('\t\t\t\ts.weaponId = wid\n','')
+# FinishStage is the only transaction entry for both exits and finale.
+a=s.index('function StageFlowService.FinishStage')
+b=s.index('\n\tfor _, id in s.items do',a)
+s=s[:a]+'''function StageFlowService.FinishStage(player: Player)
+    local s = RunContext.GetState(player)
+    if not s or s.phase ~= 'Active' or not s.runActive then return end
+    local stage = Stages.Get(s.stageId)
+    if not stage then return end
+    if not ProgressionRules.CanComplete(stage,s,EnemyService.GetOutstandingCount()) then return end
+    if not ProgressionRules.Claim(s.rewardLedger,stage.id) then return end
+    s.runActive = false
+    s.phase = 'Reward'
+    player:SetAttribute('RunActive',false)
+''' + s[b:]
+a=s.index('\tlocal nextStage = Stages.NextAfter(stage.id)',s.index('function StageFlowService.FinishStage'))
+b=s.index('\nfunction StageFlowService.TryColdOnePickup',a)
+s=s[:a]+'''    RunContext.PersistMeta(player,s)
+    local nextStage = Stages.NextAfter(stage.id)
+    if stage.index == 3 then FunnelService.Mark(player,'stage3_clear',{stage=stage.id}) end
+    EnemyService.Clear()
+    if not nextStage then
+        StageFlowService.FinishRun(player)
+        return
+    end
+    s.awaitingNewspaper = true
+    local actNum = Balance.ActNumber(stage.index)
+    s.pendingNewspaper = {
+        headline=stage.headline,blurb=stage.blurb,storyBeat=stage.storyBeat,
+        actName=Balance.TierName(stage.index),actNumber=actNum,
+        stageName=stage.name,nextName=nextStage.name,isFinale=false,generation=s.generation,
+    }
+    RunContext.PushState(player)
+    if s.clientReady then Remotes.Get('ShowNewspaper'):FireClient(player,s.pendingNewspaper) end
+end
+
+function StageFlowService.FinishRun(player: Player)
+    local s=RunContext.GetState(player)
+    local stage = s and Stages.Get(s.stageId)
+    if not s or not stage or stage.index ~= Stages.CountPlayable() or s.completionCommitted then return end
+    if not ProgressionRules.CanComplete(stage,s,EnemyService.GetOutstandingCount()) then return end
+    -- A legacy/direct caller must enter the shared reward transaction first.
+    if not s.rewardLedger[stage.id] then StageFlowService.FinishStage(player); return end
+    s.completionCommitted=true
+    s.phase='Ending'; s.runActive=false; s.awaitingDraft=false; s.awaitingNewspaper=false
+    s.pendingOffer=nil; s.pendingNewspaper=nil
+    player:SetAttribute('RunActive',false)
+    RunContext.UnlockPersona(player,'FireworksEnthusiast')
+    RunContext.PersistMeta(player,s)
+    local creditLines = {
+        'The collars are cut. The nests are safe. GulfGulp has a lot to explain.',
+        'Captain Steve: It IS Florida… and somehow you made it better.',
+        'Turtles rescued this run: '..tostring(s.runTurtlesRescued),
+        'Turtles rescued across your adventures: '..tostring(s.totalTurtlesRescued),
+        'Finale Rocket unlocked. Select it for your next adventure.',
+        'The Cold One is yours. The sunrise is actually trying.',
+    }
+    s.pendingCredits={title='FLORIDA MAN',subtitle='Sunrise over a swamp that gets to stay wild',lines=creditLines,generation=s.generation}
+    FunnelService.Mark(player,'run_credits',{deaths=s.deaths,turtles=s.runTurtlesRescued})
+    RunContext.PushState(player)
+    if s.clientReady then Remotes.Get('ShowCredits'):FireClient(player,s.pendingCredits) end
+end
+''' + s[b:]
+# Full demand is queued by the sole encounter budget.
+a=s.index('\t\t\tlocal maxH = Balance.MaxHostiles(stage.index)')
+b=s.index('\n\t\t\tfor j = 1, toSpawn do',a)
+s=s[:a]+'\t\t\tlocal toSpawn = wave.count'+s[b:]
+a=s.index('\t\t\t\tlocal maxH = Balance.MaxHostiles(stage.index)')
+b=s.index('\n\t\t\t\tfor j = 1, toSpawn do',a)
+s=s[:a]+'\t\t\t\tlocal toSpawn = pick.n'+s[b:]
+s=s.replace('EnemyService.CountHostile()', 'EnemyService.GetOutstandingCount()')
+a=s.index('\n\tif progress >= 0.92')
+s=s[:a]+'''
+    local bossState = nil
+    for _, model in EnemyService.GetAlive() do
+        if model:GetAttribute('IsBoss') or model:GetAttribute('IsMiniboss') then
+            local hp = model:GetAttribute('HP')
+            if typeof(hp)=='number' and hp > 0 then
+                bossState={id=model.Name,name=model:GetAttribute('DisplayName') or model.Name,hp=hp,maxHp=model:GetAttribute('MaxHP') or hp,phase=model:GetAttribute('Phase') or 1}
+                break
+            end
+        end
+    end
+    local oldBoss=s.bossState
+    if (oldBoss == nil) ~= (bossState == nil) or (oldBoss and bossState and (oldBoss.hp ~= bossState.hp or oldBoss.phase ~= bossState.phase)) then
+        s.bossState=bossState
+        RunContext.PushState(player)
+    end
+    if progress >= 0.92 and s.midRoomState ~= 'locked' then StageFlowService.FinishStage(player) end
+end
+
+return StageFlowService
+'''
+p.write_text(s,encoding='utf-8')

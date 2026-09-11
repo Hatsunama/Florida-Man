@@ -3,13 +3,27 @@
 	NEVER leave orphan Anchored accent parts. All limbs move with root.
 ]]
 
-local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local Debris = game:GetService("Debris")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ArtAssets = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("ArtAssets"))
+local MovementRules = require(script.Parent:WaitForChild('EnemyMovementRules'))
 
 local EnemyFactory = {}
+local rigCache: { [Model]: { Instance }? } = {}
+
+local function clearCached(model: Model)
+	rigCache[model] = nil
+end
+
+local function rigParts(model: Model): { Instance }
+	local cached = rigCache[model]
+	if cached then return cached end
+	local parts: { Instance } = model:GetDescendants()
+	rigCache[model] = parts
+	model.Destroying:Connect(function() clearCached(model) end)
+	return parts
+end
 
 local function weld(a: BasePart, b: BasePart, name: string?): WeldConstraint
 	local w = Instance.new("WeldConstraint")
@@ -28,6 +42,8 @@ local function part(props: { [string]: any }): Part
 	p.Material = props.Material or Enum.Material.SmoothPlastic
 	p.Anchored = false
 	p.CanCollide = props.CanCollide == true
+	p.CanQuery = false
+	p.CanTouch = false
 	p.Massless = props.Massless ~= false
 	p.CastShadow = true
 	p.TopSurface = Enum.SurfaceType.Smooth
@@ -807,15 +823,15 @@ local function buildBoss(model: Model, root: Part, def: any)
 		CFrame = root.CFrame * CFrame.new(0, def.size.Y * 0.45, 0),
 	})
 	attachToRoot(root, crown)
-	local weak = part({
-		Name = "WeakPoint",
+	local armor = part({
+		Name = "ArmorPlate",
 		Parent = model,
 		Size = Vector3.new(2.5, 2.5, 1.2),
-		Color = def.accent,
-		Material = Enum.Material.Neon,
+		Color = def.color:Lerp(def.accent,0.15),
+		Material = Enum.Material.Metal,
 		CFrame = root.CFrame * CFrame.new(0, def.size.Y * 0.1, -def.size.Z * 0.25),
 	})
-	attachToRoot(root, weak)
+	attachToRoot(root, armor)
 	-- Spillfather sludge mech extras
 	if def.id == "Spillfather" then
 		local chassis = part({
@@ -884,15 +900,6 @@ local function buildBoss(model: Model, root: Part, def: any)
 		pe.LightEmission = 0.05
 		pe.Parent = drip
 	end
-	task.spawn(function()
-		while weak.Parent do
-			local t = TweenService:Create(weak, TweenInfo.new(0.8, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {
-				Transparency = 0.45,
-			})
-			t:Play()
-			break
-		end
-	end)
 end
 
 local function buildTurtle(model: Model, root: Part, def: any)
@@ -1105,7 +1112,7 @@ local function applyEnemyAttrs(model: Model, root: BasePart, def: any)
 		local nameLbl = Instance.new("TextLabel")
 		nameLbl.Size = UDim2.new(1, 0, 0.55, 0)
 		nameLbl.BackgroundTransparency = 1
-		nameLbl.Text = if def.isAlly then (def.name .. " · Press E") else def.name
+		nameLbl.Text = def.name
 		nameLbl.TextColor3 = if def.isAlly then Color3.fromRGB(120, 255, 180) else Color3.fromRGB(255, 220, 200)
 		nameLbl.TextScaled = true
 		nameLbl.Font = Enum.Font.GothamBold
@@ -1137,16 +1144,25 @@ local function tryMeshEnemy(def: any, position: Vector3): Model?
 	clone.PrimaryPart = root
 	root.Anchored = true
 	root.CanCollide = true
-	root.CFrame = CFrame.new(position)
-	local hum = clone:FindFirstChildOfClass("Humanoid")
-	if not hum then
-		hum = Instance.new("Humanoid")
-		hum.Parent = clone
+	root.CanQuery = true
+	root.CanTouch = false
+	root:SetAttribute("EnemyHitbox", true)
+	root.Size = def.size
+	clone:PivotTo(CFrame.new(position))
+	for _, child in clone:GetDescendants() do
+		if child:IsA("BasePart") and child ~= root then
+			child.CanCollide, child.CanQuery, child.CanTouch = false, false, false
+		end
 	end
+	local hum: Humanoid = clone:FindFirstChildOfClass("Humanoid") or Instance.new("Humanoid")
+	hum.Parent = clone
 	hum.MaxHealth = def.hp
+	hum.BreakJointsOnDeath = false
 	hum.Health = def.hp
 	hum.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
 	applyEnemyAttrs(clone, root, def)
+	clone:SetAttribute('VisualForwardAxis', '+X') -- validated imported art contract
+	clone:SetAttribute('VisualFacing', 1)
 	return clone
 end
 
@@ -1167,11 +1183,13 @@ function EnemyFactory.Build(def: any, position: Vector3): Model
 	root.Material = Enum.Material.SmoothPlastic
 	root.Anchored = true -- AI PivotTo; whole welded assembly moves together
 	root.CanCollide = true
+	root.CanQuery = true
+	root:SetAttribute("EnemyHitbox", true)
 	root.CFrame = CFrame.new(position)
 	root.Parent = model
 
-	local shaper = SHAPERS[def.shape] or buildGeneric
-	shaper(model, root, def)
+	local shaper = SHAPERS[def.shape]
+	if shaper then shaper(model, root, def) else buildGeneric(model, root, def) end
 
 	-- Safety net: every BasePart must be in the assembly.
 	-- CRITICAL: never WeldConstraint a part that is already Motor6D-driven — welds freeze animation.
@@ -1188,12 +1206,17 @@ function EnemyFactory.Build(def: any, position: Vector3): Model
 
 	local hum = Instance.new("Humanoid")
 	hum.MaxHealth = def.hp
+	hum.BreakJointsOnDeath = false
 	hum.Health = def.hp
 	hum.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
 	hum.Parent = model
 
 	model.PrimaryPart = root
 	applyEnemyAttrs(model, root, def)
+	local forwardAxis = MovementRules.ForwardAxis(def.shape)
+	model:SetAttribute('VisualForwardAxis', forwardAxis)
+	model:SetAttribute('VisualFacing', 1)
+	model:PivotTo(CFrame.new(position) * CFrame.Angles(0, MovementRules.FacingYaw(1, forwardAxis), 0))
 
 	return model
 end
@@ -1205,7 +1228,7 @@ function EnemyFactory.Animate(model: Model, dt: number, moving: boolean, attacki
 	local shape = model:GetAttribute("Shape")
 
 	if shape == "crab" then
-		for _, d in model:GetDescendants() do
+		for _, d in rigParts(model) do
 			if d:IsA("Motor6D") and d.Name == "RootHipMotor" then
 				local hip = d.Part1
 				local idx = if hip then (hip:GetAttribute("LegIndex") :: number?) or 0 else 0
@@ -1249,19 +1272,19 @@ function EnemyFactory.Animate(model: Model, dt: number, moving: boolean, attacki
 			end
 		end
 	elseif shape == "gator" or shape == "lizard" then
-		for _, d in model:GetDescendants() do
+		for _, d in rigParts(model) do
 			if d:IsA("Motor6D") and d.Name == "TailMotor" then
 				d.C1 = CFrame.Angles(0, math.sin(phase) * 0.35, 0)
 			end
 		end
 	elseif shape == "snake" then
-		for _, d in model:GetDescendants() do
-			if d:IsA("Motor6D") and d.Name == "SegMotor" then
+		for _, d in rigParts(model) do
+			if d:IsA("Motor6D") and d.Name == "SegMotor" and d.Part1 then
 				d.C1 = CFrame.Angles(0, math.sin(phase + d.Part1.Name:len()) * 0.25, 0)
 			end
 		end
 	elseif shape == "humanoid" or shape == "boss" then
-		for _, d in model:GetDescendants() do
+		for _, d in rigParts(model) do
 			if d:IsA("Motor6D") and d.Name == "ArmMotor" then
 				local swing = if moving then math.sin(phase) * 0.6 else math.sin(phase * 0.4) * 0.1
 				if attacking then
@@ -1281,17 +1304,23 @@ function EnemyFactory.Animate(model: Model, dt: number, moving: boolean, attacki
 end
 
 function EnemyFactory.HitFlash(model: Model)
-	for _, d in model:GetDescendants() do
-		if d:IsA("BasePart") and d.Name ~= "Telegraph" then
-			local old = d.Color
-			d.Color = Color3.new(1, 1, 1)
-			task.delay(0.07, function()
-				if d.Parent then
-					d.Color = old
-				end
-			end)
+	local revision = ((model:GetAttribute("HitFlashRevision") :: number?) or 0) + 1
+	model:SetAttribute("HitFlashRevision", revision)
+	for _, child in rigParts(model) do
+		if child:IsA("BasePart") then
+			if typeof(child:GetAttribute("BaseColor")) ~= "Color3" then child:SetAttribute("BaseColor", child.Color) end
+			child.Color = Color3.new(1, 1, 1)
 		end
 	end
+	task.delay(0.07, function()
+		if not model.Parent or model:GetAttribute("HitFlashRevision") ~= revision then return end
+		for _, child in rigParts(model) do
+			if child:IsA("BasePart") then
+				local color = child:GetAttribute("BaseColor")
+				if typeof(color) == "Color3" then child.Color = color end
+			end
+		end
+	end)
 end
 
 function EnemyFactory.DeathPoof(pos: Vector3, color: Color3)
@@ -1302,6 +1331,7 @@ function EnemyFactory.DeathPoof(pos: Vector3, color: Color3)
 	puff.Material = Enum.Material.Neon
 	puff.Anchored = true
 	puff.CanCollide = false
+	puff.CanQuery, puff.CanTouch = false, false
 	puff.CFrame = CFrame.new(pos)
 	puff.Parent = workspace
 	local att = Instance.new("Attachment")
@@ -1319,6 +1349,7 @@ function EnemyFactory.DeathPoof(pos: Vector3, color: Color3)
 	local ring = Instance.new("Part")
 	ring.Anchored = true
 	ring.CanCollide = false
+	ring.CanQuery, ring.CanTouch = false, false
 	ring.Material = Enum.Material.ForceField
 	ring.Color = color
 	ring.Size = Vector3.new(0.3, 2, 2)

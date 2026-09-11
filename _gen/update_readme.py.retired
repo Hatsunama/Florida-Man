@@ -1,0 +1,56 @@
+from pathlib import Path
+p=Path('README.md')
+p.write_text('''# Florida Man
+
+A silent Roblox 2.5D side-scrolling roguelite: recover the stolen Florida Dew, follow GulfGulp's wildlife experiments, rescue the turtles, and confront the Spillfather. The campaign has20 stages plus the bonfire hub, eight personas,28 weapons and28 items, presented with procedural models and small text popups.
+
+## Current status
+
+The comprehensive audit is being implemented and verified. See [the implementation ledger](docs/IMPLEMENTATION_PROGRESS.md), [release acceptance](docs/RELEASE_ACCEPTANCE.md), [content manifest](docs/CATALOG_IMPLEMENTATION.md), and [balance analysis](docs/BALANCE_IMPLEMENTATION.md). Historical phase scorecards are not evidence for the current source. Do not publish until the current acceptance gates have evidence.
+
+## Build and validate
+
+Requirements: Python3.11+, Windows, Roblox Studio for engine tests. Pinned tools are checksum verified outside the repository; no package manager or background development server is required.
+
+```powershell
+./scripts/bootstrap-tools.ps1
+python scripts/validate.py
+```
+
+The validator compiles every mapped source, checks Roblox types and explicit contracts, executes pure rule/failure tests, and only then packages `artifacts/validation/FloridaMan.rbxlx`. It rejects concurrent changes and records the commit, source hashes, tool versions and build hash. All subprocesses run sequentially. `scripts/check_invariants.sh` is a narrow structural check only.
+
+Open the resulting place in Studio. The old root `FloridaMan.rbxlx` is an ignored comparison artifact and is not automatically overwritten. Rojo7.7.0 can also serve this project if desired.
+
+## Play and progression
+
+- One admitted player owns each server world. Set deployed MaxPlayers to1 as well; server admission enforces the same boundary.
+- Move with A/D or arrows, left stick, or touch arrows. Jump with Space, controller A, or the touch button; hold/release controls height.
+- Attack, skill, dodge and swap share one input-intent path across devices. Keyboard defaults: click/J, K, Shift and Q. Controller hints and touch buttons expose the equivalent actions.
+- Interact beside the bonfire, Captain Steve or a turtle. Conversation stays in small nonmodal text. Necessary story facts remain available in Notes.
+- Choose up to two distinct unlocked personas in the hub. Earned personas, rarity upgrades, selected loadouts, Sunburn and weapon unlocks persist. Items last for one run.
+- Item capacity starts at3 and grows to4/5/6 at stages6/11/16. Every inscription needs three distinct pieces. Full inventories can replace an item or skip a reward.
+- Every required encounter and rescue must finish before an exit opens. The finale requires both boss defeat and all final turtles; rewards commit once. The Finale Rocket remains available for later runs.
+- Options control presentation: text speed/size, reduced motion, flashes and telegraph accessibility. There are no audio settings or playback pipeline.
+
+## Architecture
+
+`GameService` composes services and validates command ingress. `SessionService` owns single-player admission and generation-scoped callbacks. `RunContext` stores accepted run state and publishes snapshots, delegating stats to pure `BuildRules` through `RunStats` and character projection to `CharacterStatePublisher`. `StageFlowService` owns encounter progression and idempotent rewards. Profile schema/queue rules are separated from the Roblox storage adapter. Server combat owns timing/hits/results; clients own input prediction, camera, animation, visuals and UI. World layout/hazard definitions are separate from Part construction.
+
+## Deterministic content analysis
+
+```powershell
+python scripts/export_catalog.py --luau "$env:LOCALAPPDATA/FloridaMan/toolchain/luau-0.737/luau.exe"
+```
+
+The export evaluates current catalogs and all legal item combinations. Attack-cycle DPS is an uninterrupted upper bound, not an observed encounter result. Enemy HP scales by `1 + 0.09 × stageIndex`; damage by `1 + 0.075 × stageIndex`, with separate miniboss factors. Actual difficulty, frame time, avatar assets and live persistence require the engine/device acceptance pass.
+''',encoding='utf-8')
+for name in ['PUBLISH_CHECKLIST.md','SMOKE_CHECKLIST.md','BALANCE_SHEET.md','PlayabilityInvariants.md','KPI.md','PLAN_NEXT.md','PLAN_100X.md']:
+    p=Path('docs')/name
+    if not p.exists():continue
+    old=p.read_text(encoding='utf-8-sig')
+    banner='> Historical planning/reference document. Current implementation and release decisions use [IMPLEMENTATION_PROGRESS](IMPLEMENTATION_PROGRESS.md) and [RELEASE_ACCEPTANCE](RELEASE_ACCEPTANCE.md). Claims below have not been re-certified for the repaired source.\n\n'
+    if not old.startswith('> Historical'):p.write_text(banner+old,encoding='utf-8')
+for name in ['README.md','docs/RELEASE_ACCEPTANCE.md','scripts/export_catalog.py']:
+    p=Path(name);s=p.read_text(encoding='utf-8')
+    for a,b in [('has20','has 20'),('All20','All 20'),('eight personas,28','eight personas, 28'),('weapons and28','weapons and 28'),('Python3','Python 3'),('Rojo7','Rojo 7'),('to1','to 1'),('at3','at 3'),('to4/5/6','to 4/5/6'),('stages6/11/16','stages 6/11/16'),('all896','all 896'),('actual1.05','actual 1.05'),('from3 to6','from 3 to 6'),('roughly0.9','roughly 0.9'),('roughly5.2','roughly 5.2'),('about6.83','about 6.83'),('below512','below 512'),('below2','below 2'),('minimum of1','minimum of 1'),('three distinct','three distinct')]:s=s.replace(a,b)
+    p.write_text(s,encoding='utf-8')

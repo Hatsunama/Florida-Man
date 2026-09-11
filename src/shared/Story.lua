@@ -1,5 +1,5 @@
 --!strict
---[[ Campaign bible — used by hub board, Steve, newspaper, death cards, credits.
+--[[ Campaign dialogue — used by Steve, hub headlines, stage popups and death notices.
 	Every act has a tone, Steve lines (unique, escalate), and emotional beats.
 	Newspaper headlines live on Stages; they MUST advance plot (not generic BREAKING).
 ]]
@@ -24,7 +24,7 @@ Story.ACTS = {
 			"It IS Florida… Anything is possible in the swamp I guess.",
 			"Those animals aren't the enemy. Someone sold them as security.",
 			"GulfGulp calls it 'wildlife enhancement.' I call it a crime with a PR budget.",
-			"You heard the tagline. Now listen to the collars beep.",
+			"You know the tagline. Now look at the matching logos on those collars.",
 		},
 	},
 	[3] = {
@@ -76,71 +76,40 @@ Story.DEATH_LINES = {
 	"You died doing something Florida. The newspaper will call it 'character development.'",
 }
 
--- Character sendoffs — emotional + funny, used in credits scroll
-Story.CREDITS = {
-	"The swamp exhales.",
-	"Radio collars go quiet.",
-	"Baby turtles hit the tide like tiny lawsuits against evil.",
-	"",
-	"— CAST SENDOFFS —",
-	"",
-	"Beach Burnout: kept the rhythm. Lost the hangover.",
-	"Crab King: returned the Cold One. Kept the sideways swagger.",
-	"Drive-Thru Gator: collar cut. Still refuses to supersize.",
-	"HOA Binder Karen: cited for excessive clipboard. Appeals pending.",
-	"Influencer Stick: flashbanned from the swamp. Ratioed by a pelican.",
-	"Collared Oil Gators: free. Still sticky. Healing.",
-	"Fire-Breathing Lizards: employed as swamp heaters (unionized).",
-	"Baby Turtles: alive. Snacking. Justice-flavored.",
-	"",
-	"GulfGulp Energy stock: down.",
-	"The Spillfather: recycled into parody.",
-	"Cheap Hazmat Grunts: seeking better benefits.",
-	"",
-	"Captain Steve (pelican):",
-	"It IS Florida… Anything is possible in the swamp I guess.",
-	"",
-	"You wake on the beach again someday.",
-	"But tonight the Cold One is yours,",
-	"and the sunrise is actually trying.",
-	"",
-	"Thanks for playing — Press E at the bonfire (or click the prompt) to run it back.",
-}
-
 Story.ACT_OPENERS = {
 	[1] = "Act 1 — Hangover Coast: comedy first. Truth later.",
 	[2] = "Act 2 — The Swamp That Isn't Wild: the animals aren't the enemy.",
 	[3] = "Act 3 — Red Tide Bargain: rescue is the mission.",
 	[4] = "Act 4 — Inside GulfGulp: the memo is the smoking gun.",
-	[5] = "Act 5 — The Spillfather: refuse the bargain. For the turtles.",
+	[5] = "Act 5 — The Spillfather: bring down the mech and free the last turtles.",
 }
 
 -- N5: first MidGate lock Tagline per act (popup-only)
 Story.MIDGATE_LOCK = {
-	[1] = "ROOM LOCK — clear the wave. The boardwalk doesn't negotiate.",
-	[2] = "ROOM LOCK — swamp gate sealed. Clear hostiles; pads still matter.",
-	[3] = "ROOM LOCK — nests behind the barrier. Clear it, then escort turtles.",
-	[4] = "ROOM LOCK — GulfGulp airlock. Conveyors flip. Clear the wave.",
-	[5] = "ROOM LOCK — last checkpoint before the Spillfather. No empty-wave cheese.",
+	[1] = "The gate ahead is closed. Clear the enemies to open the path; you can retreat if you need space.",
+	[2] = "Clear the enemies to open the swamp gate. Watch the water and use the pads.",
+	[3] = "Clear the way to the nests, then use Interact beside each turtle to rescue it.",
+	[4] = "GulfGulp's gate blocks the route. Clear the enemies and watch the changing conveyor direction.",
+	[5] = "Clear the last gate before the Spillfather. Keep room to dodge his guards.",
 }
 
 Story.VERB_TOAST = {
-	hangoverColdOne = "VERB: Hangover slows you — walk into the Cold One (Florida Dew).",
-	timedRhythm = "VERB: Timed hazards — jump when the puddle goes HOT.",
-	padWater = "VERB: Pad-only — deep water soft-falls you if you linger.",
-	oilSlick = "VERB: Oil slicks slow hard — skim the edges or slip.",
-	turtleEscort = "VERB: Stay near turtles — they walk toward the nest. Press E to rescue.",
-	midGate = "VERB: MidGate rooms — step in, clear the wave, path opens.",
-	conveyorFlip = "VERB: Conveyors flip direction on a timer — read the arrows.",
-	windGaps = "VERB: Jump the gaps — wind cuts your jump if you linger in the gust.",
-	bossArena = "VERB: Boss telegraphs denser — clear adds; empty MidGate never locks.",
+	hangoverColdOne = "Hangover slows you — walk into the Cold One (Florida Dew).",
+	timedRhythm = "Timed hazards — jump when the puddle goes HOT.",
+	padWater = "Use the pads to cross deep water. Staying submerged too long returns you to safe ground.",
+	oilSlick = "Oil slicks slow hard — skim the edges or slip.",
+	turtleRescue = "Rescue the turtles: move beside each one and use Interact. Clear the enemies before leaving.",
+	midGate = "MidGate rooms — step in, clear the wave, path opens.",
+	conveyorFlip = "Conveyors flip direction on a timer — read the arrows.",
+	windGaps = "Jump the gaps — wind cuts your jump if you linger in the gust.",
+	bossArena = "Watch the marked danger areas. Clear the guards, defeat the boss and rescue every turtle.",
 }
 
 
 -- Act 1 event-tied Steve lines (not random rotate)
 Story.ACT1_EVENTS = {
-	coldOne = "Florida Dew acquired. Comedy's still running — listen for the beep under the cooler later.",
-	collarHint = "You hear that? Radio collars. That's not wildlife. That's a logo with teeth.",
+	coldOne = "Florida Dew acquired. Now look closer: those crab collars carry the same corporate logo.",
+	collarHint = "See those radio collars? That's not wildlife. That's a logo with teeth.",
 	afterColdOneHub = "Kid, you got the Cold One back. Bonfire's proud. The swamp won't be.",
 }
 
@@ -149,7 +118,7 @@ Story.ACT1_EVENTS = {
 Story.NEWSPAPER_PANELS = {
 	[1] = {
 		{ title = "COLD ONE", text = "Comedy first. Reclaim the Florida Dew.", color = { 70, 160, 220 } },
-		{ title = "COLLAR BEEP", text = "Radio collars under tourist coolers. Unease begins.", color = { 255, 140, 40 } },
+		{ title = "COLLAR LOGO", text = "Radio collars under tourist coolers. Unease begins.", color = { 255, 140, 40 } },
 		{ title = "DRIVE-THRU", text = "A gator refuses to supersize. The logo has teeth.", color = { 255, 80, 40 } },
 	},
 	[2] = {
@@ -189,7 +158,7 @@ function Story.SteveLine(act: number, deaths: number?): string
 		return Story.ACTS[1].steve[1]
 	end
 	local lines = a.steve
-	local idx = ((deaths or 0) % #lines) + 1
+	local idx = if act == 1 then 1 else ((deaths or 0) % #lines) + 1
 	return lines[idx]
 end
 

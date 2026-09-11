@@ -1,0 +1,42 @@
+from pathlib import Path
+p=Path('src/server/FunnelService.lua');s=p.read_text(encoding='utf-8')
+s=s.replace('local AnalyticsService = game:GetService("AnalyticsService")', '''local Adapter=require(script.Parent:WaitForChild('AnalyticsAdapter'))
+local Rules=require(game:GetService('ReplicatedStorage'):WaitForChild('Shared'):WaitForChild('TelemetryRules'))''')
+s=s.replace('\t| "run_credits"','\t| "run_credits"\n\t| "run_abandon"')
+a=s.index('local function emit(');b=s.index('\nfunction FunnelService.OnJoin',a)
+s=s[:a]+'''local function emit(player: Player,event: string,fields: {[string]: any}?)
+    local payload=fields or {}
+    payload.device=player:GetAttribute('InputCohort') or 'unknown'
+    Adapter.Enqueue(player,event,payload)
+end
+
+local function finishFtue(player: Player,s: Session,ending: boolean)
+    if s.ftue60 then return end
+    local outcome=Rules.FtueOutcome(s.runStartedAt,os.clock(),s.coldOne,ending)
+    if outcome then
+        s.ftue60=true
+        emit(player,'ftue_60s',{ok=if outcome=='success' then 1 else 0,reason=outcome,value=if outcome=='success' then 1 else 0})
+        if s.runStartedAt then emit(player,'ftue_duration',{value=math.floor(os.clock()-s.runStartedAt),reason=outcome}) end
+    end
+end
+
+function FunnelService.OnTransition(player: Player)
+    local s=sessions[player]
+    if not s then return end
+    s.midgateLockedAt=nil; s.draftOpenedAt=nil
+    s.seen.softlock_midgate=nil; s.seen.softlock_draft=nil
+end
+''' +s[b:]
+s=s.replace('\t\tcold_one = true,','\t\tcold_one = false,').replace('\t\tstage3_clear = true,','\t\tstage3_clear = false,')
+s=s.replace('\t\ts.runStartedAt = os.clock()','\t\ts.runStartedAt = os.clock()\n\t\ts.ftue60=false; s.coldOne=false; s.stage3Clear=false')
+a=s.index('\t\tif not s.ftue60 and s.runStartedAt');b=s.index('\n\telseif event == "stage3_clear"',a)
+s=s[:a]+'\t\tfinishFtue(player,s,false)'+s[b:]
+s=s.replace('\telseif event == "stage3_clear" then','\telseif event == "death" or event == "run_abandon" then\n\t\tfinishFtue(player,s,true)\n\t\tFunnelService.OnTransition(player)\n\t\ts.runStartedAt=nil\n\telseif event == "stage3_clear" then')
+s=s.replace('\tlocal now = os.clock()\n\tif s.midgateLockedAt','\tlocal now = os.clock()\n\tfinishFtue(player,s,false)\n\tif s.midgateLockedAt')
+s=s.replace('function FunnelService.Unload(player: Player)\n\tsessions[player] = nil','''function FunnelService.Unload(player: Player)
+    local s=sessions[player]
+    if s then finishFtue(player,s,true) end
+    sessions[player] = nil''')
+s=s.replace('return FunnelService','FunnelService.GetMetrics = Adapter.GetMetrics\nreturn FunnelService')
+p.write_text(s,encoding='utf-8')
+p=Path('src/server/StageFlowService.lua');s=p.read_text(encoding='utf-8').replace('RunContext.BeginPhase(player, "Hub")','RunContext.BeginPhase(player, "Hub")\n\tFunnelService.OnTransition(player)').replace('RunContext.BeginPhase(player, if stage.isHub then "Hub" else "Active")','RunContext.BeginPhase(player, if stage.isHub then "Hub" else "Active")\n\tFunnelService.OnTransition(player)');p.write_text(s,encoding='utf-8')

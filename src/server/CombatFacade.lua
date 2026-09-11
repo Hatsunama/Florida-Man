@@ -33,35 +33,33 @@ end
 
 function CombatFacade.KillPlayer(player: Player)
 	local s = RunContext.GetState(player)
-	if not s then
+	if not s or not s.runActive or s.deathProcessed then
 		return
 	end
-	CombatService.ClearIFrames(player)
-	CombatService.ClearShieldAbsorb(player)
+	s.deathProcessed = true
+	s.characterReady = false
+	RunContext.BeginPhase(player, 'Recovering')
+	EnemyService.Clear()
 	s.deaths += 1
 	s.hp = 0
 	s.runActive = false
 	FunnelService.Mark(player, "death", { deaths = s.deaths, stage = s.stageId, stageIndex = s.stageIndex })
-	RunContext.Toast(player, Story.DeathLine(s.deaths) .. " (+1 item slot after first death)")
-	local deaths = s.deaths
-	local unlocked = s.unlockedPersonas
-	local rarities = s.personaRarity
-	local sunburn = s.sunburn
-	local unlockedW = s.unlockedWeapons
-	RunContext.SetState(player, RunContext.NewRunState(deaths))
-	s = RunContext.GetState(player) :: RunContext.RunState
-	s.unlockedPersonas = unlocked
-	s.personaRarity = rarities
-	s.sunburn = sunburn
-	s.unlockedWeapons = unlockedW or { BareHands = true, FlipFlopSlap = true }
-	s.itemSlots = Constants.ITEM_SLOTS_AFTER_FIRST_DEATH
+	RunContext.Toast(player, Story.DeathLine(s.deaths))
+	s.items = {}
+	s.itemSlots = Constants.STARTING_ITEM_SLOTS
+	s.runTurtlesRescued = 0
+	s.rewardLedger = {}
+	s.completionCommitted = false
 	RunContext.ComputeStats(s)
 	s.hp = s.maxHp
+	local hum = player.Character and player.Character:FindFirstChildOfClass('Humanoid')
+	s.characterReady = hum ~= nil and hum.Health > 0
 	RunContext.PersistMeta(player, s)
 	deps.StageFlow.LoadHub(player)
 end
 
 function CombatFacade.ApplyDamageToPlayer(player: Player, amount: number)
+	if amount ~= amount or amount <= 0 or amount == math.huge then return end
 	local s = RunContext.GetState(player)
 	if not s or not s.runActive then
 		return
@@ -77,12 +75,14 @@ function CombatFacade.ApplyDamageToPlayer(player: Player, amount: number)
 		return
 	end
 
+	local mitigation = 1
 	for _, id in s.items do
 		local it = Items.Get(id)
 		if it and it.special == "absorb" then
-			amount = math.floor(amount * 0.75)
+			mitigation *= 0.75
 		end
 	end
+	amount = math.max(1, math.floor(amount * mitigation))
 	s.lastHurtAt = os.clock()
 	s.hp = math.max(0, s.hp - amount)
 	RunContext.PushState(player)
@@ -91,20 +91,20 @@ function CombatFacade.ApplyDamageToPlayer(player: Player, amount: number)
 	end
 end
 
-function CombatFacade.DoAttack(player: Player)
-	AttackService.DoAttack(player)
+function CombatFacade.DoAttack(player: Player, facing: number?)
+	AttackService.DoAttack(player, facing)
 end
 
-function CombatFacade.DoSkill(player: Player)
-	SkillService.DoSkill(player)
+function CombatFacade.DoSkill(player: Player, facing: number?)
+	SkillService.DoSkill(player, facing)
 end
 
 function CombatFacade.DoDodge(player: Player, facingArg: number?)
 	SwapService.DoDodge(player, facingArg)
 end
 
-function CombatFacade.DoSwap(player: Player)
-	SwapService.DoSwap(player)
+function CombatFacade.DoSwap(player: Player, facing: number?)
+	SwapService.DoSwap(player, facing)
 end
 
 function CombatFacade.EquipWeapon(player: Player, weaponId: unknown)
@@ -115,10 +115,13 @@ function CombatFacade.EquipWeapon(player: Player, weaponId: unknown)
 	if not st.unlockedWeapons[weaponId] or not Weapons.Get(weaponId) then
 		return
 	end
+	if st.phase ~= 'Hub' and st.phase ~= 'Active' then return end
+	if st.weaponId == weaponId then return end
 	st.weaponId = weaponId
 	local wdef = Weapons.Get(weaponId)
 	RunContext.Toast(player, "Equipped: " .. (if wdef then wdef.name else weaponId))
 	RunContext.ApplyPersonaLook(player)
+	RunContext.PersistMeta(player, st)
 	RunContext.PushState(player)
 end
 

@@ -10,6 +10,13 @@ local NAMES = {
 	"RequestDodge",
 	"RequestSwap",
 	"EquipWeapon",
+	"EquipPersona",
+	"ClientReady",
+	"CommandResult",
+	"OpenShop",
+	"ReturnToHub",
+	"ReplayTutorial",
+	"DismissCredits",
 	"PickDraftItem",
 	"SmashPersona",
 	"UpgradePersona",
@@ -25,8 +32,6 @@ local NAMES = {
 	"StageLoaded",
 	"Toast",
 	"DamageNumber",
-	"PlaySound",
-	"TutorialBeat",
 	"SyncSettings",
 }
 
@@ -49,8 +54,11 @@ function Remotes.InitServer(): Folder
 end
 
 function Remotes.Get(name: string): RemoteEvent
+	assert(table.find(NAMES, name), "Unknown remote contract: " .. name)
 	local folder = ReplicatedStorage:WaitForChild("Remotes", 30) :: Folder
 	return folder:WaitForChild(name, 30) :: RemoteEvent
 end
+
+Remotes.Names = table.freeze(NAMES)
 
 return Remotes

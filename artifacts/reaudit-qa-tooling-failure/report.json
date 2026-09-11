@@ -1,0 +1,8 @@
+{
+  "passed": false,
+  "engineAcceptance": "not-executed",
+  "checks": [],
+  "baselineValidation": "C:\\Users\\1thea\\Projects\\Florida-Man\\artifacts\\intentionally-missing-report.json",
+  "defaultProjectModified": false,
+  "error": "[Errno 2] No such file or directory: 'C:\\\\Users\\\\1thea\\\\Projects\\\\Florida-Man\\\\artifacts\\\\intentionally-missing-report.json'"
+}

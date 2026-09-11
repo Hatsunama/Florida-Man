@@ -1,0 +1,407 @@
+from pathlib import Path
+ROOT = Path(r"C:\Users\1thea\Projects\Florida-Man")
+
+stages = r"""--!strict
+--[[ Stage progression — Hub through offshore finale. 20+ playable stages. ]]
+
+local Stages = {}
+
+export type WaveSpawn = { enemyId: string, count: number, atProgress: number }
+export type StageDef = {
+	id: string,
+	index: number,
+	name: string,
+	headline: string,
+	blurb: string,
+	length: number,
+	groundColor: Color3,
+	accentColor: Color3,
+	fogColor: Color3,
+	clockTime: number,
+	waves: { WaveSpawn },
+	miniboss: string?,
+	boss: string?,
+	unlockPersona: string?,
+	rescueTurtles: number,
+	showMutantTagline: boolean,
+	isHub: boolean,
+	coldOnePickup: boolean,
+	hangover: boolean,
+	propTheme: string,
+	biome: string,
+}
+
+local list: { StageDef } = {
+	{
+		id = "Hub", index = 0, name = "Dawn Bonfire",
+		headline = "FLORIDA MAN — you danced until the fire died. The crabs stole your Cold One.",
+		blurb = "Wake on the beach. Touch the bonfire to start your legend.",
+		length = 60, groundColor = Color3.fromRGB(210, 180, 110), accentColor = Color3.fromRGB(255, 140, 40),
+		fogColor = Color3.fromRGB(180, 200, 220), clockTime = 6.2,
+		waves = {}, miniboss = nil, boss = nil, unlockPersona = nil, rescueTurtles = 0,
+		showMutantTagline = false, isHub = true, coldOnePickup = false, hangover = false, propTheme = "beach", biome = "beach",
+	},
+	{
+		id = "DaytonaHangover", index = 1, name = "Daytona Hangover Beach",
+		headline = "BREAKING: Florida Man chases crabs for stolen Cold One — experts blame 'vibes'",
+		blurb = "Tutorial crabs. Reclaim The Cold One (Florida Dew). Face the Crab King.",
+		length = 220, groundColor = Color3.fromRGB(220, 190, 120), accentColor = Color3.fromRGB(70, 160, 220),
+		fogColor = Color3.fromRGB(200, 220, 240), clockTime = 7.5,
+		waves = {
+			{ enemyId = "BeachCrab", count = 3, atProgress = 0.12 },
+			{ enemyId = "SandFlea", count = 3, atProgress = 0.28 },
+			{ enemyId = "BeachCrab", count = 4, atProgress = 0.45 },
+			{ enemyId = "HermitCrab", count = 2, atProgress = 0.6 },
+		},
+		miniboss = "CrabKingBoss", boss = nil, unlockPersona = "CrabKing", rescueTurtles = 0,
+		showMutantTagline = false, isHub = false, coldOnePickup = true, hangover = true, propTheme = "beach", biome = "beach",
+	},
+	{
+		id = "BoardwalkChaos", index = 2, name = "Boardwalk Chaos",
+		headline = "BREAKING: Boardwalk vendors declare war on sideways pedestrians",
+		blurb = "Tourists, fleas, and a runaway hotdog cart. Keep your flip-flops.",
+		length = 230, groundColor = Color3.fromRGB(200, 170, 100), accentColor = Color3.fromRGB(255, 100, 80),
+		fogColor = Color3.fromRGB(190, 210, 230), clockTime = 10,
+		waves = {
+			{ enemyId = "AngryTourist", count = 2, atProgress = 0.1 },
+			{ enemyId = "SandFlea", count = 4, atProgress = 0.25 },
+			{ enemyId = "BeachCrab", count = 3, atProgress = 0.4 },
+			{ enemyId = "HotDogCart", count = 1, atProgress = 0.55 },
+			{ enemyId = "AngryTourist", count = 3, atProgress = 0.7 },
+		},
+		miniboss = nil, boss = nil, unlockPersona = nil, rescueTurtles = 0,
+		showMutantTagline = false, isHub = false, coldOnePickup = false, hangover = false, propTheme = "beach", biome = "beach",
+	},
+	{
+		id = "GasStationLegends", index = 3, name = "Gas Station of Legends",
+		headline = "BREAKING: Florida Man declares war on slushie machine — HOA watching",
+		blurb = "Parody convenience-store chaos. Tourists. Sticky floors. Golf-cart energy.",
+		length = 240, groundColor = Color3.fromRGB(60, 60, 65), accentColor = Color3.fromRGB(255, 200, 40),
+		fogColor = Color3.fromRGB(40, 45, 55), clockTime = 14,
+		waves = {
+			{ enemyId = "AngryTourist", count = 2, atProgress = 0.1 },
+			{ enemyId = "SlushieSlime", count = 2, atProgress = 0.25 },
+			{ enemyId = "SelfieZombie", count = 2, atProgress = 0.4 },
+			{ enemyId = "SlushieSlime", count = 3, atProgress = 0.55 },
+			{ enemyId = "CondoKaren", count = 1, atProgress = 0.7 },
+		},
+		miniboss = "SlushieKing", boss = nil, unlockPersona = "GolfCartBandit", rescueTurtles = 0,
+		showMutantTagline = false, isHub = false, coldOnePickup = false, hangover = false, propTheme = "gas", biome = "town",
+	},
+	{
+		id = "StripMallShowdown", index = 4, name = "Strip Mall Showdown",
+		headline = "BREAKING: Parking lot diplomacy fails — Karen requests supervisor of physics",
+		blurb = "Clipboards, carts, and selfies. Unlock chaos rhythm.",
+		length = 240, groundColor = Color3.fromRGB(70, 70, 75), accentColor = Color3.fromRGB(255, 80, 120),
+		fogColor = Color3.fromRGB(50, 55, 65), clockTime = 15,
+		waves = {
+			{ enemyId = "CondoKaren", count = 2, atProgress = 0.12 },
+			{ enemyId = "HotDogCart", count = 1, atProgress = 0.3 },
+			{ enemyId = "SelfieZombie", count = 3, atProgress = 0.45 },
+			{ enemyId = "AngryTourist", count = 3, atProgress = 0.6 },
+			{ enemyId = "CondoKaren", count = 2, atProgress = 0.75 },
+		},
+		miniboss = "HOAHydra", boss = nil, unlockPersona = nil, rescueTurtles = 0,
+		showMutantTagline = false, isHub = false, coldOnePickup = false, hangover = false, propTheme = "gas", biome = "town",
+	},
+	{
+		id = "DriveThruDisaster", index = 5, name = "Drive-Thru Disaster",
+		headline = "BREAKING: Drive-thru gator refuses to supersize — radio collar beeping suspiciously",
+		blurb = "Miniboss Drive-Thru Gator. Radio collar hint: science experiment gone wrong.",
+		length = 240, groundColor = Color3.fromRGB(90, 100, 70), accentColor = Color3.fromRGB(255, 80, 40),
+		fogColor = Color3.fromRGB(120, 130, 90), clockTime = 16,
+		waves = {
+			{ enemyId = "AngryTourist", count = 2, atProgress = 0.15 },
+			{ enemyId = "BeachCrab", count = 3, atProgress = 0.3 },
+			{ enemyId = "SlushieSlime", count = 2, atProgress = 0.45 },
+			{ enemyId = "HotDogCart", count = 1, atProgress = 0.6 },
+		},
+		miniboss = "DriveThruGator", boss = nil, unlockPersona = "GatorHauler", rescueTurtles = 0,
+		showMutantTagline = false, isHub = false, coldOnePickup = false, hangover = false, propTheme = "drive", biome = "town",
+	},
+	{
+		id = "CanalRun", index = 6, name = "Canal Run",
+		headline = "BREAKING: Jet ski bandits rewrite the HOA wake rules",
+		blurb = "Water edges, jet skis, burrow snakes. Depth optional. Chaos mandatory.",
+		length = 250, groundColor = Color3.fromRGB(70, 110, 90), accentColor = Color3.fromRGB(40, 160, 220),
+		fogColor = Color3.fromRGB(100, 140, 130), clockTime = 11,
+		waves = {
+			{ enemyId = "JetSkiBandit", count = 2, atProgress = 0.1 },
+			{ enemyId = "BurrowSnake", count = 3, atProgress = 0.28 },
+			{ enemyId = "Cottonmouth", count = 2, atProgress = 0.45 },
+			{ enemyId = "JetSkiBandit", count = 2, atProgress = 0.62 },
+			{ enemyId = "MosquitoCloud", count = 3, atProgress = 0.78 },
+		},
+		miniboss = nil, boss = nil, unlockPersona = nil, rescueTurtles = 0,
+		showMutantTagline = false, isHub = false, coldOnePickup = false, hangover = false, propTheme = "drive", biome = "swamp",
+	},
+	{
+		id = "SwampShift", index = 7, name = "The Swamp Shift",
+		headline = "BREAKING: Mutant wildlife sighted — Captain Steve says 'It IS Florida…'",
+		blurb = "Snakes, then mutant oil-gators + fire lizards. Captain Steve sting.",
+		length = 280, groundColor = Color3.fromRGB(40, 70, 45), accentColor = Color3.fromRGB(120, 200, 60),
+		fogColor = Color3.fromRGB(50, 80, 55), clockTime = 19,
+		waves = {
+			{ enemyId = "Cottonmouth", count = 3, atProgress = 0.1 },
+			{ enemyId = "MosquitoCloud", count = 3, atProgress = 0.22 },
+			{ enemyId = "OilGator", count = 2, atProgress = 0.38 },
+			{ enemyId = "FireLizard", count = 3, atProgress = 0.5 },
+			{ enemyId = "OilGator", count = 2, atProgress = 0.65 },
+			{ enemyId = "EmberSkink", count = 3, atProgress = 0.75 },
+			{ enemyId = "MutantAdd", count = 2, atProgress = 0.85 },
+		},
+		miniboss = nil, boss = nil, unlockPersona = "LizardBreath", rescueTurtles = 0,
+		showMutantTagline = true, isHub = false, coldOnePickup = false, hangover = false, propTheme = "swamp", biome = "swamp",
+	},
+	{
+		id = "CypressCathedral", index = 8, name = "Cypress Cathedral",
+		headline = "BREAKING: Summoner hosts swamp open mic — snakes RSVP",
+		blurb = "Summoners, burrowers, and cypress gloom. Keep hissing back.",
+		length = 260, groundColor = Color3.fromRGB(35, 60, 40), accentColor = Color3.fromRGB(160, 100, 255),
+		fogColor = Color3.fromRGB(40, 70, 50), clockTime = 20,
+		waves = {
+			{ enemyId = "SwampSummoner", count = 1, atProgress = 0.15 },
+			{ enemyId = "Cottonmouth", count = 3, atProgress = 0.3 },
+			{ enemyId = "BurrowSnake", count = 3, atProgress = 0.45 },
+			{ enemyId = "SwampSummoner", count = 2, atProgress = 0.6 },
+			{ enemyId = "MutantAdd", count = 2, atProgress = 0.78 },
+		},
+		miniboss = nil, boss = nil, unlockPersona = "SnakeCharmer", rescueTurtles = 0,
+		showMutantTagline = true, isHub = false, coldOnePickup = false, hangover = false, propTheme = "swamp", biome = "swamp",
+	},
+	{
+		id = "SludgeBayou", index = 9, name = "Sludge Bayou",
+		headline = "BREAKING: Oil puddles vote themselves mayor",
+		blurb = "Puddle layers and oil gators. Skim or slip.",
+		length = 260, groundColor = Color3.fromRGB(30, 45, 35), accentColor = Color3.fromRGB(255, 160, 40),
+		fogColor = Color3.fromRGB(35, 50, 40), clockTime = 18.5,
+		waves = {
+			{ enemyId = "OilPuddleLayer", count = 2, atProgress = 0.12 },
+			{ enemyId = "OilGator", count = 2, atProgress = 0.3 },
+			{ enemyId = "EmberSkink", count = 3, atProgress = 0.45 },
+			{ enemyId = "OilPuddleLayer", count = 3, atProgress = 0.6 },
+			{ enemyId = "OilGator", count = 2, atProgress = 0.78 },
+		},
+		miniboss = nil, boss = nil, unlockPersona = nil, rescueTurtles = 0,
+		showMutantTagline = false, isHub = false, coldOnePickup = false, hangover = false, propTheme = "swamp", biome = "swamp",
+	},
+	{
+		id = "ConspiracyShack", index = 10, name = "Conspiracy Shack",
+		headline = "BREAKING: Corkboard links pelicans, gators, and GulfGulp stock charts",
+		blurb = "Bully pelicans and lab coats. The conspiracy gets loud.",
+		length = 250, groundColor = Color3.fromRGB(80, 70, 55), accentColor = Color3.fromRGB(255, 220, 80),
+		fogColor = Color3.fromRGB(70, 65, 50), clockTime = 17,
+		waves = {
+			{ enemyId = "PelicanBully", count = 2, atProgress = 0.1 },
+			{ enemyId = "LabCoat", count = 2, atProgress = 0.28 },
+			{ enemyId = "DroneSpotter", count = 3, atProgress = 0.45 },
+			{ enemyId = "PelicanBully", count = 2, atProgress = 0.62 },
+			{ enemyId = "LabCoat", count = 3, atProgress = 0.8 },
+		},
+		miniboss = nil, boss = nil, unlockPersona = nil, rescueTurtles = 0,
+		showMutantTagline = true, isHub = false, coldOnePickup = false, hangover = false, propTheme = "swamp", biome = "swamp",
+	},
+	{
+		id = "TurtleBeach", index = 11, name = "Turtle Beach / Red Tide",
+		headline = "BREAKING: Florida Man vs GulfGulp Energy — turtles demand snacks and justice",
+		blurb = "Rescue turtles from GulfGulp. Unlock Turtle Paladin. Never harm turtles.",
+		length = 260, groundColor = Color3.fromRGB(180, 140, 90), accentColor = Color3.fromRGB(220, 60, 80),
+		fogColor = Color3.fromRGB(160, 80, 90), clockTime = 17.5,
+		waves = {
+			{ enemyId = "GulfGulpGrunt", count = 2, atProgress = 0.12 },
+			{ enemyId = "RedTideBlob", count = 2, atProgress = 0.28 },
+			{ enemyId = "OilGator", count = 2, atProgress = 0.45 },
+			{ enemyId = "GulfGulpGrunt", count = 3, atProgress = 0.6 },
+			{ enemyId = "FireLizard", count = 2, atProgress = 0.75 },
+		},
+		miniboss = nil, boss = nil, unlockPersona = "TurtlePaladin", rescueTurtles = 5,
+		showMutantTagline = false, isHub = false, coldOnePickup = false, hangover = false, propTheme = "turtle", biome = "beach",
+	},
+	{
+		id = "NestGuard", index = 12, name = "Nest Guard Night",
+		headline = "BREAKING: Nest patrol overtime — drones and blobs clock in",
+		blurb = "More turtles to free. Red tide and drones try to stop you.",
+		length = 250, groundColor = Color3.fromRGB(160, 120, 80), accentColor = Color3.fromRGB(100, 255, 180),
+		fogColor = Color3.fromRGB(40, 50, 70), clockTime = 21.5,
+		waves = {
+			{ enemyId = "DroneSpotter", count = 3, atProgress = 0.1 },
+			{ enemyId = "RedTideBlob", count = 2, atProgress = 0.3 },
+			{ enemyId = "GulfGulpGrunt", count = 3, atProgress = 0.5 },
+			{ enemyId = "OilPuddleLayer", count = 2, atProgress = 0.7 },
+		},
+		miniboss = nil, boss = nil, unlockPersona = nil, rescueTurtles = 4,
+		showMutantTagline = false, isHub = false, coldOnePickup = false, hangover = false, propTheme = "turtle", biome = "beach",
+	},
+	{
+		id = "GulfGulpGate", index = 13, name = "GulfGulp Gate",
+		headline = "BREAKING: Facility gate claims 'authorized personnel only' — Florida Man disagrees",
+		blurb = "First look at the facilities. Welders and grunts.",
+		length = 270, groundColor = Color3.fromRGB(45, 48, 55), accentColor = Color3.fromRGB(255, 170, 40),
+		fogColor = Color3.fromRGB(35, 38, 48), clockTime = 19.5,
+		waves = {
+			{ enemyId = "GulfGulpGrunt", count = 3, atProgress = 0.1 },
+			{ enemyId = "RigWelder", count = 2, atProgress = 0.28 },
+			{ enemyId = "BarrelRoller", count = 2, atProgress = 0.45 },
+			{ enemyId = "DroneSpotter", count = 3, atProgress = 0.6 },
+			{ enemyId = "LabCoat", count = 2, atProgress = 0.78 },
+		},
+		miniboss = nil, boss = nil, unlockPersona = nil, rescueTurtles = 0,
+		showMutantTagline = false, isHub = false, coldOnePickup = false, hangover = false, propTheme = "rig", biome = "facility",
+	},
+	{
+		id = "LabWing", index = 14, name = "Mutant Lab Wing",
+		headline = "BREAKING: Lab wing smells like science and bad decisions",
+		blurb = "Mutant adds, fire lizards, and collared gators. Evidence everywhere.",
+		length = 270, groundColor = Color3.fromRGB(40, 50, 55), accentColor = Color3.fromRGB(80, 220, 120),
+		fogColor = Color3.fromRGB(30, 45, 50), clockTime = 20,
+		waves = {
+			{ enemyId = "MutantAdd", count = 3, atProgress = 0.1 },
+			{ enemyId = "FireLizard", count = 2, atProgress = 0.25 },
+			{ enemyId = "OilGator", count = 2, atProgress = 0.4 },
+			{ enemyId = "LabCoat", count = 3, atProgress = 0.55 },
+			{ enemyId = "EmberSkink", count = 3, atProgress = 0.7 },
+			{ enemyId = "MutantAdd", count = 2, atProgress = 0.85 },
+		},
+		miniboss = nil, boss = nil, unlockPersona = nil, rescueTurtles = 0,
+		showMutantTagline = true, isHub = false, coldOnePickup = false, hangover = false, propTheme = "rig", biome = "facility",
+	},
+	{
+		id = "PipeGauntlet", index = 15, name = "Pipe Gauntlet",
+		headline = "BREAKING: Barrel rollers unionize mid-gauntlet",
+		blurb = "Chargers in metal halls. Keep your footing.",
+		length = 280, groundColor = Color3.fromRGB(35, 38, 45), accentColor = Color3.fromRGB(255, 120, 40),
+		fogColor = Color3.fromRGB(25, 28, 35), clockTime = 21,
+		waves = {
+			{ enemyId = "BarrelRoller", count = 3, atProgress = 0.1 },
+			{ enemyId = "RigWelder", count = 2, atProgress = 0.3 },
+			{ enemyId = "BarrelRoller", count = 3, atProgress = 0.5 },
+			{ enemyId = "OilPuddleLayer", count = 2, atProgress = 0.65 },
+			{ enemyId = "GulfGulpGrunt", count = 3, atProgress = 0.8 },
+		},
+		miniboss = "RigOverlord", boss = nil, unlockPersona = nil, rescueTurtles = 0,
+		showMutantTagline = false, isHub = false, coldOnePickup = false, hangover = false, propTheme = "rig", biome = "facility",
+	},
+	{
+		id = "LoadingDock", index = 16, name = "Loading Dock Riot",
+		headline = "BREAKING: Dock riot features crabs that clearly swam too far",
+		blurb = "Offshore crabs meet corporate security. Sideways vs clipboard.",
+		length = 260, groundColor = Color3.fromRGB(50, 55, 60), accentColor = Color3.fromRGB(200, 60, 60),
+		fogColor = Color3.fromRGB(40, 50, 70), clockTime = 16.5,
+		waves = {
+			{ enemyId = "OffshoreCrab", count = 3, atProgress = 0.12 },
+			{ enemyId = "GulfGulpGrunt", count = 2, atProgress = 0.3 },
+			{ enemyId = "HermitCrab", count = 2, atProgress = 0.48 },
+			{ enemyId = "BarrelRoller", count = 2, atProgress = 0.65 },
+			{ enemyId = "OffshoreCrab", count = 3, atProgress = 0.8 },
+		},
+		miniboss = nil, boss = nil, unlockPersona = nil, rescueTurtles = 0,
+		showMutantTagline = false, isHub = false, coldOnePickup = false, hangover = false, propTheme = "rig", biome = "facility",
+	},
+	{
+		id = "BargeCrossing", index = 17, name = "Barge Crossing",
+		headline = "BREAKING: Storm pelicans claim airspace over oily barge",
+		blurb = "Offshore winds. Hoppers and jet-ski leftovers.",
+		length = 270, groundColor = Color3.fromRGB(55, 70, 80), accentColor = Color3.fromRGB(120, 180, 255),
+		fogColor = Color3.fromRGB(80, 100, 120), clockTime = 15,
+		waves = {
+			{ enemyId = "StormPelican", count = 2, atProgress = 0.1 },
+			{ enemyId = "JetSkiBandit", count = 2, atProgress = 0.28 },
+			{ enemyId = "OffshoreCrab", count = 3, atProgress = 0.45 },
+			{ enemyId = "StormPelican", count = 2, atProgress = 0.62 },
+			{ enemyId = "DroneSpotter", count = 3, atProgress = 0.8 },
+		},
+		miniboss = nil, boss = nil, unlockPersona = nil, rescueTurtles = 0,
+		showMutantTagline = false, isHub = false, coldOnePickup = false, hangover = false, propTheme = "rig", biome = "offshore",
+	},
+	{
+		id = "OilPlatformApproach", index = 18, name = "Oil Platform Approach",
+		headline = "BREAKING: Platform approach rated 'hostile' by anonymous pelican",
+		blurb = "Welders, drones, and slicks. Finale is close.",
+		length = 280, groundColor = Color3.fromRGB(40, 42, 50), accentColor = Color3.fromRGB(255, 140, 20),
+		fogColor = Color3.fromRGB(30, 32, 40), clockTime = 20.5,
+		waves = {
+			{ enemyId = "RigWelder", count = 3, atProgress = 0.1 },
+			{ enemyId = "OilGator", count = 2, atProgress = 0.25 },
+			{ enemyId = "DroneSpotter", count = 3, atProgress = 0.4 },
+			{ enemyId = "FireLizard", count = 2, atProgress = 0.55 },
+			{ enemyId = "MutantAdd", count = 3, atProgress = 0.7 },
+			{ enemyId = "BarrelRoller", count = 2, atProgress = 0.85 },
+		},
+		miniboss = nil, boss = nil, unlockPersona = nil, rescueTurtles = 0,
+		showMutantTagline = true, isHub = false, coldOnePickup = false, hangover = false, propTheme = "rig", biome = "offshore",
+	},
+	{
+		id = "HelipadHysteria", index = 19, name = "Helipad Hysteria",
+		headline = "BREAKING: Helipad closed for mutant maintenance",
+		blurb = "Last security wave before the Spillfather.",
+		length = 260, groundColor = Color3.fromRGB(50, 52, 58), accentColor = Color3.fromRGB(255, 80, 60),
+		fogColor = Color3.fromRGB(35, 30, 40), clockTime = 21.5,
+		waves = {
+			{ enemyId = "GulfGulpGrunt", count = 3, atProgress = 0.1 },
+			{ enemyId = "LabCoat", count = 2, atProgress = 0.25 },
+			{ enemyId = "StormPelican", count = 2, atProgress = 0.4 },
+			{ enemyId = "OilPuddleLayer", count = 2, atProgress = 0.55 },
+			{ enemyId = "RigWelder", count = 2, atProgress = 0.7 },
+			{ enemyId = "MutantAdd", count = 3, atProgress = 0.85 },
+		},
+		miniboss = nil, boss = nil, unlockPersona = nil, rescueTurtles = 0,
+		showMutantTagline = false, isHub = false, coldOnePickup = false, hangover = false, propTheme = "rig", biome = "offshore",
+	},
+	{
+		id = "GulfGulpRig", index = 20, name = "GulfGulp Rig",
+		headline = "BREAKING: The Spillfather makes an offer Florida Man can't refuse (he refuses)",
+		blurb = "Finale. The Spillfather + mutant adds. Save the swamp. Credits.",
+		length = 300, groundColor = Color3.fromRGB(35, 38, 45), accentColor = Color3.fromRGB(255, 150, 0),
+		fogColor = Color3.fromRGB(30, 32, 40), clockTime = 22,
+		waves = {
+			{ enemyId = "GulfGulpGrunt", count = 3, atProgress = 0.08 },
+			{ enemyId = "OilGator", count = 2, atProgress = 0.2 },
+			{ enemyId = "MutantAdd", count = 3, atProgress = 0.32 },
+			{ enemyId = "FireLizard", count = 2, atProgress = 0.42 },
+			{ enemyId = "RigWelder", count = 2, atProgress = 0.5 },
+		},
+		miniboss = nil, boss = "Spillfather", unlockPersona = "FireworksEnthusiast", rescueTurtles = 0,
+		showMutantTagline = true, isHub = false, coldOnePickup = false, hangover = false, propTheme = "rig", biome = "offshore",
+	},
+}
+
+Stages.List = list
+Stages.ById = {} :: { [string]: StageDef }
+Stages.Order = {} :: { string }
+for _, s in list do
+	Stages.ById[s.id] = s
+	if not s.isHub then
+		table.insert(Stages.Order, s.id)
+	end
+end
+
+function Stages.Get(id: string): StageDef?
+	return Stages.ById[id]
+end
+
+function Stages.GetByIndex(index: number): StageDef?
+	for _, s in list do
+		if s.index == index then
+			return s
+		end
+	end
+	return nil
+end
+
+function Stages.NextAfter(id: string): StageDef?
+	local cur = Stages.ById[id]
+	if not cur then
+		return nil
+	end
+	return Stages.GetByIndex(cur.index + 1)
+end
+
+function Stages.CountPlayable(): number
+	return #Stages.Order
+end
+
+return Stages
+"""
+(ROOT / "src/shared/Stages.lua").write_text(stages, encoding="utf-8")
+print("playable", stages.count("isHub = false"))
+print("total stage defs", stages.count("id = "))

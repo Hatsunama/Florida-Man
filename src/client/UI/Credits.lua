@@ -1,170 +1,50 @@
 --!strict
-local Players = game:GetService("Players")
-local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
-local Credits = {}
-
-function Credits.Show(payload: any)
-	local player = Players.LocalPlayer
-	local pg = player:WaitForChild("PlayerGui")
-	local old = pg:FindFirstChild("FM_Credits")
-	if old then
-		old:Destroy()
-	end
-	local gui = Instance.new("ScreenGui")
-	gui.Name = "FM_Credits"
-	gui.IgnoreGuiInset = true
-	gui.DisplayOrder = 60
-	gui.Parent = pg
-
-	local dim = Instance.new("Frame")
-	dim.Size = UDim2.fromScale(1, 1)
-	dim.BackgroundColor3 = Color3.fromRGB(8, 14, 32)
-	dim.BackgroundTransparency = 0
-	dim.BorderSizePixel = 0
-	dim.Parent = gui
-	local dimGrad = Instance.new("UIGradient")
-	dimGrad.Color = ColorSequence.new({
-		ColorSequenceKeypoint.new(0, Color3.fromRGB(18, 28, 55)),
-		ColorSequenceKeypoint.new(0.55, Color3.fromRGB(40, 35, 70)),
-		ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 140, 70)),
-	})
-	dimGrad.Rotation = 90
-	dimGrad.Parent = dim
-
-	-- Sunrise band with gradient
-	local sun = Instance.new("Frame")
-	sun.Size = UDim2.new(1, 0, 0.42, 0)
-	sun.Position = UDim2.new(0, 0, 0.58, 0)
-	sun.BackgroundColor3 = Color3.fromRGB(255, 160, 70)
-	sun.BackgroundTransparency = 0.35
-	sun.BorderSizePixel = 0
-	sun.Parent = gui
-	local sunGrad = Instance.new("UIGradient")
-	sunGrad.Color = ColorSequence.new({
-		ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 90, 40)),
-		ColorSequenceKeypoint.new(0.45, Color3.fromRGB(255, 180, 80)),
-		ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 230, 160)),
-	})
-	sunGrad.Rotation = 90
-	sunGrad.Parent = sun
-	sun.BackgroundTransparency = 1
-	TweenService:Create(sun, TweenInfo.new(4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-		BackgroundTransparency = 0.25,
-	}):Play()
-
-	local sunDisk = Instance.new("Frame")
-	sunDisk.Size = UDim2.new(0, 120, 0, 120)
-	sunDisk.Position = UDim2.new(0.5, -60, 0.62, 0)
-	sunDisk.BackgroundColor3 = Color3.fromRGB(255, 220, 120)
-	sunDisk.BorderSizePixel = 0
-	sunDisk.Parent = gui
-	local sunCorner = Instance.new("UICorner")
-	sunCorner.CornerRadius = UDim.new(1, 0)
-	sunCorner.Parent = sunDisk
-	sunDisk.BackgroundTransparency = 1
-	TweenService:Create(sunDisk, TweenInfo.new(5, Enum.EasingStyle.Sine), { BackgroundTransparency = 0.15 }):Play()
-
-	local holder = Instance.new("Frame")
-	holder.Size = UDim2.new(0, 720, 0, 720)
-	holder.Position = UDim2.new(0.5, -360, 1, 40)
-	holder.BackgroundTransparency = 1
-	holder.Parent = gui
-
-	local y = 0
-	local title = Instance.new("TextLabel")
-	title.Size = UDim2.new(1, 0, 0, 56)
-	title.Position = UDim2.new(0, 0, 0, y)
-	title.BackgroundTransparency = 1
-	title.Font = Enum.Font.GothamBold
-	title.TextSize = 48
-	title.TextColor3 = Color3.fromRGB(255, 210, 90)
-	title.Text = payload.title or "FLORIDA MAN"
-	title.Parent = holder
-	y += 56
-
-	if payload.subtitle then
-		local sub = Instance.new("TextLabel")
-		sub.Size = UDim2.new(1, 0, 0, 28)
-		sub.Position = UDim2.new(0, 0, 0, y)
-		sub.BackgroundTransparency = 1
-		sub.Font = Enum.Font.Gotham
-		sub.TextSize = 18
-		sub.TextColor3 = Color3.fromRGB(255, 230, 180)
-		sub.Text = payload.subtitle
-		sub.Parent = holder
-		y += 44
-	else
-		y += 24
-	end
-
-	for _, line in payload.lines or {} do
-		local lbl = Instance.new("TextLabel")
-		lbl.Size = UDim2.new(1, 0, 0, 30)
-		lbl.Position = UDim2.new(0, 0, 0, y)
-		lbl.BackgroundTransparency = 1
-		lbl.Font = Enum.Font.Gotham
-		lbl.TextSize = 20
-		lbl.TextColor3 = Color3.fromRGB(235, 240, 250)
-		lbl.Text = line
-		lbl.Parent = holder
-		y += 36
-	end
-
-	-- Slower scroll (~28s) for sunrise feel
-	local scrollSec = 28
-	TweenService:Create(holder, TweenInfo.new(scrollSec, Enum.EasingStyle.Linear), {
-		Position = UDim2.new(0.5, -360, 0, -y - 40),
-	}):Play()
-
-	-- Music swell (Phase 5)
-	pcall(function()
-		local AudioDirector = require(script.Parent.Parent.Controllers:WaitForChild("AudioDirector"))
-		AudioDirector.Play("SFX_CreditsSwell", { volume = 0.7, pitch = 0.85 })
-		AudioDirector.Duck(3)
-	end)
-
-
-	local hint = Instance.new("TextLabel")
-	hint.Name = "SkipHint"
-	hint.Size = UDim2.new(1, 0, 0, 24)
-	hint.Position = UDim2.new(0, 0, 1, -36)
-	hint.BackgroundTransparency = 1
-	hint.Font = Enum.Font.Gotham
-	hint.TextSize = 16
-	hint.TextColor3 = Color3.fromRGB(200, 210, 230)
-	hint.Text = "tap / click to dismiss · dialogue was popup-only this run"
-	hint.Parent = gui
-
-	local dismissed = false
-	local conn: RBXScriptConnection? = nil
-	local function dismiss()
-		if dismissed then
-			return
-		end
-		dismissed = true
-		if conn then
-			conn:Disconnect()
-			conn = nil
-		end
-		if gui.Parent then
-			gui:Destroy()
-		end
-	end
-	conn = UserInputService.InputBegan:Connect(function(input, gp)
-		if gp then
-			return
-		end
-		local t = input.UserInputType
-		if t == Enum.UserInputType.MouseButton1 or t == Enum.UserInputType.Touch then
-			dismiss()
-		elseif input.KeyCode == Enum.KeyCode.Escape or input.KeyCode == Enum.KeyCode.ButtonB then
-			dismiss()
-		end
-	end)
-	task.delay(scrollSec + 3, function()
-		dismiss()
-	end)
+local Remotes=require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("Remotes"))
+local UiKit=require(script.Parent:WaitForChild("UiKit"))
+local Tagline=require(script.Parent:WaitForChild("Tagline"))
+local Credits={}
+local gui: ScreenGui?=nil
+local button: TextButton?=nil
+local sentAt=-math.huge
+function Credits.Close()
+ if gui then gui:Destroy(); gui=nil end
+ button=nil; sentAt=-math.huge
 end
-
+function Credits.Show(payload: any)
+ if typeof(payload)~="table" then return end
+ Credits.Close()
+ Tagline.Show({id="sunrise",text=payload.subtitle or "The swamp gets to stay wild.",speaker="Sunrise",generation=payload.generation,priority=10,scope="run"})
+ for index,line in payload.lines or {} do
+  if typeof(line)=="string" and line~="" then
+   Tagline.Show({id="ending:"..tostring(index),text=line,speaker="Sunrise",generation=payload.generation,priority=10,scope="run"})
+  end
+ end
+ local screen=UiKit.Screen("FM_Credits",45)
+ gui=screen
+ local panel=Instance.new("Frame")
+ panel.AnchorPoint=Vector2.new(0.5,1); panel.Position=UDim2.new(0.5,0,1,-16); panel.Size=UDim2.new(1,-24,0,108)
+ panel.BackgroundColor3=UiKit.Colors.background; panel.Parent=screen; UiKit.Corner(panel)
+ local limit=Instance.new("UISizeConstraint"); limit.MaxSize=Vector2.new(420,108); limit.Parent=panel
+ local title=UiKit.Text(panel,"Adventure complete · Your story is in Notes",16)
+ title.Position=UDim2.fromOffset(12,8); title.Size=UDim2.new(1,-24,0,40)
+ local close=UiKit.Button(panel,"Return to the bonfire",function()
+  if os.clock()-sentAt<2 then return end
+  sentAt=os.clock()
+  if button then button.Text="Returning…" end
+  Remotes.Get("DismissCredits"):FireServer()
+  task.delay(3,function() if button and button.Parent then button.Text="Retry return to bonfire" end end)
+ end)
+ close.Position=UDim2.fromOffset(12,52); close.Size=UDim2.new(1,-24,0,44)
+ button=close
+ UiKit.Focus(close)
+end
+function Credits.Result(result: any)
+ if result.command~="DismissCredits" then return end
+ if result.accepted then Credits.Close()
+ else
+  sentAt=-math.huge
+  if button then button.Text="Try returning again" end
+  Tagline.Show({text=result.reason or "Please try again.",speaker="Sunrise",essential=false})
+ end
+end
 return Credits

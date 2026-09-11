@@ -1,0 +1,1 @@
+PASS: 7 enemy spawn/stage/gate body-bound assertions; engine sweeps remain acceptance tests

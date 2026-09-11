@@ -1,0 +1,33 @@
+name: Validate game source
+on: [push, pull_request]
+permissions:
+  contents: read
+concurrency:
+  group: validate-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  validate:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned checksum-verified tools
+        shell: pwsh
+        run: ./scripts/bootstrap-tools.ps1 -Destination '${{ runner.temp }}/florida-tools'
+      - name: Compile, type-check, exercise rules, and package sequentially
+        shell: pwsh
+        run: python scripts/validate.py --tools-dir '${{ runner.temp }}/florida-tools'
+      - name: Execute catalog, layout and balance connections
+        shell: pwsh
+        run: python scripts/export_catalog.py --luau '${{ runner.temp }}/florida-tools/luau-0.737/luau.exe'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: validation-evidence
+          path: |
+            artifacts/validation/
+            artifacts/catalog/catalog.json
+            artifacts/catalog/build-cycles.csv

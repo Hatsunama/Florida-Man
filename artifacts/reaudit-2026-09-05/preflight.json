@@ -1,0 +1,80 @@
+{
+  "config_discovery": {
+    "cwd": "C:\\Users\\1thea\\Projects\\Florida-Man",
+    "project_layers_loaded": true,
+    "project_root": "C:\\Users\\1thea\\Projects\\Florida-Man",
+    "project_trust_level": "trusted"
+  },
+  "config_paths": [
+    "C:\\ProgramData\\OpenAI\\Codex\\config.toml",
+    "C:\\Users\\1thea\\.codex\\config.toml",
+    "C:\\Users\\1thea\\Projects\\Florida-Man\\.codex\\config.toml"
+  ],
+  "config_profile": null,
+  "config_profile_path": null,
+  "config_resolution": "cwd-discovery",
+  "description": "Capabilities for repository-wide or scoped-path Codex Security scans.",
+  "failed": [
+    {
+      "actual": 3,
+      "capability": "usable_worker_slots_6",
+      "configured_value": 4,
+      "expected": {
+        "op": ">=",
+        "value": 6
+      },
+      "multi_agent_mode": "v2",
+      "path": "runtime.multi_agent.session_cap",
+      "reason": "A six-thread cap provides room for an independent baseline and parallel investigators; it does not require six running workers.",
+      "severity": "warn",
+      "source": "runtime-fact",
+      "status": "fail"
+    }
+  ],
+  "multi_agent_context": {
+    "agent_max_threads": null,
+    "agent_max_threads_configured": false,
+    "agent_max_threads_source": null,
+    "config_v2_enabled": false,
+    "mode": "v2",
+    "owner": "native",
+    "owner_source": "runtime-fact",
+    "runtime_provenance": "thread-context",
+    "version": "v2",
+    "version_source": "runtime-fact"
+  },
+  "multi_agent_mode": "v2",
+  "profile": "security_scan",
+  "remediation": {
+    "multi_agent_mode": "v2"
+  },
+  "results": [
+    {
+      "actual": true,
+      "capability": "delegated_workers",
+      "check": "delegation_available",
+      "reason": "Standard scans use an independent baseline auditor and focused investigation workers when delegation is available.",
+      "severity": "warn",
+      "status": "pass"
+    },
+    {
+      "actual": 3,
+      "capability": "usable_worker_slots_6",
+      "configured_value": 4,
+      "expected": {
+        "op": ">=",
+        "value": 6
+      },
+      "multi_agent_mode": "v2",
+      "path": "runtime.multi_agent.session_cap",
+      "reason": "A six-thread cap provides room for an independent baseline and parallel investigators; it does not require six running workers.",
+      "severity": "warn",
+      "source": "runtime-fact",
+      "status": "fail"
+    }
+  ],
+  "status": "ready",
+  "unknown": [],
+  "user_config_path": "C:\\Users\\1thea\\.codex\\config.toml",
+  "version": 1
+}

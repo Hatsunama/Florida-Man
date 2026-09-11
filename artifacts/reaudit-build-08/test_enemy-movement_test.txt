@@ -1,0 +1,1 @@
+PASS: stage/gate containment plus 14 procedural shapes in both facing directions

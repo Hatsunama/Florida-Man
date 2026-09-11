@@ -1,0 +1,249 @@
+{
+  "revision": "1bff8c516fd0dfed08f991e0c23c008c665f707d",
+  "compiler": "Luau 0.737 official Windows release",
+  "files": 48,
+  "passed": 47,
+  "failed": 1,
+  "results": [
+    {
+      "file": "src/client/Controllers/AnimController.lua",
+      "exit_code": 0,
+      "diagnostics": ""
+    },
+    {
+      "file": "src/client/Controllers/AudioDirector.lua",
+      "exit_code": 0,
+      "diagnostics": ""
+    },
+    {
+      "file": "src/client/Controllers/CameraController.lua",
+      "exit_code": 0,
+      "diagnostics": ""
+    },
+    {
+      "file": "src/client/Controllers/InputController.lua",
+      "exit_code": 0,
+      "diagnostics": ""
+    },
+    {
+      "file": "src/client/Controllers/MovementController.lua",
+      "exit_code": 0,
+      "diagnostics": ""
+    },
+    {
+      "file": "src/client/Controllers/TutorialController.lua",
+      "exit_code": 0,
+      "diagnostics": ""
+    },
+    {
+      "file": "src/client/Controllers/VFX.lua",
+      "exit_code": 0,
+      "diagnostics": ""
+    },
+    {
+      "file": "src/client/init.client.lua",
+      "exit_code": 0,
+      "diagnostics": ""
+    },
+    {
+      "file": "src/client/UI/CaptainSteveUI.lua",
+      "exit_code": 0,
+      "diagnostics": ""
+    },
+    {
+      "file": "src/client/UI/Credits.lua",
+      "exit_code": 0,
+      "diagnostics": ""
+    },
+    {
+      "file": "src/client/UI/HUD.lua",
+      "exit_code": 0,
+      "diagnostics": ""
+    },
+    {
+      "file": "src/client/UI/ItemDraft.lua",
+      "exit_code": 0,
+      "diagnostics": ""
+    },
+    {
+      "file": "src/client/UI/LoadingGui.lua",
+      "exit_code": 0,
+      "diagnostics": ""
+    },
+    {
+      "file": "src/client/UI/MobileControls.lua",
+      "exit_code": 0,
+      "diagnostics": ""
+    },
+    {
+      "file": "src/client/UI/Newspaper.lua",
+      "exit_code": 0,
+      "diagnostics": ""
+    },
+    {
+      "file": "src/client/UI/Tagline.lua",
+      "exit_code": 0,
+      "diagnostics": ""
+    },
+    {
+      "file": "src/server/AttackService.lua",
+      "exit_code": 0,
+      "diagnostics": ""
+    },
+    {
+      "file": "src/server/CombatFacade.lua",
+      "exit_code": 0,
+      "diagnostics": ""
+    },
+    {
+      "file": "src/server/CombatService.lua",
+      "exit_code": 0,
+      "diagnostics": ""
+    },
+    {
+      "file": "src/server/DraftService.lua",
+      "exit_code": 0,
+      "diagnostics": ""
+    },
+    {
+      "file": "src/server/EnemyFactory.lua",
+      "exit_code": 0,
+      "diagnostics": ""
+    },
+    {
+      "file": "src/server/EnemyService.lua",
+      "exit_code": 0,
+      "diagnostics": ""
+    },
+    {
+      "file": "src/server/FunnelService.lua",
+      "exit_code": 0,
+      "diagnostics": ""
+    },
+    {
+      "file": "src/server/GameService.lua",
+      "exit_code": 0,
+      "diagnostics": ""
+    },
+    {
+      "file": "src/server/HazardService.lua",
+      "exit_code": 1,
+      "diagnostics": "C:/Users/1thea/Projects/Florida-Man/src/server/HazardService.lua(131,12): SyntaxError: Expected identifier when parsing variable name, got 'until'"
+    },
+    {
+      "file": "src/server/HubService.lua",
+      "exit_code": 0,
+      "diagnostics": ""
+    },
+    {
+      "file": "src/server/init.server.lua",
+      "exit_code": 0,
+      "diagnostics": ""
+    },
+    {
+      "file": "src/server/MetaService.lua",
+      "exit_code": 0,
+      "diagnostics": ""
+    },
+    {
+      "file": "src/server/RunContext.lua",
+      "exit_code": 0,
+      "diagnostics": ""
+    },
+    {
+      "file": "src/server/SkillService.lua",
+      "exit_code": 0,
+      "diagnostics": ""
+    },
+    {
+      "file": "src/server/StageFlowService.lua",
+      "exit_code": 0,
+      "diagnostics": ""
+    },
+    {
+      "file": "src/server/SwapService.lua",
+      "exit_code": 0,
+      "diagnostics": ""
+    },
+    {
+      "file": "src/server/TutorialService.lua",
+      "exit_code": 0,
+      "diagnostics": ""
+    },
+    {
+      "file": "src/server/WorldBuilder.lua",
+      "exit_code": 0,
+      "diagnostics": ""
+    },
+    {
+      "file": "src/shared/ArtAssets.lua",
+      "exit_code": 0,
+      "diagnostics": ""
+    },
+    {
+      "file": "src/shared/AudioCatalog.lua",
+      "exit_code": 0,
+      "diagnostics": ""
+    },
+    {
+      "file": "src/shared/Balance.lua",
+      "exit_code": 0,
+      "diagnostics": ""
+    },
+    {
+      "file": "src/shared/Constants.lua",
+      "exit_code": 0,
+      "diagnostics": ""
+    },
+    {
+      "file": "src/shared/Enemies.lua",
+      "exit_code": 0,
+      "diagnostics": ""
+    },
+    {
+      "file": "src/shared/Items.lua",
+      "exit_code": 0,
+      "diagnostics": ""
+    },
+    {
+      "file": "src/shared/Personas.lua",
+      "exit_code": 0,
+      "diagnostics": ""
+    },
+    {
+      "file": "src/shared/Remotes.lua",
+      "exit_code": 0,
+      "diagnostics": ""
+    },
+    {
+      "file": "src/shared/Settings.lua",
+      "exit_code": 0,
+      "diagnostics": ""
+    },
+    {
+      "file": "src/shared/Stages.lua",
+      "exit_code": 0,
+      "diagnostics": ""
+    },
+    {
+      "file": "src/shared/Story.lua",
+      "exit_code": 0,
+      "diagnostics": ""
+    },
+    {
+      "file": "src/shared/Types.lua",
+      "exit_code": 0,
+      "diagnostics": ""
+    },
+    {
+      "file": "src/shared/Util.lua",
+      "exit_code": 0,
+      "diagnostics": ""
+    },
+    {
+      "file": "src/shared/Weapons.lua",
+      "exit_code": 0,
+      "diagnostics": ""
+    }
+  ]
+}

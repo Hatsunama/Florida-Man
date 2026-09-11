@@ -1,0 +1,6 @@
+[
+  "src\\client\\init.client.lua: obsolete audio pipeline",
+  "src\\client\\init.client.lua: undeclared remote PlaySound",
+  "src\\shared\\AudioCatalog.lua: obsolete audio pipeline",
+  "src\\shared\\Types.lua: missing GameService.RunState"
+]

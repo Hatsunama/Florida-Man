@@ -1,0 +1,161 @@
+exit_code=0
+OK  lookAlong facing
+OK  SPAWN_X = 18
+OK  ClickablePrompt
+OK  HasIFrames server
+OK  CombatService require GS
+OK  MobileControls
+OK  SoundId smoke
+OK  OilSlow
+OK  MetaService module
+OK  MetaService require GS
+OK  HazardService require GS
+OK  DailyLuckBonus
+OK  Telegraph pool
+OK  Publish checklist
+OK  RequestJump absent
+OK  Tagline no AudioDirector
+OK  No SFX_SteveBeep play()
+OK  EquipWeapon remote
+OK  PickDraftItem itemSlots
+OK  DraftService module
+OK  HubService module
+OK  StageFlowService module
+OK  CombatFacade module
+OK  CombatFacade CombatService
+OK  N0.1 hard itemSlots grant
+OK  N0.2 skip-draft full
+OK  N0.4 mobile TryAttack
+OK  SpawnLocation SPAWN_X
+OK  Types WeaponKind
+OK  Types MetaProfile
+OK  Types RunState
+OK  PendingDamage gone
+OK  OnPlayerHit callback
+OK  CombatFacade registers OnPlayerHit
+OK  No attack-rescue TryRescue
+OK  Rescue debounce
+OK  OilSlowUntil hazard
+OK  OIL_SLOW_MULT distinct
+OK  Hangover/OilSlow min-stack
+OK  Meta schema version
+OK  Meta dirty/re-entrancy
+OK  Meta run capturer
+OK  Cloud offline toast
+OK  Combat remote rate limit
+OK  Soft-fall toast cap
+OK  Soft-fall solid sample
+OK  MidGate empty waves unlock
+OK  Client hangoverMult gone
+OK  GameService <=400 (308)
+OK  BonfireEmber ember special
+OK  Ranged pierce cap
+OK  PierceLeft combat
+OK  hoaCone damage tick
+OK  HOA_CONE_DAMAGE
+OK  GREASY oilResist set
+OK  OilResist attr
+OK  Ember dodge buff
+OK  Weapon drops table N3
+OK  META_SCHEMA_VERSION = 2
+OK  Meta store v2
+OK  Meta legacy v1 migrate
+OK  MuteMaster setting
+OK  MuteSFX setting
+OK  MuteAmbience setting
+OK  ReduceMotion setting
+OK  TextSpeed setting
+OK  AudioDirector ApplyMute
+OK  Tagline text speed
+OK  Tagline skip/dismiss
+OK  Tagline no AudioDirector
+OK  HUD Options panel
+OK  Options ≥44px rows
+OK  ReduceMotion hitstop
+OK  ReduceMotion shake
+OK  SyncSettings TextSpeed
+OK  Newspaper open sting
+OK  WATER_TIMEOUT constant
+OK  CONVEYOR_FLIP_PERIOD
+OK  TURTLE_ESCORT_RADIUS
+OK  WIND_OPPOSE_MULT
+OK  Stages.LevelVerb
+OK  Story MidGateLockLine
+OK  Story VerbToast
+OK  Water timeout soft-fall
+OK  Conveyor flip signed
+OK  WindOpposeJump hazard
+OK  WorldBuilder LevelVerb attr
+OK  WorldBuilder ConveyorFlipPeriod
+OK  Platform scalingTier density
+OK  Canal pad-only setPiece
+OK  Barge wind gaps
+OK  Turtle EscortGoalX
+OK  MidGate first-lock Tagline
+OK  Verb toast LoadStage
+OK  Turtle escort AI
+OK  Late denser telegraphs
+OK  SafetyFloor regression
+OK  AttackService module
+OK  SkillService module
+OK  SwapService module
+OK  Facade delegates DoAttack
+OK  Facade delegates DoSkill
+OK  Facade delegates DoSwap
+OK  Moveset cancelAfter
+OK  Types MovesetHit cancel
+OK  attackReadyAt StateUpdate
+OK  Client SyncAttackReady
+OK  HUD FlashCancel
+OK  HUD FlashPunish
+OK  FOAM_FIRE_MULT
+OK  Foam fire secondary
+OK  Net RootedUntil
+OK  Enemy RootedUntil gate
+OK  THROW_ARC_HEIGHT
+OK  GameService remotes only attack
+OK  No DoAttack body in GameService
+OK  CombatFacade <=300 (125)
+OK  ArtAssets module
+OK  ArtAssets TryCloneMeshModel
+OK  ArtAssets ART_KIT_PART
+OK  EnemyFactory mesh try
+OK  EnemyFactory ArtAssets
+OK  WorldBuilder ArtAssets
+OK  WorldBuilder CaptainSteve mesh try
+OK  AnimController uses ArtAssets
+OK  AnimController procedural skill
+OK  AnimController PlaySwap
+OK  AnimController ReduceMotion scale
+OK  VFX particleBudget ReduceMotion
+OK  VFX bash/grab arcs
+OK  ReduceMotion hitstop
+OK  ReduceMotion shake
+OK  Persona BodyColors + Highlight
+OK  ART_PIPELINE honesty
+OK  Rojo Assets.Meshes folder
+OK  N7 no placeholder rbxassetid stubs
+OK  N7 no direct AnimationId rbxassetid assignments
+OK  N7 no MeshId rbxassetid in src
+OK  FunnelService module
+OK  FunnelService FM_FUNNEL
+OK  Funnel hub_start
+OK  Funnel cold_one
+OK  Funnel stage3_clear
+OK  Funnel death
+OK  Funnel draft_open
+OK  Funnel softlock watch
+OK  Funnel OnJoin
+OK  KPI doc no secrets
+OK  KPI.md exists markers
+OK  PUBLISH Community Standards
+OK  PUBLISH Florida Dew
+OK  PUBLISH dialogue popup
+OK  PUBLISH InEngine_v3 soft launch
+OK  SMOKE N8 funnel
+OK  Playability N8 Funnel
+OK  AUDIT_N8
+OK  AUDIT_PLAN_NEXT_FINAL
+OK  LoadingGui soft launch tip
+OK  Credits dismiss
+OK  No telemetry API key literals

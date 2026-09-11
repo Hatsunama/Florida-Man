@@ -1,0 +1,211 @@
+from pathlib import Path
+p=Path('src/server/GameService.lua')
+s=p.read_text(encoding='utf-8')
+s=s.replace('local GameService = {}','local SessionService = require(script.Parent:WaitForChild("SessionService"))\n\nlocal GameService = {}')
+a=s.index('-- N2 token buckets')
+b=s.index('function GameService.GetState',a)
+s=s[:a]+'''-- One bounded ingress budget per command, including settings and interactions.
+type Bucket = {tokens: number, last: number}
+local combatBuckets: {[Player]: {[string]: Bucket}} = {}
+local initialized: {[Player]: boolean} = {}
+local clientReady: {[Player]: boolean} = {}
+local simulationErrors: {[Player]: number} = {}
+
+local function takeToken(player: Player, kind: string): boolean
+    if not SessionService.IsOwner(player) then return false end
+    local rate = (Constants.COMBAT_REMOTE_RATE :: any)[kind] or 3
+    local burst = (Constants.COMBAT_REMOTE_BURST :: any)[kind] or 3
+    local bags = combatBuckets[player] or {}
+    combatBuckets[player] = bags
+    local now = os.clock()
+    local bucket = bags[kind] or {tokens = burst, last = now}
+    bags[kind] = bucket
+    bucket.tokens = math.min(burst, bucket.tokens + (now-bucket.last)*rate)
+    bucket.last = now
+    if bucket.tokens < 1 then return false end
+    bucket.tokens -= 1
+    return true
+end
+
+local function reject(player: Player, command: string, reason: string)
+    Remotes.Get('CommandResult'):FireClient(player, {command=command,accepted=false,reason=reason})
+end
+
+local function face(player: Player, direction: unknown)
+    local s = RunContext.GetState(player)
+    if s and typeof(direction)=='number' and direction == direction and math.abs(direction) < math.huge then
+        s.facing = if direction < 0 then -1 else 1
+    end
+end
+
+local function readySnapshot(player: Player)
+    local s = RunContext.GetState(player)
+    if not s then return end
+    s.clientReady = true
+    RunContext.PushState(player)
+    Remotes.Get('StageLoaded'):FireClient(player,s.stageId,s.stageId)
+    for _, beat in s.pendingDialogue do Remotes.Get('ShowTagline'):FireClient(player,beat) end
+    table.clear(s.pendingDialogue)
+    if s.pendingOffer then DraftService.ResendOffer(player) end
+    if s.pendingNewspaper then Remotes.Get('ShowNewspaper'):FireClient(player,s.pendingNewspaper) end
+    if s.pendingCredits then Remotes.Get('ShowCredits'):FireClient(player,s.pendingCredits) end
+end
+
+''' + s[b:]
+a=s.index('function GameService.InitPlayer')
+b=s.index('function GameService.SetupRemotes',a)
+s=s[:a]+'''function GameService.InitPlayer(player: Player)
+    if initialized[player] then return end
+    if not SessionService.Acquire(player) then
+        player:Kick('This adventure supports one player per server. Please join a new server.')
+        return
+    end
+    initialized[player] = true
+    player:SetAttribute('RunActive',false)
+    local profile = MetaService.Load(player)
+    if not SessionService.IsOwner(player) then MetaService.Unload(player); return end
+    FunnelService.OnJoin(player)
+    Settings.EnsureDefaults(player)
+    MetaService.ApplySettingsAttrs(player,profile)
+    local s = RunContext.NewRunState(profile.deaths)
+    s.sunburn = profile.sunburn
+    for _, id in profile.unlockedPersonas do s.unlockedPersonas[id] = true end
+    s.personaRarity = table.clone(profile.personaRarity)
+    s.personas = table.clone(profile.personas)
+    s.unlockedWeapons = {}
+    for _, id in profile.unlockedWeapons do s.unlockedWeapons[id] = true end
+    s.weaponId = profile.weaponId
+    s.totalTurtlesRescued = profile.totalTurtlesRescued
+    s.clientReady = clientReady[player] == true
+    RunContext.SetState(player,s)
+    MetaService.RegisterRunCapturer(player,function()
+        local state = RunContext.GetState(player)
+        if state then RunContext.PersistMeta(player,state) end
+    end)
+    local boundCharacter: Model? = nil
+    local diedConnection: RBXScriptConnection? = nil
+    local function bindCharacter(char: Model)
+        if boundCharacter == char then return end
+        boundCharacter = char
+        if diedConnection then diedConnection:Disconnect(); diedConnection=nil end
+        local hrp = char:WaitForChild('HumanoidRootPart',8)
+        local hum = char:WaitForChild('Humanoid',8)
+        if not SessionService.IsOwner(player) or player.Character ~= char then return end
+        if not hrp or not hrp:IsA('BasePart') or not hum or not hum:IsA('Humanoid') then
+            warn('[Florida Man] Character failed readiness'); return
+        end
+        local st = RunContext.GetState(player)
+        if not st then return end
+        st.characterReady = true
+        hrp:SetNetworkOwner(player)
+        RunContext.TeleportPlayer(player,WorldBuilder.GetSpawnCFrame(st.stageId))
+        RunContext.ApplyCharacterSpeed(player)
+        diedConnection = hum.Died:Connect(function()
+            if player.Character == char then CombatFacade.KillPlayer(player) end
+        end)
+        RunContext.PushState(player)
+    end
+    SessionService.TrackConnection(player,player.CharacterAdded:Connect(bindCharacter))
+    StageFlowService.LoadHub(player)
+    if player.Character then task.spawn(bindCharacter,player.Character) end
+    if clientReady[player] then readySnapshot(player) end
+    local status = MetaService.GetStatus(player)
+    if not status.writable then RunContext.Say(player,'Progress could not be loaded safely. This session cannot save. Rejoin to retry.','Progress') end
+end
+
+''' + s[b:]
+s=s.replace('Remotes.Get("RequestAttack").OnServerEvent:Connect(function(player)','Remotes.Get("RequestAttack").OnServerEvent:Connect(function(player, direction)')
+s=s.replace('\t\tCombatFacade.DoAttack(player)','\t\tface(player,direction)\n\t\tCombatFacade.DoAttack(player)')
+s=s.replace('Remotes.Get("RequestSkill").OnServerEvent:Connect(function(player)','Remotes.Get("RequestSkill").OnServerEvent:Connect(function(player, direction)')
+s=s.replace('\t\tCombatFacade.DoSkill(player)','\t\tface(player,direction)\n\t\tCombatFacade.DoSkill(player)')
+s=s.replace('Remotes.Get("RequestSwap").OnServerEvent:Connect(function(player)','Remotes.Get("RequestSwap").OnServerEvent:Connect(function(player, direction)')
+s=s.replace('\t\tCombatFacade.DoSwap(player)','\t\tif not takeToken(player,"swap") then return end\n\t\tface(player,direction)\n\t\tCombatFacade.DoSwap(player)')
+for name in ['RequestStartRun','EquipWeapon','ContinueFromNewspaper','PickDraftItem','TalkCaptainSteve','SmashPersona','UpgradePersona','SyncSettings','RescueTurtle','TutorialBeat']:
+    marker='Remotes.Get("'+name+'").OnServerEvent:Connect(function('
+    start=s.index(marker)
+    nl=s.index('\n',start)
+    s=s[:nl+1]+f'\t\tif not takeToken(player,"{name}") then return end\n'+s[nl+1:]
+a=s.index('\t\tlocal st = RunContext.GetState(player)',s.index('Remotes.Get("SyncSettings")'))
+b=s.index('\n\tend)',a)
+s=s[:a]+s[b:]
+a=s.index('\ttask.spawn(function()\n\t\twhile true do',s.index('function GameService.SetupRemotes'))
+b=s.index('\nend\n\nPlayers.PlayerRemoving',a)
+s=s[:a]+'''    Remotes.Get('ClientReady').OnServerEvent:Connect(function(player)
+        clientReady[player] = true
+        if takeToken(player,'ready') then readySnapshot(player) end
+    end)
+    Remotes.Get('EquipPersona').OnServerEvent:Connect(function(player,payload)
+        if takeToken(player,'loadout') then HubService.EquipPersona(player,payload) end
+    end)
+    Remotes.Get('ReturnToHub').OnServerEvent:Connect(function(player)
+        if not takeToken(player,'return') then return end
+        local st = RunContext.GetState(player)
+        if not st or st.phase == 'Closing' or st.phase == 'Loading' then return end
+        if st.runActive then FunnelService.Mark(player,'run_abandon',{stage=st.stageId,reason='return_to_hub'}) end
+        st.items = {}; st.runTurtlesRescued = 0; st.hp = Constants.BASE_HP
+        RunContext.ComputeStats(st)
+        StageFlowService.LoadHub(player)
+    end)
+    Remotes.Get('DismissCredits').OnServerEvent:Connect(function(player)
+        if not takeToken(player,'credits') then return end
+        local st = RunContext.GetState(player)
+        if st and st.phase == 'Ending' and st.completionCommitted then StageFlowService.LoadHub(player) end
+    end)
+    Remotes.Get('ReplayTutorial').OnServerEvent:Connect(function(player)
+        if not takeToken(player,'tutorial_replay') then return end
+        local st=RunContext.GetState(player)
+        if st and st.inHub then st.tutorial=TutorialService.NewFlags(); TutorialService.OnHubLoaded(player,st.tutorial) end
+    end)
+    task.spawn(function()
+        local lastMetrics = 0
+        while true do
+            task.wait(0.05)
+            for _, player in Players:GetPlayers() do
+                local stH = RunContext.GetState(player)
+                if not stH or not SessionService.IsOwner(player) or stH.phase == 'Closing' then continue end
+                local started = os.clock()
+                local ok, err = pcall(function()
+                    StageFlowService.TickWaves(player)
+                    StageFlowService.TryColdOnePickup(player)
+                    local current = RunContext.GetState(player)
+                    if current ~= stH then return end
+                    local ctx = {runActive=stH.runActive,stageId=stH.stageId,stageIndex=stH.stageIndex,checkpointX=stH.checkpointX,moveSpeed=stH.moveSpeed}
+                    HazardService.Tick(player,ctx,CombatFacade.ApplyDamageToPlayer,RunContext.Toast)
+                    stH.checkpointX=ctx.checkpointX
+                    RunContext.ApplyCharacterSpeed(player)
+                end)
+                player:SetAttribute('SimulationStepMs',(os.clock()-started)*1000)
+                if not ok then
+                    local now=os.clock()
+                    if now-(simulationErrors[player] or -math.huge)>10 then warn('[Florida Man] Simulation failed: '..tostring(err)); simulationErrors[player]=now end
+                    stH.runActive=false; stH.phase='Recovering'; player:SetAttribute('RunActive',false)
+                    RunContext.Say(player,'This run encountered a problem. Return to the bonfire to recover.','Recovery')
+                    RunContext.PushState(player)
+                end
+                if os.clock()-lastMetrics >= 1 then FunnelService.WatchSoftlocks(player) end
+            end
+            if os.clock()-lastMetrics >= 1 then lastMetrics=os.clock() end
+        end
+    end)''' + s[b:]
+a=s.index('Players.PlayerRemoving:Connect')
+s=s[:a]+'''Players.PlayerRemoving:Connect(function(player)
+    if not initialized[player] then return end
+    local state = RunContext.GetState(player)
+    if state then
+        RunContext.PersistMeta(player,state)
+        state.phase='Closing'; state.runActive=false
+    end
+    player:SetAttribute('RunActive',false)
+    -- Snapshot before clearing runtime truth; Unload owns bounded final flush.
+    MetaService.Unload(player)
+    EnemyService.Clear()
+    CombatService.ResetPlayer(player)
+    SessionService.Release(player)
+    RunContext.ClearState(player)
+    combatBuckets[player]=nil; clientReady[player]=nil; initialized[player]=nil; simulationErrors[player]=nil
+    FunnelService.Unload(player)
+end)
+
+return GameService
+'''
+p.write_text(s,encoding='utf-8')

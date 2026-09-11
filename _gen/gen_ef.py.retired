@@ -1,0 +1,703 @@
+from pathlib import Path
+ROOT = Path(r"C:\Users\1thea\Projects\Florida-Man")
+
+ef = r"""--!strict
+--[[ EnemyFactory — single Model, WeldConstraints/Motor6Ds, animated silhouettes.
+	NEVER leave orphan Anchored accent parts. All limbs move with root.
+]]
+
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local Debris = game:GetService("Debris")
+
+local EnemyFactory = {}
+
+local function weld(a: BasePart, b: BasePart, name: string?): WeldConstraint
+	local w = Instance.new("WeldConstraint")
+	w.Name = name or "Weld"
+	w.Part0 = a
+	w.Part1 = b
+	w.Parent = a
+	return w
+end
+
+local function part(props: { [string]: any }): Part
+	local p = Instance.new("Part")
+	p.Name = props.Name or "Part"
+	p.Size = props.Size or Vector3.new(1, 1, 1)
+	p.Color = props.Color or Color3.new(1, 1, 1)
+	p.Material = props.Material or Enum.Material.SmoothPlastic
+	p.Anchored = false
+	p.CanCollide = props.CanCollide == true
+	p.Massless = props.Massless ~= false
+	p.CastShadow = true
+	p.TopSurface = Enum.SurfaceType.Smooth
+	p.BottomSurface = Enum.SurfaceType.Smooth
+	if props.Shape then
+		p.Shape = props.Shape
+	end
+	if props.Transparency then
+		p.Transparency = props.Transparency
+	end
+	p.CFrame = props.CFrame or CFrame.new()
+	p.Parent = props.Parent
+	return p
+end
+
+local function attachToRoot(root: BasePart, child: BasePart)
+	child.Anchored = false
+	child.CanCollide = false
+	child.Massless = true
+	weld(root, child)
+end
+
+local function buildCrab(model: Model, root: Part, def: any)
+	local s = def.size
+	root.Size = Vector3.new(s.X * 0.85, s.Y * 0.7, s.Z * 0.85)
+	root.Shape = Enum.PartType.Ball
+	root.Material = Enum.Material.SmoothPlastic
+	root.Color = def.color
+
+	-- carapace shell
+	local shell = part({
+		Name = "Carapace",
+		Parent = model,
+		Size = Vector3.new(s.X * 1.05, s.Y * 0.55, s.Z * 1.05),
+		Color = def.color:Lerp(Color3.fromRGB(255, 100, 40), 0.25),
+		Material = Enum.Material.SmoothPlastic,
+		CFrame = root.CFrame * CFrame.new(0, s.Y * 0.25, 0),
+	})
+	attachToRoot(root, shell)
+
+	-- eye stalks
+	for _, side in { -1, 1 } do
+		local stalk = part({
+			Name = "EyeStalk",
+			Parent = model,
+			Size = Vector3.new(0.25, 1.1, 0.25),
+			Color = def.color,
+			CFrame = root.CFrame * CFrame.new(side * s.X * 0.28, s.Y * 0.55, -s.Z * 0.25),
+		})
+		attachToRoot(root, stalk)
+		local eye = part({
+			Name = "Eye",
+			Parent = model,
+			Size = Vector3.new(0.45, 0.45, 0.45),
+			Shape = Enum.PartType.Ball,
+			Color = Color3.fromRGB(20, 20, 20),
+			Material = Enum.Material.SmoothPlastic,
+			CFrame = stalk.CFrame * CFrame.new(0, 0.6, 0),
+		})
+		attachToRoot(root, eye)
+		local pupil = part({
+			Name = "PupilGlow",
+			Parent = model,
+			Size = Vector3.new(0.2, 0.2, 0.2),
+			Shape = Enum.PartType.Ball,
+			Color = def.accent,
+			Material = Enum.Material.Neon,
+			CFrame = eye.CFrame * CFrame.new(0, 0, -0.15),
+		})
+		attachToRoot(root, pupil)
+	end
+
+	-- 6 legs with Motor6D for walk cycle
+	local legsFolder = Instance.new("Folder")
+	legsFolder.Name = "Legs"
+	legsFolder.Parent = model
+	for i = 1, 6 do
+		local side = if i <= 3 then -1 else 1
+		local row = ((i - 1) % 3) - 1
+		local hip = part({
+			Name = "LegHip" .. i,
+			Parent = legsFolder,
+			Size = Vector3.new(0.35, 0.35, 0.35),
+			Color = def.color,
+			CFrame = root.CFrame * CFrame.new(side * s.X * 0.42, -s.Y * 0.15, row * s.Z * 0.28),
+		})
+		attachToRoot(root, hip)
+		local upper = part({
+			Name = "LegUpper" .. i,
+			Parent = legsFolder,
+			Size = Vector3.new(0.28, 0.9, 0.28),
+			Color = def.color:Lerp(Color3.fromRGB(40, 20, 10), 0.2),
+			CFrame = hip.CFrame * CFrame.new(side * 0.55, -0.2, 0) * CFrame.Angles(0, 0, side * math.rad(35)),
+		})
+		local m1 = Instance.new("Motor6D")
+		m1.Name = "HipMotor"
+		m1.Part0 = hip
+		m1.Part1 = upper
+		m1.C0 = CFrame.new(side * 0.2, 0, 0)
+		m1.C1 = CFrame.new(0, 0.4, 0)
+		m1.Parent = hip
+		local lower = part({
+			Name = "LegLower" .. i,
+			Parent = legsFolder,
+			Size = Vector3.new(0.22, 0.85, 0.22),
+			Color = def.accent,
+			CFrame = upper.CFrame * CFrame.new(side * 0.35, -0.7, 0),
+		})
+		local m2 = Instance.new("Motor6D")
+		m2.Name = "KneeMotor"
+		m2.Part0 = upper
+		m2.Part1 = lower
+		m2.C0 = CFrame.new(0, -0.45, 0)
+		m2.C1 = CFrame.new(0, 0.35, 0)
+		m2.Parent = upper
+		hip:SetAttribute("LegIndex", i)
+		hip:SetAttribute("LegSide", side)
+	end
+
+	-- claws
+	for _, side in { -1, 1 } do
+		local arm = part({
+			Name = "ClawArm",
+			Parent = model,
+			Size = Vector3.new(0.45, 0.45, 1.2),
+			Color = def.color,
+			CFrame = root.CFrame * CFrame.new(side * s.X * 0.55, 0.1, -s.Z * 0.35),
+		})
+		local mArm = Instance.new("Motor6D")
+		mArm.Name = "ClawMotor"
+		mArm.Part0 = root
+		mArm.Part1 = arm
+		mArm.C0 = CFrame.new(side * s.X * 0.45, 0.1, -s.Z * 0.2)
+		mArm.C1 = CFrame.new(0, 0, 0.4)
+		mArm.Parent = root
+		local claw = part({
+			Name = "Claw",
+			Parent = model,
+			Size = Vector3.new(1.1, 0.7, 1.4),
+			Color = def.color:Lerp(Color3.fromRGB(255, 80, 40), 0.15),
+			CFrame = arm.CFrame * CFrame.new(0, 0, -0.9),
+		})
+		local mClaw = Instance.new("Motor6D")
+		mClaw.Name = "PinchMotor"
+		mClaw.Part0 = arm
+		mClaw.Part1 = claw
+		mClaw.C0 = CFrame.new(0, 0, -0.7)
+		mClaw.C1 = CFrame.new()
+		mClaw.Parent = arm
+		-- pincer tip
+		local tip = part({
+			Name = "Pincer",
+			Parent = model,
+			Size = Vector3.new(0.5, 0.35, 0.8),
+			Color = def.accent,
+			Material = Enum.Material.Neon,
+			CFrame = claw.CFrame * CFrame.new(side * 0.25, 0, -0.5),
+		})
+		attachToRoot(claw, tip)
+	end
+
+	-- dust emitter placeholder
+	local dust = Instance.new("Attachment")
+	dust.Name = "WalkDust"
+	dust.Position = Vector3.new(0, -s.Y * 0.35, 0)
+	dust.Parent = root
+	local pe = Instance.new("ParticleEmitter")
+	pe.Name = "SandDust"
+	pe.Texture = "rbxasset://textures/particles/smoke_main.dds"
+	pe.Color = ColorSequence.new(Color3.fromRGB(220, 190, 130))
+	pe.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.4), NumberSequenceKeypoint.new(1, 1.2) })
+	pe.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.4), NumberSequenceKeypoint.new(1, 1) })
+	pe.Lifetime = NumberRange.new(0.4, 0.8)
+	pe.Rate = 0
+	pe.Speed = NumberRange.new(1, 3)
+	pe.SpreadAngle = Vector2.new(40, 40)
+	pe.Parent = dust
+end
+
+local function buildGator(model: Model, root: Part, def: any)
+	local s = def.size
+	root.Size = Vector3.new(s.X * 0.7, s.Y * 0.55, s.Z * 0.7)
+	root.Color = def.color
+	if def.id == "OilGator" then
+		root.Material = Enum.Material.Mud
+	end
+	local snout = part({
+		Name = "Snout",
+		Parent = model,
+		Size = Vector3.new(s.X * 0.45, s.Y * 0.35, s.Z * 0.5),
+		Color = def.color:Lerp(Color3.fromRGB(60, 100, 50), 0.2),
+		CFrame = root.CFrame * CFrame.new(s.X * 0.45, 0, 0),
+	})
+	attachToRoot(root, snout)
+	local tail = part({
+		Name = "Tail",
+		Parent = model,
+		Size = Vector3.new(s.X * 0.5, s.Y * 0.25, s.Z * 0.35),
+		Color = def.color,
+		CFrame = root.CFrame * CFrame.new(-s.X * 0.5, -0.1, 0),
+	})
+	local mTail = Instance.new("Motor6D")
+	mTail.Name = "TailMotor"
+	mTail.Part0 = root
+	mTail.Part1 = tail
+	mTail.C0 = CFrame.new(-s.X * 0.35, -0.1, 0)
+	mTail.Parent = root
+	for i = 1, 4 do
+		local side = if i % 2 == 0 then 1 else -1
+		local leg = part({
+			Name = "Leg",
+			Parent = model,
+			Size = Vector3.new(0.5, 1.2, 0.5),
+			Color = def.accent,
+			CFrame = root.CFrame * CFrame.new((i - 2.5) * 0.8, -s.Y * 0.35, side * s.Z * 0.4),
+		})
+		attachToRoot(root, leg)
+	end
+	if def.id == "OilGator" or def.id == "DriveThruGator" then
+		local collar = part({
+			Name = "RadioCollar",
+			Parent = model,
+			Size = Vector3.new(1.2, 0.4, 1.2),
+			Color = Color3.fromRGB(255, 200, 40),
+			Material = Enum.Material.Neon,
+			CFrame = root.CFrame * CFrame.new(-s.X * 0.1, s.Y * 0.35, 0),
+		})
+		attachToRoot(root, collar)
+		local bb = Instance.new("BillboardGui")
+		bb.Size = UDim2.fromOffset(90, 18)
+		bb.StudsOffset = Vector3.new(0, 2.5, 0)
+		bb.Parent = collar
+		local t = Instance.new("TextLabel")
+		t.Size = UDim2.fromScale(1, 1)
+		t.BackgroundTransparency = 1
+		t.Text = "GULFGULP"
+		t.TextColor3 = Color3.fromRGB(255, 220, 80)
+		t.TextScaled = true
+		t.Font = Enum.Font.GothamBold
+		t.Parent = bb
+	end
+end
+
+local function buildLizard(model: Model, root: Part, def: any)
+	local s = def.size
+	root.Size = Vector3.new(s.X * 0.6, s.Y * 0.5, s.Z * 0.55)
+	root.Color = def.color
+	local head = part({
+		Name = "Head",
+		Parent = model,
+		Size = Vector3.new(1.2, 1.0, 1.4),
+		Shape = Enum.PartType.Ball,
+		Color = def.color,
+		CFrame = root.CFrame * CFrame.new(0, s.Y * 0.2, -s.Z * 0.35),
+	})
+	attachToRoot(root, head)
+	local crest = part({
+		Name = "FlameCrest",
+		Parent = model,
+		Size = Vector3.new(0.5, 1.8, 1.6),
+		Color = Color3.fromRGB(255, 140, 20),
+		Material = Enum.Material.Neon,
+		CFrame = root.CFrame * CFrame.new(0, s.Y * 0.55, 0),
+	})
+	attachToRoot(root, crest)
+	local flame = Instance.new("Attachment")
+	flame.Name = "FlameAttach"
+	flame.Parent = crest
+	local pe = Instance.new("ParticleEmitter")
+	pe.Name = "FlameVFX"
+	pe.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 220, 80)),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 60, 20)),
+	})
+	pe.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.6), NumberSequenceKeypoint.new(1, 0) })
+	pe.Lifetime = NumberRange.new(0.3, 0.6)
+	pe.Rate = 12
+	pe.Speed = NumberRange.new(2, 5)
+	pe.LightEmission = 0.6
+	pe.Parent = flame
+	for i = 1, 4 do
+		local leg = part({
+			Name = "Leg",
+			Parent = model,
+			Size = Vector3.new(0.35, 0.9, 0.35),
+			Color = def.accent,
+			CFrame = root.CFrame * CFrame.new((i - 2.5) * 0.7, -s.Y * 0.3, (if i % 2 == 0 then 1 else -1) * 0.6),
+		})
+		attachToRoot(root, leg)
+	end
+end
+
+local function buildSnake(model: Model, root: Part, def: any)
+	local s = def.size
+	root.Size = Vector3.new(s.X * 0.35, s.Y, s.Z)
+	root.Color = def.color
+	root.Shape = Enum.PartType.Cylinder
+	for i = 1, 3 do
+		local seg = part({
+			Name = "Seg" .. i,
+			Parent = model,
+			Size = Vector3.new(s.X * 0.28, s.Y * 0.9, s.Z * 0.9),
+			Color = if i % 2 == 0 then def.accent else def.color,
+			CFrame = root.CFrame * CFrame.new(-i * s.X * 0.3, 0, 0),
+		})
+		local m = Instance.new("Motor6D")
+		m.Name = "SegMotor"
+		m.Part0 = if i == 1 then root else model:FindFirstChild("Seg" .. (i - 1)) :: BasePart
+		m.Part1 = seg
+		m.C0 = CFrame.new(-s.X * 0.28, 0, 0)
+		m.Parent = m.Part0
+	end
+	local head = part({
+		Name = "Head",
+		Parent = model,
+		Size = Vector3.new(1.1, 0.9, 1.1),
+		Color = def.accent,
+		CFrame = root.CFrame * CFrame.new(s.X * 0.25, 0.1, 0),
+	})
+	attachToRoot(root, head)
+end
+
+local function buildSlime(model: Model, root: Part, def: any)
+	root.Shape = Enum.PartType.Ball
+	root.Size = def.size * 0.85
+	root.Color = def.color
+	root.Material = Enum.Material.ForceField
+	local core = part({
+		Name = "Core",
+		Parent = model,
+		Size = def.size * 0.4,
+		Shape = Enum.PartType.Ball,
+		Color = def.accent,
+		Material = Enum.Material.Neon,
+		CFrame = root.CFrame,
+	})
+	attachToRoot(root, core)
+end
+
+local function buildHumanoidish(model: Model, root: Part, def: any)
+	local s = def.size
+	root.Size = Vector3.new(s.X * 0.7, s.Y * 0.45, s.Z * 0.6)
+	root.Color = def.color
+	local head = part({
+		Name = "Head",
+		Parent = model,
+		Size = Vector3.new(1.4, 1.4, 1.4),
+		Shape = Enum.PartType.Ball,
+		Color = def.color:Lerp(Color3.fromRGB(255, 220, 180), 0.3),
+		CFrame = root.CFrame * CFrame.new(0, s.Y * 0.4, 0),
+	})
+	attachToRoot(root, head)
+	local accent = part({
+		Name = "Accent",
+		Parent = model,
+		Size = Vector3.new(1.2, 0.4, 1.2),
+		Color = def.accent,
+		Material = Enum.Material.Neon,
+		CFrame = head.CFrame * CFrame.new(0, 0.8, 0),
+	})
+	attachToRoot(root, accent)
+	for _, side in { -1, 1 } do
+		local arm = part({
+			Name = "Arm",
+			Parent = model,
+			Size = Vector3.new(0.55, 2.2, 0.55),
+			Color = def.color,
+			CFrame = root.CFrame * CFrame.new(side * s.X * 0.55, 0, 0),
+		})
+		local m = Instance.new("Motor6D")
+		m.Name = "ArmMotor"
+		m.Part0 = root
+		m.Part1 = arm
+		m.C0 = CFrame.new(side * s.X * 0.4, 0.2, 0)
+		m.Parent = root
+		local leg = part({
+			Name = "Leg",
+			Parent = model,
+			Size = Vector3.new(0.6, 2.4, 0.6),
+			Color = def.accent,
+			CFrame = root.CFrame * CFrame.new(side * 0.4, -s.Y * 0.35, 0),
+		})
+		attachToRoot(root, leg)
+	end
+end
+
+local function buildBoss(model: Model, root: Part, def: any)
+	buildHumanoidish(model, root, def)
+	root.Size = def.size * Vector3.new(0.5, 0.4, 0.5)
+	local crown = part({
+		Name = "Crown",
+		Parent = model,
+		Size = Vector3.new(def.size.X * 0.5, 2, 2),
+		Color = Color3.fromRGB(255, 180, 0),
+		Material = Enum.Material.Neon,
+		CFrame = root.CFrame * CFrame.new(0, def.size.Y * 0.45, 0),
+	})
+	attachToRoot(root, crown)
+	local weak = part({
+		Name = "WeakPoint",
+		Parent = model,
+		Size = Vector3.new(2.5, 2.5, 1.2),
+		Color = def.accent,
+		Material = Enum.Material.Neon,
+		CFrame = root.CFrame * CFrame.new(0, def.size.Y * 0.1, -def.size.Z * 0.25),
+	})
+	attachToRoot(root, weak)
+	-- glow pulse
+	task.spawn(function()
+		while weak.Parent do
+			local t = TweenService:Create(weak, TweenInfo.new(0.8, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {
+				Transparency = 0.45,
+			})
+			t:Play()
+			break
+		end
+	end)
+end
+
+local function buildTurtle(model: Model, root: Part, def: any)
+	root.Size = Vector3.new(def.size.X, def.size.Y * 0.7, def.size.Z)
+	root.Color = def.color
+	root.Shape = Enum.PartType.Ball
+	local shell = part({
+		Name = "Shell",
+		Parent = model,
+		Size = Vector3.new(def.size.X * 1.2, def.size.Y, def.size.Z * 1.1),
+		Color = def.accent,
+		CFrame = root.CFrame * CFrame.new(0, 0.3, 0),
+	})
+	attachToRoot(root, shell)
+	local head = part({
+		Name = "Head",
+		Parent = model,
+		Size = Vector3.new(0.8, 0.7, 1.0),
+		Color = def.color,
+		CFrame = root.CFrame * CFrame.new(0, 0.2, -def.size.Z * 0.55),
+	})
+	attachToRoot(root, head)
+end
+
+local function buildGeneric(model: Model, root: Part, def: any)
+	root.Size = def.size
+	root.Color = def.color
+	local accent = part({
+		Name = "Accent",
+		Parent = model,
+		Size = Vector3.new(1.2, 1.2, 1.2),
+		Color = def.accent,
+		Material = Enum.Material.Neon,
+		CFrame = root.CFrame * CFrame.new(0, def.size.Y * 0.4, 0),
+	})
+	attachToRoot(root, accent)
+end
+
+local SHAPERS: { [string]: (Model, Part, any) -> () } = {
+	crab = buildCrab,
+	gator = buildGator,
+	lizard = buildLizard,
+	snake = buildSnake,
+	slime = buildSlime,
+	humanoid = buildHumanoidish,
+	boss = buildBoss,
+	turtle = buildTurtle,
+	hopper = buildGeneric,
+	cart = buildGeneric,
+	drone = buildGeneric,
+	pelican = buildGeneric,
+	barrel = buildGeneric,
+	cloud = buildSlime,
+}
+
+function EnemyFactory.Build(def: any, position: Vector3): Model
+	local model = Instance.new("Model")
+	model.Name = def.id
+
+	local root = Instance.new("Part")
+	root.Name = "HumanoidRootPart"
+	root.Size = def.size
+	root.Color = def.color
+	root.Material = Enum.Material.SmoothPlastic
+	root.Anchored = true -- AI PivotTo; whole welded assembly moves together
+	root.CanCollide = true
+	root.CFrame = CFrame.new(position)
+	root.Parent = model
+
+	local shaper = SHAPERS[def.shape] or buildGeneric
+	shaper(model, root, def)
+
+	-- Ensure every BasePart except root is unanchored + welded (safety net)
+	for _, d in model:GetDescendants() do
+		if d:IsA("BasePart") and d ~= root then
+			d.Anchored = false
+			d.CanCollide = false
+			d.Massless = true
+			local hasWeld = false
+			for _, c in d:GetChildren() do
+				if c:IsA("WeldConstraint") or c:IsA("Motor6D") then
+					hasWeld = true
+					break
+				end
+			end
+			for _, c in root:GetDescendants() do
+				if (c:IsA("WeldConstraint") or c:IsA("Motor6D")) and (c.Part0 == d or c.Part1 == d) then
+					hasWeld = true
+					break
+				end
+			end
+			if not hasWeld then
+				weld(root, d, "SafetyWeld")
+			end
+		end
+	end
+
+	local hum = Instance.new("Humanoid")
+	hum.MaxHealth = def.hp
+	hum.Health = def.hp
+	hum.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
+	hum.Parent = model
+
+	model.PrimaryPart = root
+	model:SetAttribute("EnemyId", def.id)
+	model:SetAttribute("IsAlly", def.isAlly)
+	model:SetAttribute("IsBoss", def.isBoss)
+	model:SetAttribute("IsMiniboss", def.isMiniboss)
+	model:SetAttribute("Damage", def.damage)
+	model:SetAttribute("Speed", def.speed)
+	model:SetAttribute("Telegraph", def.telegraph)
+	model:SetAttribute("AttackCooldown", def.attackCooldown)
+	model:SetAttribute("Behavior", def.behavior or "chase")
+	model:SetAttribute("Facing", 1)
+	model:SetAttribute("AnimPhase", 0)
+	model:SetAttribute("Shape", def.shape)
+
+	local bb = Instance.new("BillboardGui")
+	bb.Name = "NamePlate"
+	bb.Size = UDim2.fromOffset(160, 36)
+	bb.StudsOffset = Vector3.new(0, def.size.Y * 0.55 + 2, 0)
+	bb.AlwaysOnTop = true
+	bb.Parent = root
+	local nameLbl = Instance.new("TextLabel")
+	nameLbl.Size = UDim2.new(1, 0, 0.55, 0)
+	nameLbl.BackgroundTransparency = 1
+	nameLbl.Text = def.name
+	nameLbl.TextColor3 = if def.isAlly then Color3.fromRGB(120, 255, 180) else Color3.fromRGB(255, 220, 200)
+	nameLbl.TextScaled = true
+	nameLbl.Font = Enum.Font.GothamBold
+	nameLbl.Parent = bb
+	local hpLbl = Instance.new("TextLabel")
+	hpLbl.Name = "HP"
+	hpLbl.Size = UDim2.new(1, 0, 0.45, 0)
+	hpLbl.Position = UDim2.new(0, 0, 0.55, 0)
+	hpLbl.BackgroundTransparency = 1
+	hpLbl.Text = string.format("%d / %d", def.hp, def.hp)
+	hpLbl.TextColor3 = Color3.fromRGB(200, 255, 200)
+	hpLbl.TextScaled = true
+	hpLbl.Font = Enum.Font.Gotham
+	hpLbl.Parent = bb
+
+	return model
+end
+
+function EnemyFactory.Animate(model: Model, dt: number, moving: boolean, attacking: boolean)
+	local phase = (model:GetAttribute("AnimPhase") :: number?) or 0
+	phase += dt * (if moving then 10 else 2)
+	model:SetAttribute("AnimPhase", phase)
+	local shape = model:GetAttribute("Shape")
+
+	if shape == "crab" then
+		for _, d in model:GetDescendants() do
+			if d:IsA("Motor6D") and d.Name == "HipMotor" then
+				local idx = 0
+				local hip = d.Part0
+				if hip then
+					idx = (hip:GetAttribute("LegIndex") :: number?) or 0
+				end
+				local offset = idx * 0.7
+				local swing = if moving then math.sin(phase + offset) * 0.55 else math.sin(phase * 0.3 + offset) * 0.08
+				d.C1 = CFrame.new(0, 0.4, 0) * CFrame.Angles(swing, 0, 0)
+			elseif d:IsA("Motor6D") and d.Name == "KneeMotor" then
+				local bend = if moving then math.sin(phase * 1.2) * 0.35 else 0.1
+				d.C1 = CFrame.new(0, 0.35, 0) * CFrame.Angles(-math.abs(bend), 0, 0)
+			elseif d:IsA("Motor6D") and d.Name == "ClawMotor" then
+				local snap = if attacking then math.sin(phase * 8) * 0.4 else math.sin(phase * 0.5) * 0.08
+				d.C1 = CFrame.new(0, 0, 0.4) * CFrame.Angles(0, snap, 0)
+			elseif d:IsA("Motor6D") and d.Name == "PinchMotor" then
+				local pinch = if attacking then 0.5 + math.sin(phase * 10) * 0.3 else 0.15
+				d.C1 = CFrame.Angles(0, 0, pinch)
+			end
+		end
+		local dust = model.PrimaryPart and model.PrimaryPart:FindFirstChild("WalkDust")
+		if dust then
+			local pe = dust:FindFirstChild("SandDust") :: ParticleEmitter?
+			if pe then
+				pe.Rate = if moving then 18 else 0
+			end
+		end
+	elseif shape == "gator" or shape == "lizard" then
+		for _, d in model:GetDescendants() do
+			if d:IsA("Motor6D") and d.Name == "TailMotor" then
+				d.C1 = CFrame.Angles(0, math.sin(phase) * 0.35, 0)
+			end
+		end
+	elseif shape == "snake" then
+		for _, d in model:GetDescendants() do
+			if d:IsA("Motor6D") and d.Name == "SegMotor" then
+				d.C1 = CFrame.Angles(0, math.sin(phase + d.Part1.Name:len()) * 0.25, 0)
+			end
+		end
+	elseif shape == "humanoid" or shape == "boss" then
+		for _, d in model:GetDescendants() do
+			if d:IsA("Motor6D") and d.Name == "ArmMotor" then
+				local swing = if moving then math.sin(phase) * 0.6 else math.sin(phase * 0.4) * 0.1
+				if attacking then
+					swing = math.sin(phase * 6) * 0.9
+				end
+				d.C1 = CFrame.Angles(swing, 0, 0)
+			end
+		end
+	elseif shape == "slime" then
+		local root = model.PrimaryPart
+		if root and moving then
+			local squash = 1 + math.sin(phase * 2) * 0.08
+			-- visual only via attribute; avoid fighting PivotTo size
+			root:SetAttribute("Squash", squash)
+		end
+	end
+end
+
+function EnemyFactory.HitFlash(model: Model)
+	for _, d in model:GetDescendants() do
+		if d:IsA("BasePart") and d.Name ~= "Telegraph" then
+			local old = d.Color
+			d.Color = Color3.new(1, 1, 1)
+			task.delay(0.07, function()
+				if d.Parent then
+					d.Color = old
+				end
+			end)
+		end
+	end
+end
+
+function EnemyFactory.DeathPoof(pos: Vector3, color: Color3)
+	local puff = Instance.new("Part")
+	puff.Shape = Enum.PartType.Ball
+	puff.Size = Vector3.new(1.5, 1.5, 1.5)
+	puff.Color = color
+	puff.Material = Enum.Material.Neon
+	puff.Anchored = true
+	puff.CanCollide = false
+	puff.CFrame = CFrame.new(pos)
+	puff.Parent = workspace
+	local att = Instance.new("Attachment")
+	att.Parent = puff
+	local pe = Instance.new("ParticleEmitter")
+	pe.Color = ColorSequence.new(color, Color3.new(1, 1, 1))
+	pe.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(1, 0) })
+	pe.Lifetime = NumberRange.new(0.35, 0.6)
+	pe.Speed = NumberRange.new(6, 14)
+	pe.SpreadAngle = Vector2.new(180, 180)
+	pe.Rate = 0
+	pe.Parent = att
+	pe:Emit(28)
+	TweenService:Create(puff, TweenInfo.new(0.4), { Size = Vector3.new(7, 7, 7), Transparency = 1 }):Play()
+	Debris:AddItem(puff, 0.5)
+end
+
+return EnemyFactory
+"""
+(ROOT / "src/server/EnemyFactory.lua").write_text(ef, encoding="utf-8")
+print("EnemyFactory", (ROOT / "src/server/EnemyFactory.lua").stat().st_size)

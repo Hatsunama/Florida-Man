@@ -1,0 +1,21 @@
+{
+  "stages": 21,
+  "attackCycleRows": 896,
+  "legalItemCombinations": 498771,
+  "layoutSupportAssertions": 194,
+  "sourceHashes": {
+    "Constants": "28d68651fb726952a0e3029e34832b8af7c9f40bf2443ce3aa486800d2467c08",
+    "Stages": "aa004f0cd1011068fbb037c8128c91de76df37e5ee278ccb7eb2e1138e2cd486",
+    "Personas": "b6caab3ec39eb485027dd9fff3d12f962ab0f621a622946ea76be6fb7aeb97de",
+    "Enemies": "359d2a10a4940f4245a2b568e6452d5e37019c795c2c8c0538081299dac73c2b",
+    "Items": "20ef4ad069ebd86ee440311bb5d71d7e463c6e947d02d668df628b83977c3123",
+    "Weapons": "c8abd75fee6e4ac4b94a2768ba3fa1497ac1a0ad4c1bd871ff01d913c8a11172",
+    "Balance": "ef6d8e8b7223aa15fa349f72f8183d2cd7660a61f29c632c2847c8197aeccb3d",
+    "ProgressionRules": "7a5b144c983b3a07ad0d298448aa967747a4f0c321c6a83948d5c8f60fdb7fbc",
+    "ProgressionCatalog": "3d5eb9b1d6b0f4ff9dbe4ce8b85cb96a7c001a0cf6f5a7e04851941b54d8a31e",
+    "Movesets": "1d6de3c492a9877e1544a3778050223cf3f1a7f4b1cd32e446c9c54efa31f585",
+    "BuildRules": "7a6fe5afd253d0d977a0947d7c585a18f283bf954f0a8300fc67ad7bc202f33f",
+    "LayoutPlan": "912bd15944d2c70c5c43931067e8f4802a07be4b9a40168a231157c7332dc148"
+  },
+  "engineAcceptance": false
+}

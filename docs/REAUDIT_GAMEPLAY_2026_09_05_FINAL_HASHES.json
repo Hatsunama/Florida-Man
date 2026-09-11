@@ -1,0 +1,94 @@
+[
+  {
+    "path": "src/server/HazardService.lua",
+    "sha256": "E4E3B7B2834146D4CE82F3D2726AC720521182BD48CC1473EFA63058A0B8AA6B"
+  },
+  {
+    "path": "src/shared/HazardRules.lua",
+    "sha256": "CAFC7420F5BE74CB6D3AD56F302BC338550486DE610EF51EE09D8C8DCF2F6D52"
+  },
+  {
+    "path": "src/shared/HazardDefinitions.lua",
+    "sha256": "B8D72D92CB27753D4DF07F1151E3CF280B9883507173D6F11D93BC5F935D0F53"
+  },
+  {
+    "path": "src/server/CharacterStatePublisher.lua",
+    "sha256": "3D2744F4555FBDFD16020A4C1831E56348574F8E3930AE136AE7F71728AB77A2"
+  },
+  {
+    "path": "src/server/EnemyMovementRules.lua",
+    "sha256": "618B2FAB04F57E4373FFFA38D864ACBA068B7773CB33463F37258428553E9091"
+  },
+  {
+    "path": "src/server/EnemyFactory.lua",
+    "sha256": "1D74C85EBA472C875F2B3A3CF959EC57C200ABCBC98CE4A25D0DE4EDDA06C8D8"
+  },
+  {
+    "path": "src/server/EnemyService.lua",
+    "sha256": "580ADEE3545B5429B91BE31305274035BC3B0BD137B58CA9FDCB0C223074B1BA"
+  },
+  {
+    "path": "src/server/CombatService.lua",
+    "sha256": "01302716F35CCF8BE46111EBB181CAE0C0E1BB84E045E4E524A9A3D73770C0DD"
+  },
+  {
+    "path": "src/shared/CombatGeometry.lua",
+    "sha256": "E6F2AFAC40EF4B448474A5412FED5A1805E5A0DBB782809C7745AC1B5ECD4374"
+  },
+  {
+    "path": "src/shared/CharacterGeometry.lua",
+    "sha256": "DCD9A31825ED9D1A04D5EA6F635C7498C4764B7DEC585D9D14BABC52997BCE15"
+  },
+  {
+    "path": "src/server/SkillService.lua",
+    "sha256": "0D59CA02E07CC251C4FB51FCB6379F20B756EE43A235DC6ED93912687D8FEB9F"
+  },
+  {
+    "path": "src/server/AttackService.lua",
+    "sha256": "C23984C895B4198C1AD0A49A3963C846912A41AEA8065429E9D8DD35635F8370"
+  },
+  {
+    "path": "src/server/TutorialService.lua",
+    "sha256": "33C41B2C27ECB2A6FB9BD2195C8916F57FDC38AA15C9D06E0D31DE024D55A928"
+  },
+  {
+    "path": "src/shared/ProgressionRules.lua",
+    "sha256": "AEE61AFFB37B9478CEA97B9B5A6E1EB77A0F1239BD070EB29BABBAFAAEAF5AF6"
+  },
+  {
+    "path": "src/server/StageFlowService.lua",
+    "sha256": "11F392BBF7642B071AF9475C8B88EBAB3663421A912D465E993D112175809C7D"
+  },
+  {
+    "path": "src/shared/LayoutPlan.lua",
+    "sha256": "77810989FF5757E19BEF8A0AC6903761B814D5B5341BEB1C87E0C4FB9AF62455"
+  },
+  {
+    "path": "src/server/WorldBuilder.lua",
+    "sha256": "EEC448829AE22E4B8A7C84FE92DC3C3BBCD9CA6D6B2F416AC365727D175C6918"
+  },
+  {
+    "path": "src/shared/Stages.lua",
+    "sha256": "6014C2A2C84172055FD1124BC9ED2A5EAB77D6A3CDE5D7992E9A9B1D5F4A7BA7"
+  },
+  {
+    "path": "src/shared/Items.lua",
+    "sha256": "D708A8675446FDDBFB7D2D6A068C5BBA1BAA0EB6745D3C8A897CE2653C31BE2D"
+  },
+  {
+    "path": "src/shared/Story.lua",
+    "sha256": "3A0C1452D1F81E5E017CD4E1CE10C27032634BDEED584DBF8FE2B5E36999EA63"
+  },
+  {
+    "path": "src/shared/Balance.lua",
+    "sha256": "D6FF33A60C4B896485DB28E699CBDBBB8A44F164EB09660301EEC171DD668D31"
+  },
+  {
+    "path": "src/shared/Constants.lua",
+    "sha256": "17628A4A174BB3C77587893056BC3C9096DD3F11105FD8937F5ABCE65CAB3B7D"
+  },
+  {
+    "path": "src/server/RunContext.lua",
+    "sha256": "5014419ECBF53063CDE0EE7D98DFFA25905DEA3915CE505F8A22E0D32C986AD0"
+  }
+]

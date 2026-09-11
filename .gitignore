@@ -24,4 +24,7 @@ node_modules/
 
 # local codegen scratch
 _gen/
+artifacts/
+.validation.lock
+__pycache__/
 

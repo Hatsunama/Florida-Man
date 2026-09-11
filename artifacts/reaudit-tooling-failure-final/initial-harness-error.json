@@ -1,0 +1,30 @@
+{
+  "passed": false,
+  "cases": [
+    {
+      "case": "validator-missing-tools",
+      "passed": true,
+      "exitCode": 1,
+      "staleSuccessInvalidated": true,
+      "lockRemoved": true,
+      "output": "Validation FAIL: FileNotFoundError: [WinError 2] The system cannot find the file specified\n"
+    },
+    {
+      "case": "qa-missing-baseline",
+      "passed": false,
+      "exitCode": 2,
+      "staleSuccessInvalidated": false,
+      "lockRemoved": true,
+      "output": "usage: build_studio_audit.py [-h] --tools-dir TOOLS_DIR [--output OUTPUT]\n                             [--validation-report VALIDATION_REPORT]\nbuild_studio_audit.py: error: the following arguments are required: --tools-dir\n"
+    },
+    {
+      "case": "qa-refuses-baseline-output-alias",
+      "passed": true,
+      "exitCode": 2,
+      "baselineUnchanged": true,
+      "baselineSha256": "1018927768bdc234e186c2db3c4a2d4863f32abe1c499fe9e125605045a239ba",
+      "output": "usage: build_studio_audit.py [-h] --tools-dir TOOLS_DIR [--output OUTPUT]\n                             [--validation-report VALIDATION_REPORT]\nbuild_studio_audit.py: error: the following arguments are required: --tools-dir\n"
+    }
+  ],
+  "note": "Initial harness invocation error: QA commands omitted required --tools-dir. Neither QA case establishes its intended behavior; alias case was a false-positive harness assertion. Corrected checks.json supersedes this attempt."
+}

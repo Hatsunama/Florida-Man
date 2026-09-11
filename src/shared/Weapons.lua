@@ -15,6 +15,7 @@ export type WeaponDef = {
 	rarity: string,
 	flavor: string,
 	vfx: string,
+	secondaryEffect: string?,
 }
 
 local list: { WeaponDef } = {
@@ -29,7 +30,7 @@ local list: { WeaponDef } = {
 	{ id="PoolNoodle", name="Pool Noodle", description="Soft. Humiliating. Effective.", kind="melee", damage=9, range=14, speed=1.3, knockback=12, rarity="Common", flavor="Bonk of shame.", vfx="bonk" },
 	{ id="CoolerLid", name="Cooler Lid", description="Shield bash with Florida Dew stains.", kind="melee", damage=11, range=8, speed=1.1, knockback=15, rarity="Common", flavor="Bash then sip vibes.", vfx="bash" },
 	{ id="BeachUmbrella", name="Beach Umbrella", description="Pointy end optional. Wind optional.", kind="melee", damage=14, range=13, speed=0.88, knockback=11, rarity="Rare", flavor="Sun-blocking spear.", vfx="thrust" },
-	{ id="FireExtinguisher", name="Fire Extinguisher", description="Foam cone vs fire lizards.", kind="ranged", damage=12, range=18, speed=1.0, knockback=9, rarity="Rare", flavor="Corporate safety theater.", vfx="foam" },
+	{ id="FireExtinguisher", name="Fire Extinguisher", description="Foam cone vs fire lizards.", kind="ranged", damage=12, range=18, speed=1.0, knockback=9, rarity="Rare", flavor="Corporate safety theater.", secondaryEffect="foamFire", vfx="foam" },
 	{ id="TrafficCone", name="Traffic Cone", description="Wearable. Throwable. Iconic.", kind="thrown", damage=13, range=16, speed=1.05, knockback=10, rarity="Common", flavor="Cone of silence.", vfx="cone" },
 	{ id="KayakPaddle", name="Kayak Paddle", description="Double-sided swamp oar.", kind="melee", damage=15, range=12, speed=1.0, knockback=12, rarity="Common", flavor="Row your beef.", vfx="paddle" },
 	{ id="BugZapper", name="Bug Zapper", description="ZZZT. Good on flies and HOA vibes.", kind="melee", damage=17, range=9, speed=0.95, knockback=5, rarity="Rare", flavor="Electric slap.", vfx="zap" },
@@ -41,7 +42,7 @@ local list: { WeaponDef } = {
 	{ id="Skateboard", name="Skateboard", description="Kickflip into combat somehow.", kind="melee", damage=13, range=10, speed=1.2, knockback=13, rarity="Rare", flavor="Grind the lane.", vfx="board" },
 	{ id="FishSmack", name="Frozen Fish", description="Thaws mid-combo. Still hits.", kind="melee", damage=15, range=9, speed=1.0, knockback=11, rarity="Common", flavor="Slapstick seafood.", vfx="fish" },
 	{ id="NewspaperRoll", name="Rolled Newspaper", description="BREAKING: you got bonked.", kind="melee", damage=10, range=8, speed=1.25, knockback=6, rarity="Common", flavor="Headline swat.", vfx="paper" },
-	{ id="NetGun", name="Turtle-Safe Net", description="Catches grunts, frees turtles.", kind="ranged", damage=8, range=20, speed=0.9, knockback=2, rarity="Unique", flavor="Rescue tech.", vfx="net" },
+	{ id="NetGun", name="Turtle-Safe Net", description="Roots and interrupts grunts. Safe around turtles.", kind="ranged", damage=8, range=20, speed=0.9, knockback=2, rarity="Unique", flavor="Rescue tech.", secondaryEffect="netRoot", vfx="net" },
 	{ id="SludgeHose", name="Sludge Hose", description="Turned GulfGulp's hose against them.", kind="ranged", damage=16, range=22, speed=0.85, knockback=7, rarity="Unique", flavor="Irony stream.", vfx="hose" },
 	{ id="FinaleRocket", name="Finale Rocket", description="One big cartoon boom.", kind="thrown", damage=28, range=30, speed=0.65, knockback=18, rarity="Legendary", flavor="Credits tease.", vfx="rocket" },
 	{ id="HOAClipboard", name="HOA Clipboard", description="Paper cuts + citations.", kind="melee", damage=12, range=8, speed=1.15, knockback=4, rarity="Rare", flavor="Weaponized paperwork.", vfx="clip" },

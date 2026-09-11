@@ -1,0 +1,96 @@
+{
+  "completeness": "partial",
+  "deferred": [
+    {
+      "candidate": {
+        "evidence": "Source flow reported by architecture auditor; not yet classified as validated security finding.",
+        "locations": [
+          {
+            "endLine": 275,
+            "path": "src/server/GameService.lua",
+            "startLine": 252
+          }
+        ],
+        "title": "SyncSettings can force unthrottled DataStore writes"
+      },
+      "candidateId": "settings_budget",
+      "id": "settings_budget",
+      "reason": "Returned architecture evidence pending parent validation and independent review."
+    }
+  ],
+  "documentType": "codex-security.coverage",
+  "excludePaths": [],
+  "explicitExclusions": [],
+  "includePaths": [
+    "."
+  ],
+  "inventoryStrategy": "repository",
+  "mode": "repository",
+  "openQuestions": [
+    {
+      "question": "Verify published MaxPlayers/admission before assigning cross-player deployment exposure."
+    },
+    {
+      "question": "Reproduce motion/remote scenarios after resolving the independent HazardService parse blocker."
+    },
+    {
+      "question": "Formal security baseline fully reviewed 21 Lua files plus default.project.json; other source was reviewed for product behavior/architecture, not all through an independent security pass. This formal security coverage is partial; the product audit inventories all48 source files."
+    },
+    {
+      "question": "Published storage budgets, asset permissions, telemetry and live DataStore behavior remain unverified."
+    }
+  ],
+  "scanId": "a007184d-8d78-47b9-a857-2ab55d5827af",
+  "schemaVersion": "1.0",
+  "surfaces": [
+    {
+      "disposition": "reported",
+      "id": "draft_surface",
+      "label": "Draft offer authorization",
+      "notes": "Source-validated offer membership failure; per-player type/phase/cap/once controls remain.",
+      "receiptRefs": []
+    },
+    {
+      "disposition": "reported",
+      "id": "session_surface",
+      "label": "Session world ownership",
+      "notes": "Unscoped per-player lifecycle reaches singleton clear; multiple admitted players is an explicit prerequisite.",
+      "receiptRefs": []
+    },
+    {
+      "disposition": "reported",
+      "id": "physics_surface",
+      "label": "Client position to authoritative combat",
+      "notes": "Vertical melee/AI activation asymmetry is source-established; physics replication remains runtime-unverified.",
+      "receiptRefs": []
+    },
+    {
+      "disposition": "needs_follow_up",
+      "id": "settings_surface",
+      "label": "Settings persistence budget",
+      "notes": "No-op valid settings cause provider writes, but per-player saving serialization and Roblox throttling are counterevidence to claimed global starvation. Product F11 reports the concrete debt.",
+      "receiptRefs": []
+    },
+    {
+      "disposition": "no_issue_found",
+      "id": "identity_surface",
+      "label": "Player identity and server defense state",
+      "notes": "Remote Player identity is engine-supplied; profile keys derive from UserId. Damage, i-frames and shields are server-owned. EquipWeapon checks ownership/catalog; local-attribute godmode claim is not established.",
+      "receiptRefs": []
+    },
+    {
+      "disposition": "not_applicable",
+      "id": "external_surface",
+      "label": "Custom authentication, paid entitlements and AI control",
+      "notes": "No custom login/OAuth, payment receipt, HTTP provider routing, AI memory, agent tool or control-policy subsystem found. Existing game entitlements are not paid platform entitlements.",
+      "receiptRefs": []
+    },
+    {
+      "disposition": "needs_follow_up",
+      "id": "persistence_surface",
+      "label": "Profile durability",
+      "notes": "Failed-read overwrite, lost dirty revisions and missing shutdown/lease are confirmed product reliability findings; attacker control of provider failures is not assumed.",
+      "receiptRefs": []
+    }
+  ]
+}

@@ -1,162 +1,76 @@
 --!strict
---[[ Side-scroll camera with deadzone + spring dampening + screen shake. ]]
-
-local RunService = game:GetService("RunService")
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Constants = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Constants"))
-local Settings = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Settings"))
-
-local CameraController = {}
-
-local camPos = Vector3.zero
-local camVel = Vector3.zero
-local lookPos = Vector3.zero
-local lookVel = Vector3.zero
-local shakeAmp = 0
-local shakeUntil = 0
-local focusUntil = 0
-local focusTarget: Vector3? = nil
-local focusBiasX = 6
-local deadzoneX = 3.5
-local followBiasX = 6
-local height = 9
-local depth = Constants.CAMERA_DEPTH or 32
-local STIFFNESS = 48
-local DAMPING = 15
-
-local function spring(current: Vector3, target: Vector3, vel: Vector3, dt: number): (Vector3, Vector3)
-	local force = (target - current) * STIFFNESS
-	local damp = vel * DAMPING
-	local acc = force - damp
-	vel = vel + acc * dt
-	current = current + vel * dt
-	return current, vel
+local RunService=game:GetService("RunService")
+local Players=game:GetService("Players")
+local Shared=game:GetService("ReplicatedStorage"):WaitForChild("Shared")
+local Constants=require(Shared:WaitForChild("Constants"))
+local Settings=require(Shared:WaitForChild("Settings"))
+local Camera={}
+local focus: Vector3?=nil
+local focusUntil=0
+local arena: Vector3?=nil
+local center: Vector3?=nil
+local shake=0
+local shakeUntil=0
+local started=false
+local stageLength=240
+local previousRoot: Vector3?=nil
+local motionRevision: any=nil
+local function spring(current: number,target: number,dt: number): number
+	return target+(current-target)*math.exp(-9*math.clamp(dt,0,0.25))
 end
-
-function CameraController.Shake(amount: number, duration: number?)
-	local player = Players.LocalPlayer
-	if Settings.IsReduceMotion(player) then
-		return
-	end
-	local enabled = player:GetAttribute("ShakeEnabled")
-	if enabled == false then
-		return
-	end
-	shakeAmp = math.max(shakeAmp, amount)
-	shakeUntil = os.clock() + (duration or 0.2)
+function Camera.Reset(length: number?)
+	center=nil; arena=nil; focus=nil; focusUntil=0; shake=0; shakeUntil=0; previousRoot=nil
+	if typeof(length)=="number" then stageLength=length end
 end
-
-local arenaLockPos: Vector3? = nil
-local arenaLocked = false
-
---- Brief framing nudge toward a world point (MidGate / miniboss). ≤0.4s Scriptable cut feel.
-function CameraController.Focus(worldPos: Vector3, duration: number?)
-	focusTarget = worldPos
-	focusUntil = os.clock() + math.clamp(duration or 0.35, 0.15, 0.45)
-	CameraController.Shake(0.25, 0.12)
+function Camera.Shake(amount: number,duration: number?)
+	if Settings.IsReduceMotion(Players.LocalPlayer) or not Settings.GetBool(Players.LocalPlayer,"ShakeEnabled") then return end
+	shake=math.max(shake,math.clamp(amount,0,0.75))
+	shakeUntil=os.clock()+(duration or 0.15)
 end
-
---- MidGate room: pin camera bias to arena while wave is active
-function CameraController.LockArena(worldPos: Vector3)
-	arenaLockPos = worldPos
-	arenaLocked = true
-	CameraController.Focus(worldPos, 0.42)
-	CameraController.Shake(0.35, 0.16)
+function Camera.Focus(position: Vector3,duration: number?)
+	if Settings.IsReduceMotion(Players.LocalPlayer) then return end
+	focus=position; focusUntil=os.clock()+math.clamp(duration or 0.35,0.1,0.45)
 end
-
-function CameraController.UnlockArena(worldPos: Vector3?)
-	arenaLocked = false
-	arenaLockPos = nil
-	if worldPos then
-		CameraController.Focus(worldPos, 0.42)
-	end
-	CameraController.Shake(0.3, 0.14)
-end
-
-function CameraController.Start()
-	local player = Players.LocalPlayer
-	local cam = workspace.CurrentCamera
-	cam.CameraType = Enum.CameraType.Scriptable
-	player.CameraMode = Enum.CameraMode.Classic
-	player.DevEnableMouseLock = false
-
-	-- init from character if present
-	task.defer(function()
-		local char = player.Character or player.CharacterAdded:Wait()
-		local hrp = char:WaitForChild("HumanoidRootPart", 5) :: BasePart?
-		if hrp then
-			camPos = Vector3.new(hrp.Position.X + followBiasX, hrp.Position.Y + height, Constants.LANE_Z + depth)
-			lookPos = Vector3.new(hrp.Position.X + 8, hrp.Position.Y + 2, Constants.LANE_Z)
+function Camera.LockArena(position: Vector3) arena=position end
+function Camera.UnlockArena(position: Vector3?) arena=nil; if position then Camera.Focus(position) end end
+function Camera.Start()
+	if started then return end
+	started=true
+	Players.LocalPlayer.CharacterAdded:Connect(function() Camera.Reset() end)
+	RunService:BindToRenderStep("FM_Camera",Enum.RenderPriority.Camera.Value+1,function(dt)
+		local camera=workspace.CurrentCamera
+		local char=Players.LocalPlayer.Character
+		local root=char and char:FindFirstChild("HumanoidRootPart")
+		if not camera or not char or not root or not root:IsA("BasePart") then return end
+		camera.CameraType=Enum.CameraType.Scriptable
+		local pos=root.Position
+		local reset=char:GetAttribute("MotionResetRevision")
+		if reset~=motionRevision then center=nil; arena=nil; focus=nil; motionRevision=reset end
+		if previousRoot and (pos-previousRoot).Magnitude>45 then center=nil; arena=nil; focus=nil end
+		previousRoot=pos
+		if not center then center=pos end
+		local target=pos
+		if arena and not Settings.IsReduceMotion(Players.LocalPlayer) then
+			target=Vector3.new(math.clamp(arena.X,pos.X-7,pos.X+7),pos.Y,pos.Z)
 		end
-	end)
-
-	RunService.RenderStepped:Connect(function(dt)
-		cam = workspace.CurrentCamera
-		if not cam then
-			return
+		if focus and os.clock()<focusUntil then target=target:Lerp(Vector3.new(math.clamp(focus.X,pos.X-8,pos.X+8),pos.Y,pos.Z),0.25) end
+		local c=center :: Vector3
+		local delta=target.X-c.X
+		local tx=if math.abs(delta)>2.5 then target.X-math.sign(delta)*2.5 else c.X
+		local x=spring(c.X,tx,dt)
+		local y=spring(c.Y,target.Y,dt)
+		-- Bounded lag and translation-invariant relative deadzone.
+		x=math.clamp(x,pos.X-6,pos.X+6)
+		center=Vector3.new(x,y,Constants.LANE_Z)
+		local look=Vector3.new(math.clamp(x+5,-2,stageLength+8),y+2,Constants.LANE_Z)
+		local offset=Vector3.zero
+		if os.clock()<shakeUntil and not Settings.IsReduceMotion(Players.LocalPlayer) then
+			offset=Vector3.new(math.noise(os.clock()*32,1),math.noise(os.clock()*32,2),0)*shake
+			shake*=math.exp(-10*math.clamp(dt,0,0.25))
 		end
-		cam.CameraType = Enum.CameraType.Scriptable
-		local char = player.Character
-		local hrp = char and char:FindFirstChild("HumanoidRootPart") :: BasePart?
-		if not hrp then
-			return
-		end
-
-		local focusX = hrp.Position.X
-		local focusY = hrp.Position.Y
-		if arenaLocked and arenaLockPos then
-			-- Soft lock: blend player with arena center so room reads as an arena
-			focusX = focusX * 0.35 + arenaLockPos.X * 0.65
-			focusY = focusY * 0.5 + (arenaLockPos.Y + 2) * 0.5
-		end
-		if focusTarget and os.clock() < focusUntil then
-			local alpha = math.clamp((focusUntil - os.clock()) / 0.35, 0, 1)
-			-- ease toward event then back (alpha high at start of window remaining? use elapsed blend)
-			local elapsed = 1 - alpha
-			local blend = if elapsed < 0.45 then elapsed / 0.45 else alpha / 0.55
-			blend = math.clamp(blend, 0, 0.85)
-			focusX = focusX * (1 - blend) + focusTarget.X * blend
-			focusY = focusY * (1 - blend) + (focusTarget.Y + 2) * blend
-		else
-			focusTarget = nil
-		end
-		-- deadzone on X relative to look
-		local dx = focusX - (lookPos.X - 8)
-		if math.abs(dx) > deadzoneX then
-			focusX = lookPos.X - 8 + math.sign(dx) * (math.abs(dx) - deadzoneX) * 0.15 + focusX * 0.85
-		end
-
-		local land = char and char:GetAttribute("LandSquash")
-		local landBump = 0
-		if not Settings.IsReduceMotion(Players.LocalPlayer)
-			and typeof(land) == "number"
-			and os.clock() - land < 0.15
-		then
-			landBump = -0.8
-		end
-
-		local targetCam = Vector3.new(focusX + followBiasX, focusY + height + landBump, Constants.LANE_Z + depth)
-		local targetLook = Vector3.new(focusX + 8, focusY + 2, Constants.LANE_Z)
-
-		camPos, camVel = spring(camPos, targetCam, camVel, dt)
-		lookPos, lookVel = spring(lookPos, targetLook, lookVel, dt)
-
-		local shake = Vector3.zero
-		if os.clock() < shakeUntil and shakeAmp > 0 then
-			shake = Vector3.new(
-				(math.noise(os.clock() * 40, 1) - 0.5) * 2 * shakeAmp,
-				(math.noise(os.clock() * 40, 2) - 0.5) * 2 * shakeAmp,
-				0
-			)
-			shakeAmp = shakeAmp * (1 - dt * 8)
-		else
-			shakeAmp = 0
-		end
-
-		cam.CFrame = CFrame.new(camPos + shake, lookPos + shake * 0.3)
-		cam.FieldOfView = 65
+		camera.CFrame=CFrame.new(look+Vector3.new(-2,7,Constants.CAMERA_DEPTH or 32)+offset,look+offset)
+		camera.FieldOfView=65
 	end)
 end
-
-return CameraController
+Camera.StepScalar=spring
+return Camera

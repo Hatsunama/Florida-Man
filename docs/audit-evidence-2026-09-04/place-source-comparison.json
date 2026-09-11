@@ -1,0 +1,242 @@
+[
+  {
+    "name": "ArtAssets",
+    "source_key": "ArtAssets",
+    "matches_source": true
+  },
+  {
+    "name": "AudioCatalog",
+    "source_key": "AudioCatalog",
+    "matches_source": true
+  },
+  {
+    "name": "Balance",
+    "source_key": "Balance",
+    "matches_source": true
+  },
+  {
+    "name": "Constants",
+    "source_key": "Constants",
+    "matches_source": true
+  },
+  {
+    "name": "Enemies",
+    "source_key": "Enemies",
+    "matches_source": true
+  },
+  {
+    "name": "Items",
+    "source_key": "Items",
+    "matches_source": true
+  },
+  {
+    "name": "Personas",
+    "source_key": "Personas",
+    "matches_source": true
+  },
+  {
+    "name": "Remotes",
+    "source_key": "Remotes",
+    "matches_source": true
+  },
+  {
+    "name": "Settings",
+    "source_key": "Settings",
+    "matches_source": true
+  },
+  {
+    "name": "Stages",
+    "source_key": "Stages",
+    "matches_source": true
+  },
+  {
+    "name": "Story",
+    "source_key": "Story",
+    "matches_source": true
+  },
+  {
+    "name": "Types",
+    "source_key": "Types",
+    "matches_source": true
+  },
+  {
+    "name": "Util",
+    "source_key": "Util",
+    "matches_source": true
+  },
+  {
+    "name": "Weapons",
+    "source_key": "Weapons",
+    "matches_source": true
+  },
+  {
+    "name": "Server",
+    "source_key": "init.server",
+    "matches_source": true
+  },
+  {
+    "name": "AttackService",
+    "source_key": "AttackService",
+    "matches_source": true
+  },
+  {
+    "name": "CombatFacade",
+    "source_key": "CombatFacade",
+    "matches_source": true
+  },
+  {
+    "name": "CombatService",
+    "source_key": "CombatService",
+    "matches_source": true
+  },
+  {
+    "name": "DraftService",
+    "source_key": "DraftService",
+    "matches_source": true
+  },
+  {
+    "name": "EnemyFactory",
+    "source_key": "EnemyFactory",
+    "matches_source": true
+  },
+  {
+    "name": "EnemyService",
+    "source_key": "EnemyService",
+    "matches_source": true
+  },
+  {
+    "name": "FunnelService",
+    "source_key": "FunnelService",
+    "matches_source": true
+  },
+  {
+    "name": "GameService",
+    "source_key": "GameService",
+    "matches_source": true
+  },
+  {
+    "name": "HazardService",
+    "source_key": "HazardService",
+    "matches_source": true
+  },
+  {
+    "name": "HubService",
+    "source_key": "HubService",
+    "matches_source": true
+  },
+  {
+    "name": "MetaService",
+    "source_key": "MetaService",
+    "matches_source": true
+  },
+  {
+    "name": "RunContext",
+    "source_key": "RunContext",
+    "matches_source": true
+  },
+  {
+    "name": "SkillService",
+    "source_key": "SkillService",
+    "matches_source": true
+  },
+  {
+    "name": "StageFlowService",
+    "source_key": "StageFlowService",
+    "matches_source": true
+  },
+  {
+    "name": "SwapService",
+    "source_key": "SwapService",
+    "matches_source": true
+  },
+  {
+    "name": "TutorialService",
+    "source_key": "TutorialService",
+    "matches_source": true
+  },
+  {
+    "name": "WorldBuilder",
+    "source_key": "WorldBuilder",
+    "matches_source": true
+  },
+  {
+    "name": "Client",
+    "source_key": "init.client",
+    "matches_source": true
+  },
+  {
+    "name": "AnimController",
+    "source_key": "AnimController",
+    "matches_source": true
+  },
+  {
+    "name": "AudioDirector",
+    "source_key": "AudioDirector",
+    "matches_source": true
+  },
+  {
+    "name": "CameraController",
+    "source_key": "CameraController",
+    "matches_source": true
+  },
+  {
+    "name": "InputController",
+    "source_key": "InputController",
+    "matches_source": true
+  },
+  {
+    "name": "MovementController",
+    "source_key": "MovementController",
+    "matches_source": true
+  },
+  {
+    "name": "TutorialController",
+    "source_key": "TutorialController",
+    "matches_source": true
+  },
+  {
+    "name": "VFX",
+    "source_key": "VFX",
+    "matches_source": true
+  },
+  {
+    "name": "CaptainSteveUI",
+    "source_key": "CaptainSteveUI",
+    "matches_source": true
+  },
+  {
+    "name": "Credits",
+    "source_key": "Credits",
+    "matches_source": true
+  },
+  {
+    "name": "HUD",
+    "source_key": "HUD",
+    "matches_source": true
+  },
+  {
+    "name": "ItemDraft",
+    "source_key": "ItemDraft",
+    "matches_source": true
+  },
+  {
+    "name": "LoadingGui",
+    "source_key": "LoadingGui",
+    "matches_source": true
+  },
+  {
+    "name": "MobileControls",
+    "source_key": "MobileControls",
+    "matches_source": true
+  },
+  {
+    "name": "Newspaper",
+    "source_key": "Newspaper",
+    "matches_source": true
+  },
+  {
+    "name": "Tagline",
+    "source_key": "Tagline",
+    "matches_source": true
+  }
+]

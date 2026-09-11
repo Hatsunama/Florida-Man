@@ -1,0 +1,4497 @@
+{
+  "layoutSupportAssertions": 194,
+  "movesets": {
+    "SnakeCharmer": [
+      {
+        "cancelAfter": 0.07,
+        "label": "flick",
+        "recovery": 0.14,
+        "rangeMul": 1.05,
+        "dmgMul": 0.9,
+        "knockMul": 0.85
+      },
+      {
+        "cancelAfter": 0.08,
+        "label": "coil",
+        "recovery": 0.16,
+        "rangeMul": 1.12,
+        "dmgMul": 1,
+        "knockMul": 0.95
+      },
+      {
+        "cancelAfter": 0.11,
+        "label": "strike",
+        "recovery": 0.22,
+        "rangeMul": 1.28,
+        "dmgMul": 1.28,
+        "knockMul": 1.15
+      }
+    ],
+    "GatorHauler": [
+      {
+        "cancelAfter": 0.12,
+        "label": "clamp",
+        "recovery": 0.24,
+        "rangeMul": 0.95,
+        "dmgMul": 1.15,
+        "knockMul": 1.3
+      },
+      {
+        "cancelAfter": 0.13,
+        "label": "drag",
+        "recovery": 0.26,
+        "rangeMul": 1.05,
+        "dmgMul": 1.22,
+        "knockMul": 1.45
+      },
+      {
+        "cancelAfter": 0.18,
+        "label": "slam",
+        "recovery": 0.36,
+        "rangeMul": 1.2,
+        "dmgMul": 1.5,
+        "knockMul": 1.9
+      }
+    ],
+    "BeachBurnout": [
+      {
+        "cancelAfter": 0.08,
+        "label": "jab",
+        "recovery": 0.16,
+        "rangeMul": 1,
+        "dmgMul": 0.95,
+        "knockMul": 0.95
+      },
+      {
+        "cancelAfter": 0.09,
+        "label": "cross",
+        "recovery": 0.18,
+        "rangeMul": 1.08,
+        "dmgMul": 1.05,
+        "knockMul": 1.05
+      },
+      {
+        "cancelAfter": 0.13,
+        "label": "shuffle",
+        "recovery": 0.26,
+        "rangeMul": 1.22,
+        "dmgMul": 1.38,
+        "knockMul": 1.35
+      }
+    ],
+    "GolfCartBandit": [
+      {
+        "cancelAfter": 0.06,
+        "label": "tap",
+        "recovery": 0.12,
+        "rangeMul": 0.95,
+        "dmgMul": 0.88,
+        "knockMul": 1.1
+      },
+      {
+        "cancelAfter": 0.07,
+        "label": "scrape",
+        "recovery": 0.14,
+        "rangeMul": 1,
+        "dmgMul": 0.95,
+        "knockMul": 1.2
+      },
+      {
+        "cancelAfter": 0.1,
+        "label": "bumper",
+        "recovery": 0.2,
+        "rangeMul": 1.15,
+        "dmgMul": 1.25,
+        "knockMul": 1.55
+      }
+    ],
+    "CrabKing": [
+      {
+        "cancelAfter": 0.11,
+        "label": "pinch",
+        "recovery": 0.22,
+        "rangeMul": 0.92,
+        "dmgMul": 1.12,
+        "knockMul": 1.25
+      },
+      {
+        "cancelAfter": 0.12,
+        "label": "sideways",
+        "recovery": 0.24,
+        "rangeMul": 1,
+        "dmgMul": 1.18,
+        "knockMul": 1.4
+      },
+      {
+        "cancelAfter": 0.17,
+        "label": "royal",
+        "recovery": 0.34,
+        "rangeMul": 1.18,
+        "dmgMul": 1.55,
+        "knockMul": 1.85
+      }
+    ],
+    "FireworksEnthusiast": [
+      {
+        "cancelAfter": 0.09,
+        "label": "spark",
+        "recovery": 0.18,
+        "rangeMul": 1,
+        "dmgMul": 1,
+        "knockMul": 0.9
+      },
+      {
+        "cancelAfter": 0.1,
+        "label": "roman",
+        "recovery": 0.2,
+        "rangeMul": 1.1,
+        "dmgMul": 1.1,
+        "knockMul": 1
+      },
+      {
+        "cancelAfter": 0.15,
+        "label": "finale",
+        "recovery": 0.3,
+        "rangeMul": 1.25,
+        "dmgMul": 1.42,
+        "knockMul": 1.4
+      }
+    ],
+    "TurtlePaladin": [
+      {
+        "cancelAfter": 0.1,
+        "label": "shell",
+        "recovery": 0.2,
+        "rangeMul": 0.95,
+        "dmgMul": 1.05,
+        "knockMul": 1.15
+      },
+      {
+        "cancelAfter": 0.11,
+        "label": "smite",
+        "recovery": 0.22,
+        "rangeMul": 1,
+        "dmgMul": 1.12,
+        "knockMul": 1.25
+      },
+      {
+        "cancelAfter": 0.15,
+        "label": "sanctuary",
+        "recovery": 0.3,
+        "rangeMul": 1.15,
+        "dmgMul": 1.4,
+        "knockMul": 1.5
+      }
+    ],
+    "LizardBreath": [
+      {
+        "cancelAfter": 0.1,
+        "label": "hiss",
+        "recovery": 0.2,
+        "rangeMul": 1.05,
+        "dmgMul": 1.08,
+        "knockMul": 1
+      },
+      {
+        "cancelAfter": 0.11,
+        "label": "exhale",
+        "recovery": 0.22,
+        "rangeMul": 1.12,
+        "dmgMul": 1.15,
+        "knockMul": 1.1
+      },
+      {
+        "cancelAfter": 0.16,
+        "label": "burn",
+        "recovery": 0.32,
+        "rangeMul": 1.3,
+        "dmgMul": 1.45,
+        "knockMul": 1.35
+      }
+    ]
+  },
+  "rarity": {
+    "Legendary": 0.5,
+    "Unique": 0.3,
+    "Rare": 0.15,
+    "Common": 0
+  },
+  "damageScale": 0.075,
+  "layouts": {
+    "OilPlatformApproach": [
+      {
+        "first": -10,
+        "gap": false,
+        "last": 300
+      }
+    ],
+    "DaytonaHangover": [
+      {
+        "first": -10,
+        "gap": false,
+        "last": 220
+      }
+    ],
+    "SwampShift": [
+      {
+        "first": -10,
+        "gap": false,
+        "last": 300
+      }
+    ],
+    "HelipadHysteria": [
+      {
+        "first": -10,
+        "gap": false,
+        "last": 270
+      }
+    ],
+    "GulfGulpGate": [
+      {
+        "first": -10,
+        "gap": false,
+        "last": 290
+      }
+    ],
+    "SludgeBayou": [
+      {
+        "first": -10,
+        "gap": false,
+        "last": 280
+      }
+    ],
+    "DriveThruDisaster": [
+      {
+        "first": -10,
+        "gap": false,
+        "last": 260
+      }
+    ],
+    "Hub": [
+      {
+        "first": -10,
+        "gap": false,
+        "last": 90
+      }
+    ],
+    "TurtleBeach": [
+      {
+        "first": -10,
+        "gap": false,
+        "last": 280
+      }
+    ],
+    "ConspiracyShack": [
+      {
+        "first": -10,
+        "gap": false,
+        "last": 270
+      }
+    ],
+    "LabWing": [
+      {
+        "first": -10,
+        "gap": false,
+        "last": 290
+      }
+    ],
+    "GasStationLegends": [
+      {
+        "first": -10,
+        "gap": false,
+        "last": 250
+      }
+    ],
+    "NestGuard": [
+      {
+        "first": -10,
+        "gap": false,
+        "last": 270
+      }
+    ],
+    "LoadingDock": [
+      {
+        "first": -10,
+        "gap": false,
+        "last": 280
+      }
+    ],
+    "CypressCathedral": [
+      {
+        "first": -10,
+        "gap": false,
+        "last": 280
+      }
+    ],
+    "PipeGauntlet": [
+      {
+        "first": -10,
+        "gap": false,
+        "last": 300
+      }
+    ],
+    "BoardwalkChaos": [
+      {
+        "first": -10,
+        "gap": false,
+        "last": 240
+      }
+    ],
+    "GulfGulpRig": [
+      {
+        "first": -10,
+        "gap": false,
+        "last": 340
+      }
+    ],
+    "BargeCrossing": [
+      {
+        "first": -10,
+        "gap": false,
+        "last": 72
+      },
+      {
+        "first": 72,
+        "gap": true,
+        "last": 78
+      },
+      {
+        "first": 78,
+        "gap": false,
+        "last": 290
+      }
+    ],
+    "CanalRun": [
+      {
+        "first": -10,
+        "gap": false,
+        "last": 67
+      },
+      {
+        "first": 67,
+        "gap": true,
+        "last": 73
+      },
+      {
+        "first": 73,
+        "gap": false,
+        "last": 270
+      }
+    ],
+    "StripMallShowdown": [
+      {
+        "first": -10,
+        "gap": false,
+        "last": 250
+      }
+    ]
+  },
+  "sets": {
+    "HUMID": {
+      "hpBonus": 8,
+      "text": "+5% dodge CDR / +8 HP",
+      "name": "Swamp Sweat",
+      "dodgeBonus": 0.05
+    },
+    "CHAOS": {
+      "damageBonus": 0.08,
+      "text": "+8% damage",
+      "name": "Headline Energy"
+    },
+    "GREASY": {
+      "special": "oilResist",
+      "text": "+15 HP, oil resist (milder slicks / half oil hazard dmg)",
+      "name": "Deep Fry Defense",
+      "hpBonus": 15
+    },
+    "FERAL": {
+      "damageBonus": 0.12,
+      "text": "+12% damage",
+      "name": "Bite Back"
+    },
+    "HEROIC": {
+      "text": "Heal 6% of damage actually dealt",
+      "name": "Turtle Oath",
+      "special": "lifesteal"
+    },
+    "LUCKY": {
+      "text": "+better draft rarity",
+      "name": "Pelican Favor",
+      "luckBonus": 0.2
+    }
+  },
+  "unlocks": {
+    "OilPlatformApproach": [
+      "SludgeHose"
+    ],
+    "DaytonaHangover": [
+      "FlipFlopSlap",
+      "CoolerLid"
+    ],
+    "CanalRun": [
+      "KayakPaddle",
+      "WaterBalloonSling"
+    ],
+    "HelipadHysteria": [
+      "RomanCandle"
+    ],
+    "GulfGulpGate": [
+      "FireExtinguisher"
+    ],
+    "SludgeBayou": [
+      "SpillSkimmer"
+    ],
+    "DriveThruDisaster": [
+      "GatorWrestleGloves",
+      "ShoppingCart"
+    ],
+    "BargeCrossing": [
+      "BoogieBoard"
+    ],
+    "TurtleBeach": [
+      "NetGun"
+    ],
+    "ConspiracyShack": [
+      "Skateboard",
+      "PelicanBeakReplica"
+    ],
+    "LabWing": [
+      "BugZapper"
+    ],
+    "GasStationLegends": [
+      "GolfClub",
+      "TrafficCone"
+    ],
+    "StripMallShowdown": [
+      "HOAClipboard",
+      "BeachUmbrella"
+    ],
+    "PipeGauntlet": [
+      "OilBarrelLid"
+    ],
+    "BoardwalkChaos": [
+      "PoolNoodle",
+      "NewspaperRoll"
+    ],
+    "GulfGulpRig": [
+      "FinaleRocket"
+    ],
+    "CypressCathedral": [
+      "TikiTorch",
+      "LawnDart"
+    ],
+    "SwampShift": [
+      "SnakeLasso",
+      "FishSmack"
+    ]
+  },
+  "personas": [
+    {
+      "unlockHint": "Start the run.",
+      "description": "Woke up sandy. Still got rhythm. Starter persona of legend.",
+      "attackDamage": 12,
+      "id": "BeachBurnout",
+      "skillKind": "wave",
+      "starter": true,
+      "skillDamage": 28,
+      "skillCooldown": 5,
+      "attackSpeed": 1,
+      "name": "Beach Burnout",
+      "color": [
+        255,
+        196,
+        72
+      ],
+      "moveSpeed": 18,
+      "skillDescription": "Spin-kick wave of hot sand. Hits in a cone.",
+      "skillName": "Bonfire Shuffle",
+      "accent": [
+        255,
+        120,
+        40
+      ]
+    },
+    {
+      "unlockHint": "Defeat the Crab King on Daytona Hangover Beach.",
+      "description": "Sideways swagger. Pinch first, ask never.",
+      "attackDamage": 14,
+      "id": "CrabKing",
+      "skillKind": "dash",
+      "skillDamage": 36,
+      "skillCooldown": 6,
+      "attackSpeed": 0.95,
+      "name": "Crab King",
+      "color": [
+        220,
+        60,
+        60
+      ],
+      "moveSpeed": 16,
+      "skillDescription": "Dash forward with a heavy pinch through the lane.",
+      "skillName": "Royal Pinch",
+      "accent": [
+        255,
+        180,
+        180
+      ]
+    },
+    {
+      "unlockHint": "Defeat the Drive-Thru Gator in Drive-Thru Disaster.",
+      "description": "Borrowed a wrestling hold from a science experiment.",
+      "attackDamage": 16,
+      "id": "GatorHauler",
+      "skillKind": "aoe",
+      "skillDamage": 42,
+      "skillCooldown": 7,
+      "attackSpeed": 0.85,
+      "name": "Gator Hauler",
+      "color": [
+        40,
+        120,
+        70
+      ],
+      "moveSpeed": 15,
+      "skillDescription": "Grab the lane and slam — heavy AOE.",
+      "skillName": "Tailgate Toss",
+      "accent": [
+        20,
+        60,
+        30
+      ]
+    },
+    {
+      "unlockHint": "Defeat a Cottonmouth, first found in Canal Run.",
+      "description": "Hisses back. Somehow it works.",
+      "attackDamage": 11,
+      "id": "SnakeCharmer",
+      "skillKind": "summon",
+      "skillDamage": 30,
+      "skillCooldown": 8,
+      "attackSpeed": 1.15,
+      "name": "Snake Charmer",
+      "color": [
+        120,
+        200,
+        90
+      ],
+      "moveSpeed": 19,
+      "skillDescription": "Summon a friendly coil that lingers and bites for 2s.",
+      "skillName": "Coil Call",
+      "accent": [
+        60,
+        140,
+        40
+      ]
+    },
+    {
+      "unlockHint": "Defeat the Slushie King or clear Gas Station of Legends.",
+      "description": "HOA's most wanted. Top speed: legally unclear.",
+      "attackDamage": 10,
+      "id": "GolfCartBandit",
+      "skillKind": "dash",
+      "skillDamage": 24,
+      "skillCooldown": 5.5,
+      "attackSpeed": 1.25,
+      "name": "Golf Cart Bandit",
+      "color": [
+        90,
+        200,
+        255
+      ],
+      "moveSpeed": 22,
+      "skillDescription": "Dash through the lane with armor frames and one heavy scrape per enemy.",
+      "skillName": "Cartwheel Drive-By",
+      "accent": [
+        40,
+        100,
+        160
+      ]
+    },
+    {
+      "unlockHint": "Defeat the Spillfather and rescue the final turtles.",
+      "description": "Safety third. Sparks first.",
+      "attackDamage": 13,
+      "id": "FireworksEnthusiast",
+      "skillKind": "aoe",
+      "skillDamage": 38,
+      "skillCooldown": 7.5,
+      "attackSpeed": 1.05,
+      "name": "Fireworks Enthusiast",
+      "color": [
+        255,
+        80,
+        120
+      ],
+      "moveSpeed": 17,
+      "skillDescription": "Pop a burst of cartoon rockets in a radius.",
+      "skillName": "Illegal Finale",
+      "accent": [
+        255,
+        220,
+        60
+      ]
+    },
+    {
+      "unlockHint": "Defeat fire lizards in The Swamp Shift.",
+      "description": "Learned from fire-breathing lizards. HR approved? No.",
+      "attackDamage": 15,
+      "id": "LizardBreath",
+      "skillKind": "beam",
+      "skillDamage": 40,
+      "skillCooldown": 6.5,
+      "attackSpeed": 0.9,
+      "name": "Lizard Breath",
+      "color": [
+        255,
+        90,
+        30
+      ],
+      "moveSpeed": 17,
+      "skillDescription": "Flame breath beam — extra damage against Oil Gators.",
+      "skillName": "Swamp Exhale",
+      "accent": [
+        255,
+        220,
+        80
+      ]
+    },
+    {
+      "unlockHint": "Rescue turtles at Turtle Beach / Red Tide.",
+      "description": "Shell up. Save the babies. Smite GulfGulp.",
+      "attackDamage": 14,
+      "id": "TurtlePaladin",
+      "skillKind": "shield",
+      "skillDamage": 18,
+      "skillCooldown": 9,
+      "attackSpeed": 0.9,
+      "name": "Turtle Paladin",
+      "color": [
+        70,
+        160,
+        140
+      ],
+      "moveSpeed": 15,
+      "skillDescription": "Heal 18 HP and ready a shell that absorbs incoming damage.",
+      "skillName": "Shell Sanctuary",
+      "accent": [
+        200,
+        255,
+        220
+      ]
+    }
+  ],
+  "items": [
+    {
+      "inscription": "HUMID",
+      "description": "Slap-slap mobility. One is always missing.",
+      "id": "FlipFlops",
+      "special": "",
+      "hpBonus": 0,
+      "healOnPickup": 0,
+      "rarity": "Common",
+      "name": "Flip-Flops",
+      "luckBonus": 0,
+      "speedBonus": 2,
+      "damageBonus": 0,
+      "statText": "+Move Speed",
+      "dodgeBonus": 0.05
+    },
+    {
+      "inscription": "HEROIC",
+      "description": "Blocks 40% of glare and 0% of bad decisions.",
+      "id": "CrackedVisor",
+      "special": "",
+      "hpBonus": 15,
+      "healOnPickup": 0,
+      "rarity": "Common",
+      "name": "Cracked Visor",
+      "luckBonus": 0,
+      "speedBonus": 0,
+      "damageBonus": 0,
+      "statText": "+HP",
+      "dodgeBonus": 0
+    },
+    {
+      "inscription": "FERAL",
+      "description": "Enemies get interested. You get openings.",
+      "id": "LiveBait",
+      "special": "aggro",
+      "hpBonus": 0,
+      "healOnPickup": 0,
+      "rarity": "Common",
+      "name": "Live Bait",
+      "luckBonus": 0,
+      "speedBonus": 0,
+      "damageBonus": 3,
+      "statText": "+Damage",
+      "dodgeBonus": 0
+    },
+    {
+      "inscription": "HUMID",
+      "description": "Sticky armor. SPF: emotional.",
+      "id": "ExpiredSunscreen",
+      "special": "",
+      "hpBonus": 20,
+      "healOnPickup": 0,
+      "rarity": "Common",
+      "name": "Expired Sunscreen",
+      "luckBonus": 0,
+      "speedBonus": -1,
+      "damageBonus": 0,
+      "statText": "+HP, slight slow",
+      "dodgeBonus": 0
+    },
+    {
+      "inscription": "CHAOS",
+      "description": "Tourist camouflage. +swagger.",
+      "id": "IHeartFLShirt",
+      "special": "",
+      "hpBonus": 10,
+      "healOnPickup": 0,
+      "rarity": "Rare",
+      "name": "I♥FL Shirt",
+      "luckBonus": 0.08,
+      "speedBonus": 0,
+      "damageBonus": 0,
+      "statText": "+Luck +HP",
+      "dodgeBonus": 0
+    },
+    {
+      "inscription": "HUMID",
+      "description": "Says WORLD'S OKAYEST FLORIDA MAN. Holds Florida Dew vibes.",
+      "id": "NoveltyMug",
+      "special": "stageHeal",
+      "hpBonus": 5,
+      "healOnPickup": 0,
+      "rarity": "Rare",
+      "name": "Novelty Mug",
+      "luckBonus": 0,
+      "speedBonus": 0,
+      "damageBonus": 0,
+      "statText": "Heal on stage clear",
+      "dodgeBonus": 0
+    },
+    {
+      "inscription": "HEROIC",
+      "description": "Never harm turtles. This sticker agrees.",
+      "id": "TurtleSticker",
+      "special": "antiCorp",
+      "hpBonus": 0,
+      "healOnPickup": 5,
+      "rarity": "Rare",
+      "name": "Turtle Sticker",
+      "luckBonus": 0,
+      "speedBonus": 0,
+      "damageBonus": 2,
+      "statText": "+Damage (corp tax)",
+      "dodgeBonus": 0
+    },
+    {
+      "inscription": "GREASY",
+      "description": "Rolling since Tuesday. Heal now, regret never (cartoon).",
+      "id": "GasStationTaquito",
+      "special": "",
+      "hpBonus": 0,
+      "healOnPickup": 25,
+      "rarity": "Common",
+      "name": "Gas-Station Taquito",
+      "luckBonus": 0,
+      "speedBonus": 0,
+      "damageBonus": 0,
+      "statText": "Instant heal",
+      "dodgeBonus": 0
+    },
+    {
+      "inscription": "CHAOS",
+      "description": "Banned in 12 HOAs. Still flies true.",
+      "id": "LawnDartCharm",
+      "special": "",
+      "hpBonus": 0,
+      "healOnPickup": 0,
+      "rarity": "Rare",
+      "name": "Lawn Dart Charm",
+      "luckBonus": 0,
+      "speedBonus": 0,
+      "damageBonus": 5,
+      "statText": "+Damage",
+      "dodgeBonus": 0
+    },
+    {
+      "inscription": "CHAOS",
+      "description": "Weaponized paperwork. Paper cut criticals.",
+      "id": "HOACitation",
+      "special": "paperCut",
+      "hpBonus": 0,
+      "healOnPickup": 0,
+      "rarity": "Unique",
+      "name": "HOA Citation",
+      "luckBonus": 0.05,
+      "speedBonus": 0,
+      "damageBonus": 7,
+      "statText": "+Crit-ish damage",
+      "dodgeBonus": 0
+    },
+    {
+      "inscription": "LUCKY",
+      "description": "Found heads-up next to a pelican.",
+      "id": "LuckyPenny",
+      "special": "",
+      "hpBonus": 0,
+      "healOnPickup": 0,
+      "rarity": "Rare",
+      "name": "Lucky Penny",
+      "luckBonus": 0.15,
+      "speedBonus": 0,
+      "damageBonus": 0,
+      "statText": "+Luck",
+      "dodgeBonus": 0
+    },
+    {
+      "inscription": "FERAL",
+      "description": "Empty. Still intimidating.",
+      "id": "GatorSkinWallet",
+      "special": "sunburnFind",
+      "hpBonus": 0,
+      "healOnPickup": 0,
+      "rarity": "Unique",
+      "name": "Gator-Skin Wallet",
+      "luckBonus": 0.05,
+      "speedBonus": 0,
+      "damageBonus": 4,
+      "statText": "+Damage +Sunburn find",
+      "dodgeBonus": 0
+    },
+    {
+      "inscription": "GREASY",
+      "description": "GulfGulp tracking tech. Proof gators are science experiments.",
+      "id": "RadioCollar",
+      "special": "radio",
+      "hpBonus": 5,
+      "healOnPickup": 0,
+      "rarity": "Unique",
+      "name": "Radio Collar",
+      "luckBonus": 0,
+      "speedBonus": 0,
+      "damageBonus": 3,
+      "statText": "+Damage vs Oil Gators",
+      "dodgeBonus": 0
+    },
+    {
+      "inscription": "HEROIC",
+      "description": "Pads that drink sludge so turtles don't have to.",
+      "id": "SpillAbsorbent",
+      "special": "absorb",
+      "hpBonus": 15,
+      "healOnPickup": 0,
+      "rarity": "Unique",
+      "name": "Spill Absorbent",
+      "luckBonus": 0,
+      "speedBonus": 0,
+      "damageBonus": 0,
+      "statText": "+15 HP, 25% less incoming damage, shorter dodge cooldown",
+      "dodgeBonus": 0.05
+    },
+    {
+      "inscription": "GREASY",
+      "description": "GulfGulp Energy — TEMPORARY. Very temporary.",
+      "id": "LabBadge",
+      "special": "badge",
+      "hpBonus": 20,
+      "healOnPickup": 0,
+      "rarity": "Legendary",
+      "name": "Lab Badge",
+      "luckBonus": 0.1,
+      "speedBonus": 1,
+      "damageBonus": 6,
+      "statText": "+HP +Damage (badge privilege)",
+      "dodgeBonus": 0
+    },
+    {
+      "inscription": "HEROIC",
+      "description": "Borrowed from a hermit. Refund denied.",
+      "id": "SeashellShield",
+      "special": "",
+      "hpBonus": 18,
+      "healOnPickup": 0,
+      "rarity": "Common",
+      "name": "Seashell Shield",
+      "luckBonus": 0,
+      "speedBonus": 0,
+      "damageBonus": 0,
+      "statText": "+18 HP, 3% shorter dodge cooldown",
+      "dodgeBonus": 0.03
+    },
+    {
+      "inscription": "HUMID",
+      "description": "Fashionable. Buzz-proof-ish.",
+      "id": "MosquitoNet",
+      "special": "",
+      "hpBonus": 5,
+      "healOnPickup": 0,
+      "rarity": "Common",
+      "name": "Mosquito Net Cape",
+      "luckBonus": 0,
+      "speedBonus": 1,
+      "damageBonus": 0,
+      "statText": "+5 HP, +speed, 8% shorter dodge cooldown",
+      "dodgeBonus": 0.08
+    },
+    {
+      "inscription": "LUCKY",
+      "description": "Captain Steve merch. Summons confidence.",
+      "id": "PelicanWhistle",
+      "special": "",
+      "hpBonus": 0,
+      "healOnPickup": 0,
+      "rarity": "Rare",
+      "name": "Pelican Whistle",
+      "luckBonus": 0.12,
+      "speedBonus": 0,
+      "damageBonus": 2,
+      "statText": "+Luck +Damage",
+      "dodgeBonus": 0
+    },
+    {
+      "inscription": "GREASY",
+      "description": "From the runaway cart. Greasy power.",
+      "id": "MustardPacket",
+      "special": "",
+      "hpBonus": 0,
+      "healOnPickup": 8,
+      "rarity": "Common",
+      "name": "Industrial Mustard",
+      "luckBonus": 0,
+      "speedBonus": 0,
+      "damageBonus": 4,
+      "statText": "+Damage",
+      "dodgeBonus": 0
+    },
+    {
+      "inscription": "HEROIC",
+      "description": "Looks ridiculous. Works anyway.",
+      "id": "RedTideFilter",
+      "special": "absorb",
+      "hpBonus": 22,
+      "healOnPickup": 0,
+      "rarity": "Rare",
+      "name": "Red Tide Filter Mask",
+      "luckBonus": 0,
+      "speedBonus": 0,
+      "damageBonus": 0,
+      "statText": "+22 HP, 25% less incoming damage",
+      "dodgeBonus": 0
+    },
+    {
+      "inscription": "CHAOS",
+      "description": "Access to nowhere useful. +chaos.",
+      "id": "CondoPass",
+      "special": "",
+      "hpBonus": 0,
+      "healOnPickup": 0,
+      "rarity": "Unique",
+      "name": "Stolen Condo Pass",
+      "luckBonus": 0.1,
+      "speedBonus": 3,
+      "damageBonus": 0,
+      "statText": "+Speed +Luck",
+      "dodgeBonus": 0.04
+    },
+    {
+      "inscription": "CHAOS",
+      "description": "Ignition for bad decisions.",
+      "id": "JetSkiKey",
+      "special": "",
+      "hpBonus": 0,
+      "healOnPickup": 0,
+      "rarity": "Rare",
+      "name": "Jet Ski Key",
+      "luckBonus": 0,
+      "speedBonus": 4,
+      "damageBonus": 1,
+      "statText": "+speed, +damage, 6% shorter dodge cooldown",
+      "dodgeBonus": 0.06
+    },
+    {
+      "inscription": "FERAL",
+      "description": "Swamp luck carved wrong on purpose.",
+      "id": "CypressCharm",
+      "special": "",
+      "hpBonus": 8,
+      "healOnPickup": 0,
+      "rarity": "Common",
+      "name": "Cypress Knee Charm",
+      "luckBonus": 0,
+      "speedBonus": 0,
+      "damageBonus": 2,
+      "statText": "+Damage +HP",
+      "dodgeBonus": 0
+    },
+    {
+      "inscription": "FERAL",
+      "description": "Still warm from the hub. Dodge fans the coals.",
+      "id": "BonfireEmber",
+      "special": "ember",
+      "hpBonus": 0,
+      "healOnPickup": 0,
+      "rarity": "Rare",
+      "name": "Bonfire Ember",
+      "luckBonus": 0,
+      "speedBonus": 0,
+      "damageBonus": 5,
+      "statText": "+Damage after dodge",
+      "dodgeBonus": 0.02
+    },
+    {
+      "inscription": "LUCKY",
+      "description": "For turtles. You may have one crumb.",
+      "id": "TurtleSnack",
+      "special": "",
+      "hpBonus": 0,
+      "healOnPickup": 20,
+      "rarity": "Common",
+      "name": "Turtle Snack Pack",
+      "luckBonus": 0.05,
+      "speedBonus": 0,
+      "damageBonus": 0,
+      "statText": "Heal 20 HP, +luck",
+      "dodgeBonus": 0
+    },
+    {
+      "inscription": "GREASY",
+      "description": "Slick floors hate these.",
+      "id": "OilProofBoots",
+      "special": "absorb",
+      "hpBonus": 12,
+      "healOnPickup": 0,
+      "rarity": "Unique",
+      "name": "Oil-Proof Boots",
+      "luckBonus": 0,
+      "speedBonus": 2,
+      "damageBonus": 0,
+      "statText": "+Speed +HP, absorb hits",
+      "dodgeBonus": 0.05
+    },
+    {
+      "inscription": "CHAOS",
+      "description": "BREAKING: you are the story.",
+      "id": "HeadlinePressPass",
+      "special": "paperCut",
+      "hpBonus": 10,
+      "healOnPickup": 0,
+      "rarity": "Legendary",
+      "name": "Headline Press Pass",
+      "luckBonus": 0.15,
+      "speedBonus": 1,
+      "damageBonus": 8,
+      "statText": "+Damage +Luck +swagger",
+      "dodgeBonus": 0
+    },
+    {
+      "inscription": "HUMID",
+      "description": "Keeps vibes cold. Not a drink brand ad.",
+      "id": "DewKoozie",
+      "special": "stageHeal",
+      "hpBonus": 10,
+      "healOnPickup": 12,
+      "rarity": "Rare",
+      "name": "Florida Dew Koozie",
+      "luckBonus": 0,
+      "speedBonus": 0,
+      "damageBonus": 0,
+      "statText": "+HP, heal on pickup + stage clear",
+      "dodgeBonus": 0
+    }
+  ],
+  "bounds": {
+    "5": {
+      "count": 98280,
+      "maxHp": {
+        "max": 200,
+        "minBuild": [
+          "FlipFlops",
+          "LiveBait",
+          "TurtleSticker",
+          "GasStationTaquito",
+          "LawnDartCharm"
+        ],
+        "maxBuild": [
+          "CrackedVisor",
+          "ExpiredSunscreen",
+          "LabBadge",
+          "SeashellShield",
+          "RedTideFilter"
+        ],
+        "min": 100
+      },
+      "speedBonus": {
+        "max": 12,
+        "minBuild": [
+          "CrackedVisor",
+          "LiveBait",
+          "ExpiredSunscreen",
+          "IHeartFLShirt",
+          "NoveltyMug"
+        ],
+        "maxBuild": [
+          "FlipFlops",
+          "LabBadge",
+          "CondoPass",
+          "JetSkiKey",
+          "OilProofBoots"
+        ],
+        "min": -1
+      },
+      "luck": {
+        "max": 0.77,
+        "minBuild": [
+          "FlipFlops",
+          "CrackedVisor",
+          "LiveBait",
+          "ExpiredSunscreen",
+          "NoveltyMug"
+        ],
+        "maxBuild": [
+          "LuckyPenny",
+          "LabBadge",
+          "PelicanWhistle",
+          "TurtleSnack",
+          "HeadlinePressPass"
+        ],
+        "min": 0
+      },
+      "damageMult": {
+        "max": 2.73,
+        "minBuild": [
+          "FlipFlops",
+          "CrackedVisor",
+          "ExpiredSunscreen",
+          "IHeartFLShirt",
+          "NoveltyMug"
+        ],
+        "maxBuild": [
+          "LawnDartCharm",
+          "HOACitation",
+          "LabBadge",
+          "BonfireEmber",
+          "HeadlinePressPass"
+        ],
+        "min": 1
+      },
+      "dodgeBonus": {
+        "max": 0.29,
+        "minBuild": [
+          "CrackedVisor",
+          "LiveBait",
+          "ExpiredSunscreen",
+          "IHeartFLShirt",
+          "NoveltyMug"
+        ],
+        "maxBuild": [
+          "FlipFlops",
+          "ExpiredSunscreen",
+          "SpillAbsorbent",
+          "MosquitoNet",
+          "JetSkiKey"
+        ],
+        "min": 0
+      }
+    },
+    "4": {
+      "count": 20475,
+      "maxHp": {
+        "max": 185,
+        "minBuild": [
+          "FlipFlops",
+          "LiveBait",
+          "TurtleSticker",
+          "GasStationTaquito"
+        ],
+        "maxBuild": [
+          "ExpiredSunscreen",
+          "LabBadge",
+          "SeashellShield",
+          "RedTideFilter"
+        ],
+        "min": 100
+      },
+      "speedBonus": {
+        "max": 11,
+        "minBuild": [
+          "CrackedVisor",
+          "LiveBait",
+          "ExpiredSunscreen",
+          "IHeartFLShirt"
+        ],
+        "maxBuild": [
+          "FlipFlops",
+          "CondoPass",
+          "JetSkiKey",
+          "OilProofBoots"
+        ],
+        "min": -1
+      },
+      "luck": {
+        "max": 0.6699999999999999,
+        "minBuild": [
+          "FlipFlops",
+          "CrackedVisor",
+          "LiveBait",
+          "ExpiredSunscreen"
+        ],
+        "maxBuild": [
+          "LuckyPenny",
+          "PelicanWhistle",
+          "TurtleSnack",
+          "HeadlinePressPass"
+        ],
+        "min": 0
+      },
+      "damageMult": {
+        "max": 2.48,
+        "minBuild": [
+          "FlipFlops",
+          "CrackedVisor",
+          "ExpiredSunscreen",
+          "IHeartFLShirt"
+        ],
+        "maxBuild": [
+          "LawnDartCharm",
+          "HOACitation",
+          "LabBadge",
+          "HeadlinePressPass"
+        ],
+        "min": 1
+      },
+      "dodgeBonus": {
+        "max": 0.24,
+        "minBuild": [
+          "CrackedVisor",
+          "LiveBait",
+          "ExpiredSunscreen",
+          "IHeartFLShirt"
+        ],
+        "maxBuild": [
+          "FlipFlops",
+          "ExpiredSunscreen",
+          "MosquitoNet",
+          "JetSkiKey"
+        ],
+        "min": 0
+      }
+    },
+    "3": {
+      "count": 3276,
+      "maxHp": {
+        "max": 167,
+        "minBuild": [
+          "FlipFlops",
+          "LiveBait",
+          "TurtleSticker"
+        ],
+        "maxBuild": [
+          "ExpiredSunscreen",
+          "LabBadge",
+          "RedTideFilter"
+        ],
+        "min": 100
+      },
+      "speedBonus": {
+        "max": 9,
+        "minBuild": [
+          "CrackedVisor",
+          "LiveBait",
+          "ExpiredSunscreen"
+        ],
+        "maxBuild": [
+          "FlipFlops",
+          "CondoPass",
+          "JetSkiKey"
+        ],
+        "min": -1
+      },
+      "luck": {
+        "max": 0.52,
+        "minBuild": [
+          "FlipFlops",
+          "CrackedVisor",
+          "LiveBait"
+        ],
+        "maxBuild": [
+          "LuckyPenny",
+          "PelicanWhistle",
+          "TurtleSnack"
+        ],
+        "min": 0
+      },
+      "damageMult": {
+        "max": 2.1500000000000004,
+        "minBuild": [
+          "FlipFlops",
+          "CrackedVisor",
+          "ExpiredSunscreen"
+        ],
+        "maxBuild": [
+          "HOACitation",
+          "LabBadge",
+          "HeadlinePressPass"
+        ],
+        "min": 1
+      },
+      "dodgeBonus": {
+        "max": 0.19,
+        "minBuild": [
+          "CrackedVisor",
+          "LiveBait",
+          "ExpiredSunscreen"
+        ],
+        "maxBuild": [
+          "FlipFlops",
+          "MosquitoNet",
+          "JetSkiKey"
+        ],
+        "min": 0
+      }
+    },
+    "6": {
+      "count": 376740,
+      "maxHp": {
+        "max": 217,
+        "minBuild": [
+          "FlipFlops",
+          "LiveBait",
+          "TurtleSticker",
+          "GasStationTaquito",
+          "LawnDartCharm",
+          "HOACitation"
+        ],
+        "maxBuild": [
+          "ExpiredSunscreen",
+          "RadioCollar",
+          "LabBadge",
+          "SeashellShield",
+          "RedTideFilter",
+          "OilProofBoots"
+        ],
+        "min": 100
+      },
+      "speedBonus": {
+        "max": 13,
+        "minBuild": [
+          "CrackedVisor",
+          "LiveBait",
+          "ExpiredSunscreen",
+          "IHeartFLShirt",
+          "NoveltyMug",
+          "TurtleSticker"
+        ],
+        "maxBuild": [
+          "FlipFlops",
+          "LabBadge",
+          "MosquitoNet",
+          "CondoPass",
+          "JetSkiKey",
+          "OilProofBoots"
+        ],
+        "min": -1
+      },
+      "luck": {
+        "max": 0.8700000000000001,
+        "minBuild": [
+          "FlipFlops",
+          "CrackedVisor",
+          "LiveBait",
+          "ExpiredSunscreen",
+          "NoveltyMug",
+          "TurtleSticker"
+        ],
+        "maxBuild": [
+          "LuckyPenny",
+          "LabBadge",
+          "PelicanWhistle",
+          "CondoPass",
+          "TurtleSnack",
+          "HeadlinePressPass"
+        ],
+        "min": 0
+      },
+      "damageMult": {
+        "max": 2.93,
+        "minBuild": [
+          "FlipFlops",
+          "CrackedVisor",
+          "ExpiredSunscreen",
+          "IHeartFLShirt",
+          "NoveltyMug",
+          "GasStationTaquito"
+        ],
+        "maxBuild": [
+          "LawnDartCharm",
+          "HOACitation",
+          "GatorSkinWallet",
+          "LabBadge",
+          "BonfireEmber",
+          "HeadlinePressPass"
+        ],
+        "min": 1
+      },
+      "dodgeBonus": {
+        "max": 0.33999999999999997,
+        "minBuild": [
+          "CrackedVisor",
+          "LiveBait",
+          "ExpiredSunscreen",
+          "IHeartFLShirt",
+          "NoveltyMug",
+          "TurtleSticker"
+        ],
+        "maxBuild": [
+          "FlipFlops",
+          "ExpiredSunscreen",
+          "SpillAbsorbent",
+          "MosquitoNet",
+          "JetSkiKey",
+          "OilProofBoots"
+        ],
+        "min": 0
+      }
+    }
+  },
+  "stages": [
+    {
+      "clockTime": 6.2,
+      "index": 0,
+      "steveAct": 1,
+      "lighting": "dawnGold",
+      "scalingTier": 0,
+      "isHub": true,
+      "hazards": {},
+      "platformLedges": 0,
+      "length": 70,
+      "coldOnePickup": false,
+      "waves": {},
+      "hangover": false,
+      "goalLabel": "BONFIRE",
+      "storyBeat": "Wake after the last honest night of your life.",
+      "accentColor": [
+        255,
+        140,
+        40
+      ],
+      "id": "Hub",
+      "biome": "beach",
+      "setPiece": "hubBonfire",
+      "headline": "FLORIDA MAN — you danced until the fire died. The crabs stole your Cold One.",
+      "showMutantTagline": false,
+      "name": "Dawn Bonfire",
+      "rescueTurtles": 0,
+      "fogColor": [
+        180,
+        200,
+        220
+      ],
+      "propTheme": "beach",
+      "blurb": "Wake on the beach. Press E at the bonfire (or click the prompt) to start your legend.",
+      "groundColor": [
+        210,
+        180,
+        110
+      ]
+    },
+    {
+      "clockTime": 7.5,
+      "index": 1,
+      "steveAct": 1,
+      "lighting": "dawnGold",
+      "scalingTier": 1,
+      "miniboss": "CrabKingBoss",
+      "isHub": false,
+      "hazards": [
+        "sandSlow"
+      ],
+      "platformLedges": 0,
+      "length": 200,
+      "coldOnePickup": true,
+      "waves": [
+        {
+          "atProgress": 0.15,
+          "enemyId": "BeachCrab",
+          "count": 2
+        },
+        {
+          "atProgress": 0.35,
+          "enemyId": "SandFlea",
+          "count": 2
+        },
+        {
+          "atProgress": 0.55,
+          "enemyId": "BeachCrab",
+          "count": 2
+        }
+      ],
+      "hangover": true,
+      "goalLabel": "PIER LIGHT →",
+      "storyBeat": "The crabs stole your Florida Dew. Reclaim the glowing can, then follow the beach.",
+      "accentColor": [
+        70,
+        160,
+        220
+      ],
+      "id": "DaytonaHangover",
+      "biome": "beach",
+      "setPiece": "collapsingPier",
+      "headline": "VIRAL: Florida Man wakes to missing Florida Dew — crabs named persons of interest",
+      "unlockPersona": "CrabKing",
+      "showMutantTagline": false,
+      "name": "Daytona Hangover Beach",
+      "rescueTurtles": 0,
+      "fogColor": [
+        200,
+        220,
+        240
+      ],
+      "propTheme": "beach",
+      "blurb": "Comedy first. Reclaim The Cold One. Face the King of the Tide Pool. Hangover wears off with the can.",
+      "groundColor": [
+        220,
+        190,
+        120
+      ]
+    },
+    {
+      "clockTime": 10,
+      "index": 2,
+      "steveAct": 1,
+      "lighting": "midBeach",
+      "scalingTier": 1,
+      "isHub": false,
+      "hazards": [
+        "fryerOil",
+        "hoaCone"
+      ],
+      "platformLedges": 1,
+      "length": 220,
+      "coldOnePickup": false,
+      "waves": [
+        {
+          "atProgress": 0.12,
+          "enemyId": "AngryTourist",
+          "count": 1
+        },
+        {
+          "atProgress": 0.28,
+          "enemyId": "SandFlea",
+          "count": 2
+        },
+        {
+          "atProgress": 0.45,
+          "enemyId": "SelfieZombie",
+          "count": 1
+        },
+        {
+          "atProgress": 0.62,
+          "enemyId": "HotDogCart",
+          "count": 1
+        },
+        {
+          "atProgress": 0.78,
+          "enemyId": "AngryTourist",
+          "count": 2
+        }
+      ],
+      "hangover": false,
+      "goalLabel": "BOARDWALK EXIT →",
+      "storyBeat": "Steve spots GulfGulp's logo on the cooler shipment. Why is a soda company shipping wildlife equipment?",
+      "accentColor": [
+        255,
+        100,
+        80
+      ],
+      "id": "BoardwalkChaos",
+      "biome": "beach",
+      "setPiece": "fryerOil",
+      "headline": "BOARDWALK: Influencer selfie-flash blinds vendors — runaway hotdog cart declared sovereign",
+      "showMutantTagline": false,
+      "name": "Boardwalk Chaos",
+      "rescueTurtles": 0,
+      "fogColor": [
+        190,
+        210,
+        230
+      ],
+      "propTheme": "beach",
+      "blurb": "Tourists, fleas, mustard trails. Keep your flip-flops. Jump the fryer oil.",
+      "groundColor": [
+        200,
+        170,
+        100
+      ]
+    },
+    {
+      "clockTime": 14,
+      "index": 3,
+      "steveAct": 1,
+      "lighting": "neonGas",
+      "scalingTier": 1,
+      "miniboss": "SlushieKing",
+      "isHub": false,
+      "hazards": [
+        "slushPuddle",
+        "hoaCone"
+      ],
+      "platformLedges": 1,
+      "length": 230,
+      "coldOnePickup": false,
+      "waves": [
+        {
+          "atProgress": 0.1,
+          "enemyId": "AngryTourist",
+          "count": 1
+        },
+        {
+          "atProgress": 0.28,
+          "enemyId": "SlushieSlime",
+          "count": 2
+        },
+        {
+          "atProgress": 0.45,
+          "enemyId": "SelfieZombie",
+          "count": 1
+        },
+        {
+          "atProgress": 0.65,
+          "enemyId": "CondoKaren",
+          "count": 1
+        }
+      ],
+      "hangover": false,
+      "goalLabel": "OPEN 24HRS →",
+      "storyBeat": "GulfGulp deliveries pass through this gas station. The slushie line is guarded far better than it should be.",
+      "accentColor": [
+        255,
+        200,
+        40
+      ],
+      "id": "GasStationLegends",
+      "biome": "town",
+      "setPiece": "neonCanopy",
+      "headline": "NEON: Slushie machine files restraining order — HOA binder cited as blunt instrument",
+      "unlockPersona": "GolfCartBandit",
+      "showMutantTagline": false,
+      "name": "Gas Station of Legends",
+      "rescueTurtles": 0,
+      "fogColor": [
+        35,
+        40,
+        50
+      ],
+      "propTheme": "gas",
+      "blurb": "Sticky floors. Neon pumps. Unlock Golf Cart Bandit energy.",
+      "groundColor": [
+        55,
+        55,
+        60
+      ]
+    },
+    {
+      "clockTime": 15,
+      "index": 4,
+      "steveAct": 1,
+      "lighting": "stripMall",
+      "scalingTier": 1,
+      "miniboss": "HOAHydra",
+      "isHub": false,
+      "hazards": [
+        "hoaCone"
+      ],
+      "platformLedges": 1,
+      "length": 230,
+      "coldOnePickup": false,
+      "waves": [
+        {
+          "atProgress": 0.12,
+          "enemyId": "CondoKaren",
+          "count": 1
+        },
+        {
+          "atProgress": 0.3,
+          "enemyId": "HotDogCart",
+          "count": 1
+        },
+        {
+          "atProgress": 0.48,
+          "enemyId": "SelfieZombie",
+          "count": 2
+        },
+        {
+          "atProgress": 0.68,
+          "enemyId": "AngryTourist",
+          "count": 2
+        }
+      ],
+      "hangover": false,
+      "goalLabel": "MALL EXIT →",
+      "storyBeat": "The delivery route leads to the drive-thru. Its newest employee has scales and a suspicious uniform.",
+      "accentColor": [
+        255,
+        80,
+        120
+      ],
+      "id": "StripMallShowdown",
+      "biome": "town",
+      "setPiece": "parkingArena",
+      "headline": "PARKING LOT: Karen requests supervisor of physics — clipboard hydra forms",
+      "showMutantTagline": false,
+      "name": "Strip Mall Showdown",
+      "rescueTurtles": 0,
+      "fogColor": [
+        50,
+        55,
+        65
+      ],
+      "propTheme": "gas",
+      "blurb": "Clipboards, carts, flash stuns. Chaos rhythm unlocks.",
+      "groundColor": [
+        70,
+        70,
+        75
+      ]
+    },
+    {
+      "clockTime": 16,
+      "index": 5,
+      "steveAct": 1,
+      "lighting": "lateAfternoon",
+      "scalingTier": 1,
+      "miniboss": "DriveThruGator",
+      "isHub": false,
+      "hazards": [
+        "fryerOil"
+      ],
+      "platformLedges": 1,
+      "length": 240,
+      "coldOnePickup": false,
+      "waves": [
+        {
+          "atProgress": 0.15,
+          "enemyId": "AngryTourist",
+          "count": 1
+        },
+        {
+          "atProgress": 0.32,
+          "enemyId": "BeachCrab",
+          "count": 2
+        },
+        {
+          "atProgress": 0.5,
+          "enemyId": "SlushieSlime",
+          "count": 1
+        },
+        {
+          "atProgress": 0.65,
+          "enemyId": "HotDogCart",
+          "count": 1
+        }
+      ],
+      "hangover": false,
+      "goalLabel": "ORDER WINDOW →",
+      "storyBeat": "A collared gator guards the drive-thru. Get past it so Steve can trace who supplied that hardware.",
+      "accentColor": [
+        255,
+        80,
+        40
+      ],
+      "id": "DriveThruDisaster",
+      "biome": "town",
+      "setPiece": "driveThruLane",
+      "headline": "UNEASE: Drive-thru gator refuses to supersize — GulfGulp radio collar beeping on live stream",
+      "unlockPersona": "GatorHauler",
+      "showMutantTagline": false,
+      "name": "Drive-Thru Disaster",
+      "rescueTurtles": 0,
+      "fogColor": [
+        120,
+        130,
+        90
+      ],
+      "propTheme": "drive",
+      "blurb": "Miniboss Drive-Thru Gator. First radio collar. Science experiment gone wrong.",
+      "groundColor": [
+        90,
+        100,
+        70
+      ]
+    },
+    {
+      "clockTime": 11,
+      "index": 6,
+      "steveAct": 2,
+      "lighting": "swampGreen",
+      "scalingTier": 2,
+      "isHub": false,
+      "hazards": [
+        "canalWater"
+      ],
+      "platformLedges": 3,
+      "length": 250,
+      "coldOnePickup": false,
+      "waves": [
+        {
+          "atProgress": 0.1,
+          "enemyId": "JetSkiBandit",
+          "count": 1
+        },
+        {
+          "atProgress": 0.28,
+          "enemyId": "BurrowSnake",
+          "count": 2
+        },
+        {
+          "atProgress": 0.48,
+          "enemyId": "Cottonmouth",
+          "count": 2
+        },
+        {
+          "atProgress": 0.65,
+          "enemyId": "JetSkiBandit",
+          "count": 1
+        },
+        {
+          "atProgress": 0.8,
+          "enemyId": "MosquitoCloud",
+          "count": 2
+        }
+      ],
+      "hangover": false,
+      "goalLabel": "LOCK GATE →",
+      "storyBeat": "The collar shipment came through this canal. Follow it into the swamp, using the pads to escape deep water.",
+      "accentColor": [
+        40,
+        160,
+        220
+      ],
+      "id": "CanalRun",
+      "biome": "swamp",
+      "setPiece": "canalPads",
+      "headline": "CANAL: Jet-ski bandits rewrite wake rules — cottonmouths rattle a warning first",
+      "showMutantTagline": false,
+      "name": "Canal Run",
+      "rescueTurtles": 0,
+      "fogColor": [
+        100,
+        140,
+        130
+      ],
+      "propTheme": "drive",
+      "blurb": "Water edges, jump pads, burrow snakes. Depth optional. Chaos mandatory.",
+      "groundColor": [
+        70,
+        110,
+        90
+      ]
+    },
+    {
+      "clockTime": 19,
+      "index": 7,
+      "steveAct": 2,
+      "lighting": "greenBlack",
+      "scalingTier": 2,
+      "isHub": false,
+      "hazards": [
+        "oilSlick",
+        "fireCone"
+      ],
+      "platformLedges": 2,
+      "length": 280,
+      "coldOnePickup": false,
+      "waves": [
+        {
+          "atProgress": 0.1,
+          "enemyId": "Cottonmouth",
+          "count": 2
+        },
+        {
+          "atProgress": 0.22,
+          "enemyId": "MosquitoCloud",
+          "count": 2
+        },
+        {
+          "atProgress": 0.38,
+          "enemyId": "OilGator",
+          "count": 1
+        },
+        {
+          "atProgress": 0.52,
+          "enemyId": "FireLizard",
+          "count": 2
+        },
+        {
+          "atProgress": 0.68,
+          "enemyId": "OilGator",
+          "count": 1
+        },
+        {
+          "atProgress": 0.82,
+          "enemyId": "EmberSkink",
+          "count": 2
+        }
+      ],
+      "hangover": false,
+      "goalLabel": "CYPRESS PASS →",
+      "storyBeat": "The oil gators and fire lizards wear matching collars. GulfGulp turned wildlife into security guards.",
+      "accentColor": [
+        120,
+        200,
+        60
+      ],
+      "id": "SwampShift",
+      "biome": "swamp",
+      "setPiece": "cypressCanopy",
+      "headline": "STEVE: 'It IS Florida… Anything is possible in the swamp I guess.' — oil gators confirmed",
+      "unlockPersona": "LizardBreath",
+      "showMutantTagline": true,
+      "name": "The Swamp Shift",
+      "rescueTurtles": 0,
+      "fogColor": [
+        50,
+        80,
+        55
+      ],
+      "propTheme": "swamp",
+      "blurb": "Mutant oil-gators + fire lizards. Captain Steve sting. Animals aren't the enemy.",
+      "groundColor": [
+        40,
+        70,
+        45
+      ]
+    },
+    {
+      "clockTime": 20,
+      "index": 8,
+      "steveAct": 2,
+      "lighting": "greenBlack",
+      "scalingTier": 2,
+      "isHub": false,
+      "hazards": [
+        "oilSlick"
+      ],
+      "platformLedges": 2,
+      "length": 260,
+      "coldOnePickup": false,
+      "waves": [
+        {
+          "atProgress": 0.15,
+          "enemyId": "SwampSummoner",
+          "count": 1
+        },
+        {
+          "atProgress": 0.32,
+          "enemyId": "Cottonmouth",
+          "count": 2
+        },
+        {
+          "atProgress": 0.5,
+          "enemyId": "BurrowSnake",
+          "count": 2
+        },
+        {
+          "atProgress": 0.7,
+          "enemyId": "SwampSummoner",
+          "count": 1
+        },
+        {
+          "atProgress": 0.85,
+          "enemyId": "MutantAdd",
+          "count": 2
+        }
+      ],
+      "hangover": false,
+      "goalLabel": "ROOT BRIDGE →",
+      "storyBeat": "The conspiracy leaves a paper trail.",
+      "accentColor": [
+        160,
+        100,
+        255
+      ],
+      "id": "CypressCathedral",
+      "biome": "swamp",
+      "setPiece": "cypressCanopy",
+      "headline": "CATHEDRAL: Summoner hosts swamp open mic — cottonmouths RSVP under collars",
+      "unlockPersona": "SnakeCharmer",
+      "showMutantTagline": true,
+      "name": "Cypress Cathedral",
+      "rescueTurtles": 0,
+      "fogColor": [
+        40,
+        70,
+        50
+      ],
+      "propTheme": "swamp",
+      "blurb": "Summoners, burrowers, cypress gloom. Keep hissing back.",
+      "groundColor": [
+        35,
+        60,
+        40
+      ]
+    },
+    {
+      "clockTime": 18.5,
+      "index": 9,
+      "steveAct": 2,
+      "lighting": "greenBlack",
+      "scalingTier": 2,
+      "isHub": false,
+      "hazards": [
+        "oilSlick",
+        "fireCone"
+      ],
+      "platformLedges": 2,
+      "length": 260,
+      "coldOnePickup": false,
+      "waves": [
+        {
+          "atProgress": 0.12,
+          "enemyId": "OilPuddleLayer",
+          "count": 1
+        },
+        {
+          "atProgress": 0.3,
+          "enemyId": "OilGator",
+          "count": 2
+        },
+        {
+          "atProgress": 0.48,
+          "enemyId": "EmberSkink",
+          "count": 2
+        },
+        {
+          "atProgress": 0.65,
+          "enemyId": "OilPuddleLayer",
+          "count": 2
+        },
+        {
+          "atProgress": 0.82,
+          "enemyId": "OilGator",
+          "count": 1
+        }
+      ],
+      "hangover": false,
+      "goalLabel": "BAYOU MOUTH →",
+      "storyBeat": "Sludge trails lead toward a logo.",
+      "accentColor": [
+        255,
+        160,
+        40
+      ],
+      "id": "SludgeBayou",
+      "biome": "swamp",
+      "setPiece": "sludgeFlats",
+      "headline": "BAYOU: Oil puddles elect themselves mayor — GulfGulp drones take attendance",
+      "showMutantTagline": false,
+      "name": "Sludge Bayou",
+      "rescueTurtles": 0,
+      "fogColor": [
+        35,
+        50,
+        40
+      ],
+      "propTheme": "swamp",
+      "blurb": "Puddle layers and collared oil gators. Skim or slip.",
+      "groundColor": [
+        30,
+        45,
+        35
+      ]
+    },
+    {
+      "clockTime": 17,
+      "index": 10,
+      "steveAct": 2,
+      "lighting": "swampGreen",
+      "scalingTier": 2,
+      "isHub": false,
+      "hazards": [
+        "oilSlick"
+      ],
+      "platformLedges": 1,
+      "length": 250,
+      "coldOnePickup": false,
+      "waves": [
+        {
+          "atProgress": 0.1,
+          "enemyId": "PelicanBully",
+          "count": 1
+        },
+        {
+          "atProgress": 0.3,
+          "enemyId": "LabCoat",
+          "count": 2
+        },
+        {
+          "atProgress": 0.48,
+          "enemyId": "DroneSpotter",
+          "count": 2
+        },
+        {
+          "atProgress": 0.65,
+          "enemyId": "PelicanBully",
+          "count": 1
+        },
+        {
+          "atProgress": 0.82,
+          "enemyId": "LabCoat",
+          "count": 2
+        }
+      ],
+      "hangover": false,
+      "goalLabel": "DIRT ROAD →",
+      "storyBeat": "Evidence on a corkboard. Next stop: turtle nests.",
+      "accentColor": [
+        255,
+        220,
+        80
+      ],
+      "id": "ConspiracyShack",
+      "biome": "swamp",
+      "setPiece": "corkboardShack",
+      "headline": "SHACK: Corkboard links pelicans, collars, and GulfGulp stock — lab coats arrive early",
+      "showMutantTagline": true,
+      "name": "Conspiracy Shack",
+      "rescueTurtles": 0,
+      "fogColor": [
+        70,
+        65,
+        50
+      ],
+      "propTheme": "swamp",
+      "blurb": "Bully pelicans and lab coats. The conspiracy gets loud.",
+      "groundColor": [
+        80,
+        70,
+        55
+      ]
+    },
+    {
+      "clockTime": 17.5,
+      "index": 11,
+      "steveAct": 3,
+      "lighting": "redTide",
+      "scalingTier": 3,
+      "isHub": false,
+      "hazards": [
+        "redTide",
+        "oilSlick"
+      ],
+      "platformLedges": 1,
+      "length": 260,
+      "coldOnePickup": false,
+      "waves": [
+        {
+          "atProgress": 0.12,
+          "enemyId": "GulfGulpGrunt",
+          "count": 2
+        },
+        {
+          "atProgress": 0.3,
+          "enemyId": "RedTideBlob",
+          "count": 1
+        },
+        {
+          "atProgress": 0.48,
+          "enemyId": "OilGator",
+          "count": 1
+        },
+        {
+          "atProgress": 0.65,
+          "enemyId": "GulfGulpGrunt",
+          "count": 2
+        },
+        {
+          "atProgress": 0.8,
+          "enemyId": "FireLizard",
+          "count": 1
+        }
+      ],
+      "hangover": false,
+      "goalLabel": "NEST LIGHT →",
+      "storyBeat": "Rescue is the mission. Pipelines wanted 'no habitat.'",
+      "accentColor": [
+        220,
+        60,
+        80
+      ],
+      "id": "TurtleBeach",
+      "biome": "beach",
+      "setPiece": "turtleNests",
+      "headline": "RED TIDE: GulfGulp 'cleanup' crew oils nests — Florida Man declares turtles under protection",
+      "unlockPersona": "TurtlePaladin",
+      "showMutantTagline": false,
+      "name": "Turtle Beach / Red Tide",
+      "rescueTurtles": 5,
+      "fogColor": [
+        160,
+        80,
+        90
+      ],
+      "propTheme": "turtle",
+      "blurb": "Rescue turtles. Their cleanup is a cover. Unlock Turtle Paladin.",
+      "groundColor": [
+        180,
+        140,
+        90
+      ]
+    },
+    {
+      "clockTime": 21.5,
+      "index": 12,
+      "steveAct": 3,
+      "lighting": "nightNest",
+      "scalingTier": 3,
+      "isHub": false,
+      "hazards": [
+        "redTide"
+      ],
+      "platformLedges": 2,
+      "length": 250,
+      "coldOnePickup": false,
+      "waves": [
+        {
+          "atProgress": 0.1,
+          "enemyId": "DroneSpotter",
+          "count": 2
+        },
+        {
+          "atProgress": 0.3,
+          "enemyId": "RedTideBlob",
+          "count": 2
+        },
+        {
+          "atProgress": 0.5,
+          "enemyId": "GulfGulpGrunt",
+          "count": 2
+        },
+        {
+          "atProgress": 0.72,
+          "enemyId": "OilPuddleLayer",
+          "count": 1
+        }
+      ],
+      "hangover": false,
+      "goalLabel": "SAFE NEST →",
+      "storyBeat": "Shell up. The facility gate is next.",
+      "accentColor": [
+        100,
+        255,
+        180
+      ],
+      "id": "NestGuard",
+      "biome": "beach",
+      "setPiece": "turtleNests",
+      "headline": "NEST WATCH: Drones clock in for overtime — baby turtles demand snacks and justice",
+      "showMutantTagline": false,
+      "name": "Nest Guard Night",
+      "rescueTurtles": 4,
+      "fogColor": [
+        40,
+        50,
+        70
+      ],
+      "propTheme": "turtle",
+      "blurb": "More turtles to free. Red tide and mark-drones try to stop you.",
+      "groundColor": [
+        160,
+        120,
+        80
+      ]
+    },
+    {
+      "clockTime": 19.5,
+      "index": 13,
+      "steveAct": 4,
+      "lighting": "clinicalLab",
+      "scalingTier": 4,
+      "isHub": false,
+      "hazards": [
+        "oilSlick",
+        "hoaCone"
+      ],
+      "platformLedges": 2,
+      "length": 270,
+      "coldOnePickup": false,
+      "waves": [
+        {
+          "atProgress": 0.1,
+          "enemyId": "GulfGulpGrunt",
+          "count": 2
+        },
+        {
+          "atProgress": 0.28,
+          "enemyId": "RigWelder",
+          "count": 1
+        },
+        {
+          "atProgress": 0.48,
+          "enemyId": "BarrelRoller",
+          "count": 2
+        },
+        {
+          "atProgress": 0.65,
+          "enemyId": "DroneSpotter",
+          "count": 2
+        },
+        {
+          "atProgress": 0.82,
+          "enemyId": "LabCoat",
+          "count": 1
+        }
+      ],
+      "hangover": false,
+      "goalLabel": "BADGE SCAN →",
+      "storyBeat": "The logo on the gate matches the collars. Follow the pipes to the lab and find the records.",
+      "accentColor": [
+        255,
+        170,
+        40
+      ],
+      "id": "GulfGulpGate",
+      "biome": "facility",
+      "setPiece": "corpGate",
+      "headline": "GATE: 'Authorized personnel only' — Florida Man cites pelican testimony",
+      "showMutantTagline": false,
+      "name": "GulfGulp Gate",
+      "rescueTurtles": 0,
+      "fogColor": [
+        35,
+        38,
+        48
+      ],
+      "propTheme": "rig",
+      "blurb": "First look at the facilities. Hazmat grunts and welders.",
+      "groundColor": [
+        45,
+        48,
+        55
+      ]
+    },
+    {
+      "clockTime": 20,
+      "index": 14,
+      "steveAct": 4,
+      "lighting": "clinicalLab",
+      "scalingTier": 4,
+      "isHub": false,
+      "hazards": [
+        "fireCone",
+        "oilSlick"
+      ],
+      "platformLedges": 2,
+      "length": 270,
+      "coldOnePickup": false,
+      "waves": [
+        {
+          "atProgress": 0.1,
+          "enemyId": "MutantAdd",
+          "count": 2
+        },
+        {
+          "atProgress": 0.25,
+          "enemyId": "FireLizard",
+          "count": 1
+        },
+        {
+          "atProgress": 0.42,
+          "enemyId": "OilGator",
+          "count": 1
+        },
+        {
+          "atProgress": 0.58,
+          "enemyId": "LabCoat",
+          "count": 2
+        },
+        {
+          "atProgress": 0.75,
+          "enemyId": "EmberSkink",
+          "count": 2
+        },
+        {
+          "atProgress": 0.88,
+          "enemyId": "MutantAdd",
+          "count": 1
+        }
+      ],
+      "hangover": false,
+      "goalLabel": "LAB EXIT →",
+      "storyBeat": "They engineered the gators. The memo is the smoking gun.",
+      "accentColor": [
+        80,
+        220,
+        120
+      ],
+      "id": "LabWing",
+      "biome": "facility",
+      "setPiece": "labConveyor",
+      "headline": "LAB FILE: 'Engineered gators to guard spills' — memo stamped CONFIDENTIAL, still sticky",
+      "showMutantTagline": true,
+      "name": "Mutant Lab Wing",
+      "rescueTurtles": 0,
+      "fogColor": [
+        30,
+        45,
+        50
+      ],
+      "propTheme": "rig",
+      "blurb": "Mutant adds, fire lizards, collared gators. Evidence everywhere.",
+      "groundColor": [
+        40,
+        50,
+        55
+      ]
+    },
+    {
+      "clockTime": 21,
+      "index": 15,
+      "steveAct": 4,
+      "lighting": "industrialOrange",
+      "scalingTier": 4,
+      "miniboss": "RigOverlord",
+      "isHub": false,
+      "hazards": [
+        "oilSlick",
+        "fireCone"
+      ],
+      "platformLedges": 3,
+      "length": 280,
+      "coldOnePickup": false,
+      "waves": [
+        {
+          "atProgress": 0.1,
+          "enemyId": "BarrelRoller",
+          "count": 2
+        },
+        {
+          "atProgress": 0.3,
+          "enemyId": "RigWelder",
+          "count": 1
+        },
+        {
+          "atProgress": 0.5,
+          "enemyId": "BarrelRoller",
+          "count": 2
+        },
+        {
+          "atProgress": 0.68,
+          "enemyId": "OilPuddleLayer",
+          "count": 1
+        },
+        {
+          "atProgress": 0.82,
+          "enemyId": "GulfGulpGrunt",
+          "count": 2
+        }
+      ],
+      "hangover": false,
+      "goalLabel": "VALVE LOCK →",
+      "storyBeat": "Middle management of doom blocks the docks.",
+      "accentColor": [
+        255,
+        120,
+        40
+      ],
+      "id": "PipeGauntlet",
+      "biome": "facility",
+      "setPiece": "pipeMaze",
+      "headline": "PIPES: Barrel rollers unionize mid-gauntlet — Rig Overlord clocks in early",
+      "showMutantTagline": false,
+      "name": "Pipe Gauntlet",
+      "rescueTurtles": 0,
+      "fogColor": [
+        25,
+        28,
+        35
+      ],
+      "propTheme": "rig",
+      "blurb": "Pipe-maze platforms. Chargers in metal halls. Keep your footing.",
+      "groundColor": [
+        35,
+        38,
+        45
+      ]
+    },
+    {
+      "clockTime": 16.5,
+      "index": 16,
+      "steveAct": 4,
+      "lighting": "industrialOrange",
+      "scalingTier": 4,
+      "isHub": false,
+      "hazards": [
+        "oilSlick"
+      ],
+      "platformLedges": 2,
+      "length": 260,
+      "coldOnePickup": false,
+      "waves": [
+        {
+          "atProgress": 0.12,
+          "enemyId": "OffshoreCrab",
+          "count": 2
+        },
+        {
+          "atProgress": 0.32,
+          "enemyId": "GulfGulpGrunt",
+          "count": 2
+        },
+        {
+          "atProgress": 0.5,
+          "enemyId": "HermitCrab",
+          "count": 1
+        },
+        {
+          "atProgress": 0.68,
+          "enemyId": "BarrelRoller",
+          "count": 2
+        },
+        {
+          "atProgress": 0.85,
+          "enemyId": "OffshoreCrab",
+          "count": 2
+        }
+      ],
+      "hangover": false,
+      "goalLabel": "CRANE LIGHT →",
+      "storyBeat": "The barge is loading. You are not invited — you go anyway.",
+      "accentColor": [
+        200,
+        60,
+        60
+      ],
+      "id": "LoadingDock",
+      "biome": "facility",
+      "setPiece": "loadingDock",
+      "headline": "DOCK: Offshore crabs punch in late — corporate security loses clipboard war",
+      "showMutantTagline": false,
+      "name": "Loading Dock Riot",
+      "rescueTurtles": 0,
+      "fogColor": [
+        40,
+        50,
+        70
+      ],
+      "propTheme": "rig",
+      "blurb": "Offshore crabs meet hazmat. Sideways vs clipboard.",
+      "groundColor": [
+        50,
+        55,
+        60
+      ]
+    },
+    {
+      "clockTime": 15,
+      "index": 17,
+      "steveAct": 4,
+      "lighting": "offshoreWind",
+      "scalingTier": 4,
+      "isHub": false,
+      "hazards": [
+        "canalWater",
+        "oilSlick"
+      ],
+      "platformLedges": 3,
+      "length": 270,
+      "coldOnePickup": false,
+      "waves": [
+        {
+          "atProgress": 0.1,
+          "enemyId": "StormPelican",
+          "count": 1
+        },
+        {
+          "atProgress": 0.28,
+          "enemyId": "JetSkiBandit",
+          "count": 1
+        },
+        {
+          "atProgress": 0.48,
+          "enemyId": "OffshoreCrab",
+          "count": 2
+        },
+        {
+          "atProgress": 0.65,
+          "enemyId": "StormPelican",
+          "count": 2
+        },
+        {
+          "atProgress": 0.82,
+          "enemyId": "DroneSpotter",
+          "count": 2
+        }
+      ],
+      "hangover": false,
+      "goalLabel": "FAR DECK →",
+      "storyBeat": "Jump the gaps. The platform is a silhouette ahead.",
+      "accentColor": [
+        120,
+        180,
+        255
+      ],
+      "id": "BargeCrossing",
+      "biome": "offshore",
+      "setPiece": "bargeGaps",
+      "headline": "BARGE: Storm pelicans claim airspace — gaps in the deck rated 'Florida'",
+      "showMutantTagline": false,
+      "name": "Barge Crossing",
+      "rescueTurtles": 0,
+      "fogColor": [
+        80,
+        100,
+        120
+      ],
+      "propTheme": "rig",
+      "blurb": "Barge gaps. Hoppers and jet-ski leftovers. Don't fall in the joke.",
+      "groundColor": [
+        55,
+        70,
+        80
+      ]
+    },
+    {
+      "clockTime": 20.5,
+      "index": 18,
+      "steveAct": 4,
+      "lighting": "industrialOrange",
+      "scalingTier": 4,
+      "isHub": false,
+      "hazards": [
+        "oilSlick",
+        "fireCone"
+      ],
+      "platformLedges": 2,
+      "length": 280,
+      "coldOnePickup": false,
+      "waves": [
+        {
+          "atProgress": 0.1,
+          "enemyId": "RigWelder",
+          "count": 2
+        },
+        {
+          "atProgress": 0.26,
+          "enemyId": "OilGator",
+          "count": 1
+        },
+        {
+          "atProgress": 0.42,
+          "enemyId": "DroneSpotter",
+          "count": 2
+        },
+        {
+          "atProgress": 0.58,
+          "enemyId": "FireLizard",
+          "count": 1
+        },
+        {
+          "atProgress": 0.72,
+          "enemyId": "MutantAdd",
+          "count": 2
+        },
+        {
+          "atProgress": 0.88,
+          "enemyId": "BarrelRoller",
+          "count": 1
+        }
+      ],
+      "hangover": false,
+      "goalLabel": "RIG FLARE →",
+      "storyBeat": "The helipad waits. So does the Spillfather.",
+      "accentColor": [
+        255,
+        140,
+        20
+      ],
+      "id": "OilPlatformApproach",
+      "biome": "offshore",
+      "setPiece": "platformApproach",
+      "headline": "PLATFORM: Approach rated hostile by anonymous pelican — slicks bloom under the rig",
+      "showMutantTagline": true,
+      "name": "Oil Platform Approach",
+      "rescueTurtles": 0,
+      "fogColor": [
+        30,
+        32,
+        40
+      ],
+      "propTheme": "rig",
+      "blurb": "Welders, drones, slicks. Finale is close.",
+      "groundColor": [
+        40,
+        42,
+        50
+      ]
+    },
+    {
+      "clockTime": 21.5,
+      "index": 19,
+      "steveAct": 4,
+      "lighting": "industrialOrange",
+      "scalingTier": 4,
+      "isHub": false,
+      "hazards": [
+        "windPush",
+        "oilSlick"
+      ],
+      "platformLedges": 1,
+      "length": 250,
+      "coldOnePickup": false,
+      "waves": [
+        {
+          "atProgress": 0.1,
+          "enemyId": "GulfGulpGrunt",
+          "count": 2
+        },
+        {
+          "atProgress": 0.28,
+          "enemyId": "LabCoat",
+          "count": 1
+        },
+        {
+          "atProgress": 0.45,
+          "enemyId": "StormPelican",
+          "count": 1
+        },
+        {
+          "atProgress": 0.6,
+          "enemyId": "OilPuddleLayer",
+          "count": 1
+        },
+        {
+          "atProgress": 0.75,
+          "enemyId": "RigWelder",
+          "count": 2
+        },
+        {
+          "atProgress": 0.88,
+          "enemyId": "MutantAdd",
+          "count": 2
+        }
+      ],
+      "hangover": false,
+      "goalLabel": "HELIPAD EDGE →",
+      "storyBeat": "One more headline between you and the Spillfather.",
+      "accentColor": [
+        255,
+        80,
+        60
+      ],
+      "id": "HelipadHysteria",
+      "biome": "offshore",
+      "setPiece": "helipadWind",
+      "headline": "HELIPAD: Closed for mutant maintenance — wind push rated 'personality'",
+      "showMutantTagline": false,
+      "name": "Helipad Hysteria",
+      "rescueTurtles": 0,
+      "fogColor": [
+        35,
+        30,
+        40
+      ],
+      "propTheme": "rig",
+      "blurb": "Last security wave. Wind push set piece. Then the sludge mech.",
+      "groundColor": [
+        50,
+        52,
+        58
+      ]
+    },
+    {
+      "clockTime": 22,
+      "index": 20,
+      "steveAct": 5,
+      "lighting": "finaleRig",
+      "scalingTier": 5,
+      "isHub": false,
+      "boss": "Spillfather",
+      "hazards": [
+        "oilSlick",
+        "fireCone"
+      ],
+      "platformLedges": 1,
+      "length": 320,
+      "coldOnePickup": false,
+      "waves": [
+        {
+          "atProgress": 0.08,
+          "enemyId": "GulfGulpGrunt",
+          "count": 2
+        },
+        {
+          "atProgress": 0.2,
+          "enemyId": "OilGator",
+          "count": 1
+        },
+        {
+          "atProgress": 0.32,
+          "enemyId": "MutantAdd",
+          "count": 2
+        },
+        {
+          "atProgress": 0.42,
+          "enemyId": "FireLizard",
+          "count": 1
+        },
+        {
+          "atProgress": 0.5,
+          "enemyId": "RigWelder",
+          "count": 1
+        }
+      ],
+      "hangover": false,
+      "goalLabel": "SUNRISE →",
+      "storyBeat": "The Spillfather and the last captive turtles are here. Defeat the mech and free every turtle before sunrise.",
+      "accentColor": [
+        255,
+        150,
+        0
+      ],
+      "id": "GulfGulpRig",
+      "biome": "offshore",
+      "setPiece": "spillfatherArena",
+      "headline": "FINALE: The Spillfather makes an offer Florida Man can't refuse — he refuses, for the turtles",
+      "unlockPersona": "FireworksEnthusiast",
+      "showMutantTagline": true,
+      "name": "GulfGulp Rig",
+      "rescueTurtles": 3,
+      "fogColor": [
+        30,
+        32,
+        40
+      ],
+      "propTheme": "rig",
+      "blurb": "Oil-exec sludge mech. Save remaining turtles. Sunrise credits.",
+      "groundColor": [
+        35,
+        38,
+        45
+      ]
+    }
+  ],
+  "minibossHp": [
+    0.88,
+    0.92,
+    1,
+    1,
+    1
+  ],
+  "hpScale": 0.09,
+  "weapons": [
+    {
+      "knockback": 8,
+      "description": "Default Florida fists.",
+      "id": "BareHands",
+      "range": 8,
+      "flavor": "Technically a weapon.",
+      "vfx": "punch",
+      "name": "Bare Hands",
+      "speed": 1,
+      "kind": "melee",
+      "rarity": "Common",
+      "damage": 10
+    },
+    {
+      "knockback": 10,
+      "description": "The classic slapper. One always missing.",
+      "id": "FlipFlopSlap",
+      "range": 9,
+      "flavor": "Slap-slap justice.",
+      "vfx": "slap",
+      "name": "Flip-Flop",
+      "speed": 1.15,
+      "kind": "melee",
+      "rarity": "Common",
+      "damage": 12
+    },
+    {
+      "knockback": 6,
+      "description": "Banned in 12 HOAs. Still flies true.",
+      "id": "LawnDart",
+      "range": 22,
+      "flavor": "Arcs of destiny.",
+      "vfx": "dart",
+      "name": "Lawn Dart",
+      "speed": 0.85,
+      "kind": "thrown",
+      "rarity": "Rare",
+      "damage": 18
+    },
+    {
+      "knockback": 14,
+      "description": "Fore! Also sideways.",
+      "id": "GolfClub",
+      "range": 12,
+      "flavor": "HOA driving range.",
+      "vfx": "swing",
+      "name": "Golf Club",
+      "speed": 0.9,
+      "kind": "melee",
+      "rarity": "Common",
+      "damage": 16
+    },
+    {
+      "knockback": 16,
+      "description": "Borrowed from a science experiment.",
+      "id": "GatorWrestleGloves",
+      "range": 10,
+      "flavor": "Clamp and slam.",
+      "vfx": "grab",
+      "name": "Gator Wrestle Gloves",
+      "speed": 0.8,
+      "kind": "melee",
+      "rarity": "Unique",
+      "damage": 20
+    },
+    {
+      "knockback": 4,
+      "description": "Safety third. Sparks first.",
+      "id": "RomanCandle",
+      "range": 26,
+      "flavor": "Cartoon rockets.",
+      "vfx": "firework",
+      "name": "Roman Candle",
+      "speed": 1,
+      "kind": "ranged",
+      "rarity": "Rare",
+      "damage": 14
+    },
+    {
+      "knockback": 8,
+      "description": "Hisses when it hits. Somehow helpful.",
+      "id": "SnakeLasso",
+      "range": 20,
+      "flavor": "Coil control.",
+      "vfx": "lasso",
+      "name": "Snake Lasso",
+      "speed": 0.95,
+      "kind": "thrown",
+      "rarity": "Rare",
+      "damage": 15
+    },
+    {
+      "knockback": 7,
+      "description": "Pads that drink sludge so turtles don't.",
+      "id": "SpillSkimmer",
+      "range": 11,
+      "flavor": "Eco slap.",
+      "vfx": "splash",
+      "name": "Spill Skimmer",
+      "speed": 1.05,
+      "kind": "melee",
+      "rarity": "Unique",
+      "damage": 13
+    },
+    {
+      "knockback": 12,
+      "description": "Soft. Humiliating. Effective.",
+      "id": "PoolNoodle",
+      "range": 14,
+      "flavor": "Bonk of shame.",
+      "vfx": "bonk",
+      "name": "Pool Noodle",
+      "speed": 1.3,
+      "kind": "melee",
+      "rarity": "Common",
+      "damage": 9
+    },
+    {
+      "knockback": 15,
+      "description": "Shield bash with Florida Dew stains.",
+      "id": "CoolerLid",
+      "range": 8,
+      "flavor": "Bash then sip vibes.",
+      "vfx": "bash",
+      "name": "Cooler Lid",
+      "speed": 1.1,
+      "kind": "melee",
+      "rarity": "Common",
+      "damage": 11
+    },
+    {
+      "knockback": 11,
+      "description": "Pointy end optional. Wind optional.",
+      "id": "BeachUmbrella",
+      "range": 13,
+      "flavor": "Sun-blocking spear.",
+      "vfx": "thrust",
+      "name": "Beach Umbrella",
+      "speed": 0.88,
+      "kind": "melee",
+      "rarity": "Rare",
+      "damage": 14
+    },
+    {
+      "knockback": 9,
+      "description": "Foam cone vs fire lizards.",
+      "id": "FireExtinguisher",
+      "range": 18,
+      "flavor": "Corporate safety theater.",
+      "vfx": "foam",
+      "name": "Fire Extinguisher",
+      "secondaryEffect": "foamFire",
+      "speed": 1,
+      "kind": "ranged",
+      "rarity": "Rare",
+      "damage": 12
+    },
+    {
+      "knockback": 10,
+      "description": "Wearable. Throwable. Iconic.",
+      "id": "TrafficCone",
+      "range": 16,
+      "flavor": "Cone of silence.",
+      "vfx": "cone",
+      "name": "Traffic Cone",
+      "speed": 1.05,
+      "kind": "thrown",
+      "rarity": "Common",
+      "damage": 13
+    },
+    {
+      "knockback": 12,
+      "description": "Double-sided swamp oar.",
+      "id": "KayakPaddle",
+      "range": 12,
+      "flavor": "Row your beef.",
+      "vfx": "paddle",
+      "name": "Kayak Paddle",
+      "speed": 1,
+      "kind": "melee",
+      "rarity": "Common",
+      "damage": 15
+    },
+    {
+      "knockback": 5,
+      "description": "ZZZT. Good on flies and HOA vibes.",
+      "id": "BugZapper",
+      "range": 9,
+      "flavor": "Electric slap.",
+      "vfx": "zap",
+      "name": "Bug Zapper",
+      "speed": 0.95,
+      "kind": "melee",
+      "rarity": "Rare",
+      "damage": 17
+    },
+    {
+      "knockback": 3,
+      "description": "Red tide revenge, cartoon edition.",
+      "id": "WaterBalloonSling",
+      "range": 24,
+      "flavor": "Splash damage.",
+      "vfx": "balloon",
+      "name": "Water Balloon Sling",
+      "speed": 1.1,
+      "kind": "ranged",
+      "rarity": "Common",
+      "damage": 11
+    },
+    {
+      "knockback": 20,
+      "description": "One wheel always squeaks.",
+      "id": "ShoppingCart",
+      "range": 11,
+      "flavor": "Full send aisle 3.",
+      "vfx": "ram",
+      "name": "Shopping Cart Ram",
+      "speed": 0.75,
+      "kind": "melee",
+      "rarity": "Unique",
+      "damage": 19
+    },
+    {
+      "knockback": 9,
+      "description": "Captain Steve merch. Sharp opinions.",
+      "id": "PelicanBeakReplica",
+      "range": 10,
+      "flavor": "Steve-approved.",
+      "vfx": "peck",
+      "name": "Pelican Beak Replica",
+      "speed": 1,
+      "kind": "melee",
+      "rarity": "Unique",
+      "damage": 16
+    },
+    {
+      "knockback": 14,
+      "description": "GulfGulp scrap. Heavy frisbee.",
+      "id": "OilBarrelLid",
+      "range": 19,
+      "flavor": "Corporate frisbee.",
+      "vfx": "disc",
+      "name": "Oil Barrel Lid",
+      "speed": 0.8,
+      "kind": "thrown",
+      "rarity": "Rare",
+      "damage": 18
+    },
+    {
+      "knockback": 8,
+      "description": "Ambient lighting + poke.",
+      "id": "TikiTorch",
+      "range": 11,
+      "flavor": "Bonfire energy.",
+      "vfx": "torch",
+      "name": "Tiki Torch",
+      "speed": 0.92,
+      "kind": "melee",
+      "rarity": "Common",
+      "damage": 14
+    },
+    {
+      "knockback": 13,
+      "description": "Kickflip into combat somehow.",
+      "id": "Skateboard",
+      "range": 10,
+      "flavor": "Grind the lane.",
+      "vfx": "board",
+      "name": "Skateboard",
+      "speed": 1.2,
+      "kind": "melee",
+      "rarity": "Rare",
+      "damage": 13
+    },
+    {
+      "knockback": 11,
+      "description": "Thaws mid-combo. Still hits.",
+      "id": "FishSmack",
+      "range": 9,
+      "flavor": "Slapstick seafood.",
+      "vfx": "fish",
+      "name": "Frozen Fish",
+      "speed": 1,
+      "kind": "melee",
+      "rarity": "Common",
+      "damage": 15
+    },
+    {
+      "knockback": 6,
+      "description": "BREAKING: you got bonked.",
+      "id": "NewspaperRoll",
+      "range": 8,
+      "flavor": "Headline swat.",
+      "vfx": "paper",
+      "name": "Rolled Newspaper",
+      "speed": 1.25,
+      "kind": "melee",
+      "rarity": "Common",
+      "damage": 10
+    },
+    {
+      "knockback": 2,
+      "description": "Roots and interrupts grunts. Safe around turtles.",
+      "id": "NetGun",
+      "range": 20,
+      "flavor": "Rescue tech.",
+      "vfx": "net",
+      "name": "Turtle-Safe Net",
+      "secondaryEffect": "netRoot",
+      "speed": 0.9,
+      "kind": "ranged",
+      "rarity": "Unique",
+      "damage": 8
+    },
+    {
+      "knockback": 7,
+      "description": "Turned GulfGulp's hose against them.",
+      "id": "SludgeHose",
+      "range": 22,
+      "flavor": "Irony stream.",
+      "vfx": "hose",
+      "name": "Sludge Hose",
+      "speed": 0.85,
+      "kind": "ranged",
+      "rarity": "Unique",
+      "damage": 16
+    },
+    {
+      "knockback": 18,
+      "description": "One big cartoon boom.",
+      "id": "FinaleRocket",
+      "range": 30,
+      "flavor": "Credits tease.",
+      "vfx": "rocket",
+      "name": "Finale Rocket",
+      "speed": 0.65,
+      "kind": "thrown",
+      "rarity": "Legendary",
+      "damage": 28
+    },
+    {
+      "knockback": 4,
+      "description": "Paper cuts + citations.",
+      "id": "HOAClipboard",
+      "range": 8,
+      "flavor": "Weaponized paperwork.",
+      "vfx": "clip",
+      "name": "HOA Clipboard",
+      "speed": 1.15,
+      "kind": "melee",
+      "rarity": "Rare",
+      "damage": 12
+    },
+    {
+      "knockback": 12,
+      "description": "Surf the lane, bash sideways.",
+      "id": "BoogieBoard",
+      "range": 11,
+      "flavor": "Hang ten, then ten more.",
+      "vfx": "board",
+      "name": "Boogie Board",
+      "speed": 1.05,
+      "kind": "melee",
+      "rarity": "Common",
+      "damage": 14
+    }
+  ],
+  "skillCdr": {
+    "Legendary": 0.2,
+    "Unique": 0.14,
+    "Rare": 0.08,
+    "Common": 0
+  },
+  "enemies": [
+    {
+      "color": [
+        220,
+        70,
+        50
+      ],
+      "hp": 24,
+      "attackCooldown": 1.65,
+      "speed": 10,
+      "damage": 5,
+      "behavior": "scuttle",
+      "id": "BeachCrab",
+      "size": {
+        "Y": 1.6,
+        "X": 3.2,
+        "Z": 3.2
+      },
+      "telegraphColor": [
+        255,
+        120,
+        80
+      ],
+      "flavor": "Stole your Cold One. Sideways and proud.",
+      "telegraph": 0.72,
+      "name": "Hangover Pincher",
+      "isAlly": false,
+      "isMiniboss": false,
+      "isBoss": false,
+      "shape": "crab",
+      "accent": [
+        255,
+        180,
+        100
+      ]
+    },
+    {
+      "color": [
+        180,
+        90,
+        60
+      ],
+      "hp": 34,
+      "attackCooldown": 1.7,
+      "speed": 7,
+      "damage": 7,
+      "dropsItem": "SeashellShield",
+      "behavior": "tank",
+      "id": "HermitCrab",
+      "size": {
+        "Y": 2.2,
+        "X": 2.8,
+        "Z": 2.8
+      },
+      "telegraphColor": [
+        255,
+        200,
+        80
+      ],
+      "flavor": "Wears your shades. Shell tank. Slow pinch.",
+      "telegraph": 0.55,
+      "name": "Stolen-Sunglasses Crab",
+      "isAlly": false,
+      "isMiniboss": false,
+      "isBoss": false,
+      "shape": "crab",
+      "accent": [
+        40,
+        40,
+        50
+      ]
+    },
+    {
+      "color": [
+        200,
+        180,
+        120
+      ],
+      "hp": 16,
+      "attackCooldown": 1.25,
+      "speed": 16,
+      "damage": 4,
+      "behavior": "hopper",
+      "id": "SandFlea",
+      "size": {
+        "Y": 1.2,
+        "X": 1.6,
+        "Z": 1.6
+      },
+      "telegraphColor": [
+        255,
+        240,
+        180
+      ],
+      "flavor": "Annoying hoppers. Tutorial pests.",
+      "telegraph": 0.48,
+      "name": "Sand Flea",
+      "isAlly": false,
+      "isMiniboss": false,
+      "isBoss": false,
+      "shape": "hopper",
+      "accent": [
+        255,
+        220,
+        160
+      ]
+    },
+    {
+      "color": [
+        180,
+        30,
+        40
+      ],
+      "hp": 85,
+      "attackCooldown": 1.75,
+      "speed": 9,
+      "damage": 10,
+      "dropsItem": "LiveBait",
+      "behavior": "scuttle",
+      "id": "CrabKingBoss",
+      "size": {
+        "Y": 3,
+        "X": 5.5,
+        "Z": 5.5
+      },
+      "telegraphColor": [
+        255,
+        80,
+        60
+      ],
+      "flavor": "Sideways royalty. Holds court over your Florida Dew.",
+      "dropsPersona": "CrabKing",
+      "telegraph": 0.85,
+      "name": "King of the Tide Pool",
+      "isAlly": false,
+      "isMiniboss": true,
+      "isBoss": false,
+      "shape": "crab",
+      "accent": [
+        255,
+        220,
+        100
+      ]
+    },
+    {
+      "color": [
+        255,
+        210,
+        160
+      ],
+      "hp": 36,
+      "attackCooldown": 1.8,
+      "speed": 9,
+      "damage": 7,
+      "dropsItem": "IHeartFLShirt",
+      "behavior": "chase",
+      "id": "AngryTourist",
+      "size": {
+        "Y": 5,
+        "X": 2.4,
+        "Z": 2
+      },
+      "telegraphColor": [
+        255,
+        160,
+        100
+      ],
+      "flavor": "Lost. Taking it personally.",
+      "telegraph": 0.68,
+      "name": "Lost Tourist",
+      "isAlly": false,
+      "isMiniboss": false,
+      "isBoss": false,
+      "shape": "humanoid",
+      "accent": [
+        80,
+        140,
+        200
+      ]
+    },
+    {
+      "color": [
+        255,
+        200,
+        180
+      ],
+      "hp": 32,
+      "attackCooldown": 2.1,
+      "speed": 8,
+      "damage": 6,
+      "dropsItem": "CrackedVisor",
+      "behavior": "spitter",
+      "id": "SelfieZombie",
+      "size": {
+        "Y": 4.8,
+        "X": 2.2,
+        "Z": 2
+      },
+      "telegraphColor": [
+        180,
+        240,
+        255
+      ],
+      "flavor": "Selfie-stick flash marks the danger strip. Step aside.",
+      "telegraph": 0.75,
+      "name": "Influencer Stick",
+      "isAlly": false,
+      "isMiniboss": false,
+      "isBoss": false,
+      "shape": "humanoid",
+      "accent": [
+        100,
+        200,
+        255
+      ]
+    },
+    {
+      "color": [
+        255,
+        180,
+        160
+      ],
+      "hp": 48,
+      "attackCooldown": 1.9,
+      "speed": 8,
+      "damage": 9,
+      "dropsItem": "HOACitation",
+      "behavior": "spitter",
+      "id": "CondoKaren",
+      "size": {
+        "Y": 5.1,
+        "X": 2.5,
+        "Z": 2.1
+      },
+      "telegraphColor": [
+        255,
+        80,
+        120
+      ],
+      "flavor": "Paperwork strike slows you. Wants the manager of the swamp.",
+      "telegraph": 0.7,
+      "name": "HOA Binder Karen",
+      "isAlly": false,
+      "isMiniboss": false,
+      "isBoss": false,
+      "shape": "humanoid",
+      "accent": [
+        200,
+        40,
+        80
+      ]
+    },
+    {
+      "color": [
+        255,
+        60,
+        160
+      ],
+      "hp": 32,
+      "attackCooldown": 2,
+      "speed": 7,
+      "damage": 6,
+      "dropsItem": "GasStationTaquito",
+      "behavior": "puddle",
+      "id": "SlushieSlime",
+      "size": {
+        "Y": 2.5,
+        "X": 3.5,
+        "Z": 3.5
+      },
+      "telegraphColor": [
+        255,
+        100,
+        200
+      ],
+      "flavor": "Floor is sticky. Neon pink.",
+      "telegraph": 0.72,
+      "name": "Slushie Spill",
+      "isAlly": false,
+      "isMiniboss": false,
+      "isBoss": false,
+      "shape": "slime",
+      "accent": [
+        120,
+        255,
+        255
+      ]
+    },
+    {
+      "color": [
+        220,
+        40,
+        40
+      ],
+      "hp": 48,
+      "attackCooldown": 2.4,
+      "speed": 14,
+      "damage": 9,
+      "dropsItem": "NoveltyMug",
+      "behavior": "charger",
+      "id": "HotDogCart",
+      "size": {
+        "Y": 3,
+        "X": 4,
+        "Z": 2.5
+      },
+      "telegraphColor": [
+        255,
+        200,
+        40
+      ],
+      "flavor": "Mustard-yellow charger. Sidestep its marked strike.",
+      "telegraph": 0.58,
+      "name": "Runaway Hotdog Cart",
+      "isAlly": false,
+      "isMiniboss": false,
+      "isBoss": false,
+      "shape": "cart",
+      "accent": [
+        255,
+        220,
+        80
+      ]
+    },
+    {
+      "color": [
+        255,
+        40,
+        140
+      ],
+      "hp": 100,
+      "attackCooldown": 2.1,
+      "speed": 6,
+      "damage": 11,
+      "dropsItem": "GasStationTaquito",
+      "behavior": "puddle",
+      "id": "SlushieKing",
+      "size": {
+        "Y": 5,
+        "X": 5,
+        "Z": 5
+      },
+      "telegraphColor": [
+        255,
+        60,
+        180
+      ],
+      "flavor": "Sticky crown. Wide strikes leave slowing slicks.",
+      "telegraph": 0.8,
+      "name": "Slushie King",
+      "isAlly": false,
+      "isMiniboss": true,
+      "isBoss": false,
+      "shape": "slime",
+      "accent": [
+        80,
+        255,
+        255
+      ]
+    },
+    {
+      "color": [
+        100,
+        60,
+        120
+      ],
+      "hp": 125,
+      "attackCooldown": 1.9,
+      "speed": 7,
+      "damage": 12,
+      "dropsItem": "HOACitation",
+      "behavior": "summoner",
+      "id": "HOAHydra",
+      "size": {
+        "Y": 5,
+        "X": 6,
+        "Z": 4
+      },
+      "telegraphColor": [
+        200,
+        100,
+        255
+      ],
+      "flavor": "Three clipboards. Zero chill. Calls snake backup.",
+      "telegraph": 0.75,
+      "name": "HOA Hydra",
+      "isAlly": false,
+      "isMiniboss": true,
+      "isBoss": false,
+      "shape": "boss",
+      "accent": [
+        255,
+        200,
+        80
+      ]
+    },
+    {
+      "color": [
+        45,
+        110,
+        55
+      ],
+      "hp": 115,
+      "attackCooldown": 2.1,
+      "speed": 8,
+      "damage": 13,
+      "dropsItem": "RadioCollar",
+      "behavior": "tank",
+      "id": "DriveThruGator",
+      "size": {
+        "Y": 3.2,
+        "X": 7,
+        "Z": 3.5
+      },
+      "telegraphColor": [
+        255,
+        220,
+        60
+      ],
+      "flavor": "Radio collar blinking. First real story beat.",
+      "dropsPersona": "GatorHauler",
+      "telegraph": 0.75,
+      "name": "Drive-Thru Gator",
+      "isAlly": false,
+      "isMiniboss": true,
+      "isBoss": false,
+      "shape": "gator",
+      "accent": [
+        255,
+        200,
+        40
+      ]
+    },
+    {
+      "color": [
+        60,
+        80,
+        50
+      ],
+      "hp": 34,
+      "attackCooldown": 1.3,
+      "speed": 14,
+      "damage": 9,
+      "behavior": "chase",
+      "id": "Cottonmouth",
+      "size": {
+        "Y": 1.2,
+        "X": 4,
+        "Z": 1.2
+      },
+      "telegraphColor": [
+        255,
+        255,
+        180
+      ],
+      "flavor": "Raised-tail warning before the strike.",
+      "dropsPersona": "SnakeCharmer",
+      "telegraph": 0.45,
+      "name": "Rattle Cottonmouth",
+      "isAlly": false,
+      "isMiniboss": false,
+      "isBoss": false,
+      "shape": "snake",
+      "accent": [
+        240,
+        240,
+        220
+      ]
+    },
+    {
+      "color": [
+        80,
+        60,
+        40
+      ],
+      "hp": 36,
+      "attackCooldown": 1.9,
+      "speed": 11,
+      "damage": 9,
+      "dropsItem": "LiveBait",
+      "behavior": "burrower",
+      "id": "BurrowSnake",
+      "size": {
+        "Y": 1,
+        "X": 3.5,
+        "Z": 1
+      },
+      "telegraphColor": [
+        180,
+        140,
+        80
+      ],
+      "flavor": "Pops from sand with a dirt ring telegraph.",
+      "telegraph": 0.6,
+      "name": "Burrow Snake",
+      "isAlly": false,
+      "isMiniboss": false,
+      "isBoss": false,
+      "shape": "snake",
+      "accent": [
+        200,
+        180,
+        120
+      ]
+    },
+    {
+      "color": [
+        25,
+        35,
+        30
+      ],
+      "hp": 58,
+      "attackCooldown": 1.8,
+      "speed": 8,
+      "damage": 11,
+      "dropsItem": "SpillAbsorbent",
+      "behavior": "puddle",
+      "id": "OilGator",
+      "size": {
+        "Y": 2.8,
+        "X": 6,
+        "Z": 3
+      },
+      "telegraphColor": [
+        255,
+        180,
+        40
+      ],
+      "flavor": "Neon collar + sludge trail. GulfGulp property.",
+      "telegraph": 0.7,
+      "name": "Collared Oil Gator",
+      "isAlly": false,
+      "isMiniboss": false,
+      "isBoss": false,
+      "shape": "gator",
+      "accent": [
+        255,
+        200,
+        40
+      ]
+    },
+    {
+      "color": [
+        255,
+        90,
+        20
+      ],
+      "hp": 46,
+      "attackCooldown": 1.6,
+      "speed": 12,
+      "damage": 11,
+      "behavior": "firearc",
+      "id": "FireLizard",
+      "size": {
+        "Y": 2.2,
+        "X": 3.5,
+        "Z": 4
+      },
+      "telegraphColor": [
+        255,
+        100,
+        20
+      ],
+      "flavor": "Ground fire-cone telegraph. Cartoon burn.",
+      "dropsPersona": "LizardBreath",
+      "telegraph": 0.55,
+      "name": "Fire-Breathing Lizard",
+      "isAlly": false,
+      "isMiniboss": false,
+      "isBoss": false,
+      "shape": "lizard",
+      "accent": [
+        255,
+        220,
+        60
+      ]
+    },
+    {
+      "color": [
+        255,
+        140,
+        40
+      ],
+      "hp": 26,
+      "attackCooldown": 1.3,
+      "speed": 15,
+      "damage": 7,
+      "dropsItem": "ExpiredSunscreen",
+      "behavior": "firearc",
+      "id": "EmberSkink",
+      "size": {
+        "Y": 1.4,
+        "X": 2.2,
+        "Z": 3
+      },
+      "telegraphColor": [
+        255,
+        160,
+        40
+      ],
+      "flavor": "Tiny flame arcs on the ground.",
+      "telegraph": 0.4,
+      "name": "Ember Skink",
+      "isAlly": false,
+      "isMiniboss": false,
+      "isBoss": false,
+      "shape": "lizard",
+      "accent": [
+        255,
+        80,
+        20
+      ]
+    },
+    {
+      "color": [
+        80,
+        200,
+        60
+      ],
+      "hp": 44,
+      "attackCooldown": 1.4,
+      "speed": 11,
+      "damage": 9,
+      "behavior": "chase",
+      "id": "MutantAdd",
+      "size": {
+        "Y": 3,
+        "X": 3,
+        "Z": 3
+      },
+      "telegraphColor": [
+        120,
+        255,
+        80
+      ],
+      "flavor": "Anything is possible in the swamp.",
+      "telegraph": 0.45,
+      "name": "Enhanced Specimen",
+      "isAlly": false,
+      "isMiniboss": false,
+      "isBoss": false,
+      "shape": "lizard",
+      "accent": [
+        255,
+        100,
+        0
+      ]
+    },
+    {
+      "color": [
+        70,
+        50,
+        90
+      ],
+      "hp": 58,
+      "attackCooldown": 3.1,
+      "speed": 5,
+      "damage": 8,
+      "dropsItem": "HOACitation",
+      "behavior": "summoner",
+      "id": "SwampSummoner",
+      "size": {
+        "Y": 4.5,
+        "X": 3,
+        "Z": 3
+      },
+      "telegraphColor": [
+        180,
+        80,
+        255
+      ],
+      "flavor": "Calls cottonmouths. Purple circle telegraph.",
+      "telegraph": 1.05,
+      "name": "Swamp Open-Mic Host",
+      "isAlly": false,
+      "isMiniboss": false,
+      "isBoss": false,
+      "shape": "humanoid",
+      "accent": [
+        180,
+        100,
+        255
+      ]
+    },
+    {
+      "color": [
+        240,
+        240,
+        230
+      ],
+      "hp": 42,
+      "attackCooldown": 1.6,
+      "speed": 10,
+      "damage": 9,
+      "dropsItem": "FlipFlops",
+      "behavior": "charger",
+      "id": "PelicanBully",
+      "size": {
+        "Y": 3.5,
+        "X": 3.5,
+        "Z": 3
+      },
+      "telegraphColor": [
+        255,
+        200,
+        120
+      ],
+      "flavor": "Not Captain Steve. Rude.",
+      "telegraph": 0.5,
+      "name": "Bully Pelican",
+      "isAlly": false,
+      "isMiniboss": false,
+      "isBoss": false,
+      "shape": "pelican",
+      "accent": [
+        255,
+        160,
+        40
+      ]
+    },
+    {
+      "color": [
+        40,
+        50,
+        40
+      ],
+      "hp": 20,
+      "attackCooldown": 1,
+      "speed": 14,
+      "damage": 4,
+      "dropsItem": "ExpiredSunscreen",
+      "behavior": "hopper",
+      "id": "MosquitoCloud",
+      "size": {
+        "Y": 3,
+        "X": 4,
+        "Z": 4
+      },
+      "telegraphColor": [
+        140,
+        160,
+        100
+      ],
+      "flavor": "Buzz. Bite. Repeat.",
+      "telegraph": 0.35,
+      "name": "Mosquito Cloud",
+      "isAlly": false,
+      "isMiniboss": false,
+      "isBoss": false,
+      "shape": "cloud",
+      "accent": [
+        100,
+        120,
+        80
+      ]
+    },
+    {
+      "color": [
+        40,
+        120,
+        200
+      ],
+      "hp": 44,
+      "attackCooldown": 1.6,
+      "speed": 17,
+      "damage": 10,
+      "dropsItem": "FlipFlops",
+      "behavior": "charger",
+      "id": "JetSkiBandit",
+      "size": {
+        "Y": 2.5,
+        "X": 4,
+        "Z": 2
+      },
+      "telegraphColor": [
+        80,
+        180,
+        255
+      ],
+      "flavor": "Wake-jump charger.",
+      "telegraph": 0.45,
+      "name": "Jet Ski Bandit",
+      "isAlly": false,
+      "isMiniboss": false,
+      "isBoss": false,
+      "shape": "cart",
+      "accent": [
+        255,
+        80,
+        80
+      ]
+    },
+    {
+      "color": [
+        20,
+        25,
+        30
+      ],
+      "hp": 40,
+      "attackCooldown": 2.5,
+      "speed": 6,
+      "damage": 7,
+      "dropsItem": "SpillAbsorbent",
+      "behavior": "puddle",
+      "id": "OilPuddleLayer",
+      "size": {
+        "Y": 2.5,
+        "X": 3,
+        "Z": 3
+      },
+      "telegraphColor": [
+        60,
+        50,
+        30
+      ],
+      "flavor": "Leaves slicks that slow you.",
+      "telegraph": 0.85,
+      "name": "Oil Puddle Layer",
+      "isAlly": false,
+      "isMiniboss": false,
+      "isBoss": false,
+      "shape": "slime",
+      "accent": [
+        80,
+        60,
+        20
+      ]
+    },
+    {
+      "color": [
+        50,
+        50,
+        60
+      ],
+      "hp": 46,
+      "attackCooldown": 1.6,
+      "speed": 10,
+      "damage": 10,
+      "dropsItem": "LabBadge",
+      "behavior": "chase",
+      "id": "GulfGulpGrunt",
+      "size": {
+        "Y": 5.2,
+        "X": 2.6,
+        "Z": 2.2
+      },
+      "telegraphColor": [
+        255,
+        200,
+        40
+      ],
+      "flavor": "Corporate mascot energy. Yellow tape.",
+      "telegraph": 0.55,
+      "name": "Cheap Hazmat Grunt",
+      "isAlly": false,
+      "isMiniboss": false,
+      "isBoss": false,
+      "shape": "humanoid",
+      "accent": [
+        255,
+        180,
+        0
+      ]
+    },
+    {
+      "color": [
+        60,
+        70,
+        90
+      ],
+      "hp": 28,
+      "attackCooldown": 1.7,
+      "speed": 12,
+      "damage": 6,
+      "dropsItem": "LuckyPenny",
+      "behavior": "hopper",
+      "id": "DroneSpotter",
+      "size": {
+        "Y": 1.2,
+        "X": 2.5,
+        "Z": 2.5
+      },
+      "telegraphColor": [
+        100,
+        255,
+        180
+      ],
+      "flavor": "Hover-hop. Marks you with a telegraph circle.",
+      "telegraph": 0.5,
+      "name": "Mark Drone",
+      "isAlly": false,
+      "isMiniboss": false,
+      "isBoss": false,
+      "shape": "drone",
+      "accent": [
+        100,
+        255,
+        180
+      ]
+    },
+    {
+      "color": [
+        230,
+        230,
+        240
+      ],
+      "hp": 46,
+      "attackCooldown": 1.5,
+      "speed": 11,
+      "damage": 9,
+      "dropsItem": "LabBadge",
+      "behavior": "spitter",
+      "id": "LabCoat",
+      "size": {
+        "Y": 5,
+        "X": 2.4,
+        "Z": 2
+      },
+      "telegraphColor": [
+        80,
+        220,
+        255
+      ],
+      "flavor": "Marks a hazardous sample strip. Science without ethics.",
+      "telegraph": 0.55,
+      "name": "Sample Tosser",
+      "isAlly": false,
+      "isMiniboss": false,
+      "isBoss": false,
+      "shape": "humanoid",
+      "accent": [
+        40,
+        180,
+        220
+      ]
+    },
+    {
+      "color": [
+        80,
+        80,
+        90
+      ],
+      "hp": 56,
+      "attackCooldown": 1.8,
+      "speed": 8,
+      "damage": 12,
+      "dropsItem": "GatorSkinWallet",
+      "behavior": "firearc",
+      "id": "RigWelder",
+      "size": {
+        "Y": 5.2,
+        "X": 2.8,
+        "Z": 2.4
+      },
+      "telegraphColor": [
+        255,
+        140,
+        40
+      ],
+      "flavor": "Torch arcs on the ground.",
+      "telegraph": 0.6,
+      "name": "Rig Welder",
+      "isAlly": false,
+      "isMiniboss": false,
+      "isBoss": false,
+      "shape": "humanoid",
+      "accent": [
+        255,
+        140,
+        40
+      ]
+    },
+    {
+      "color": [
+        40,
+        50,
+        40
+      ],
+      "hp": 38,
+      "attackCooldown": 2.1,
+      "speed": 13,
+      "damage": 11,
+      "behavior": "charger",
+      "id": "BarrelRoller",
+      "size": {
+        "Y": 3,
+        "X": 3,
+        "Z": 3
+      },
+      "telegraphColor": [
+        255,
+        180,
+        0
+      ],
+      "flavor": "Hazardous freestyle charger.",
+      "telegraph": 0.4,
+      "name": "Barrel Roller",
+      "isAlly": false,
+      "isMiniboss": false,
+      "isBoss": false,
+      "shape": "barrel",
+      "accent": [
+        255,
+        180,
+        0
+      ]
+    },
+    {
+      "color": [
+        180,
+        40,
+        60
+      ],
+      "hp": 52,
+      "attackCooldown": 2.1,
+      "speed": 5,
+      "damage": 10,
+      "dropsItem": "TurtleSticker",
+      "behavior": "puddle",
+      "id": "RedTideBlob",
+      "size": {
+        "Y": 3,
+        "X": 4.5,
+        "Z": 4.5
+      },
+      "telegraphColor": [
+        220,
+        40,
+        60
+      ],
+      "flavor": "Bad for turtles. Cover for 'cleanup.'",
+      "telegraph": 0.75,
+      "name": "Red Tide Blob",
+      "isAlly": false,
+      "isMiniboss": false,
+      "isBoss": false,
+      "shape": "slime",
+      "accent": [
+        255,
+        80,
+        100
+      ]
+    },
+    {
+      "color": [
+        160,
+        40,
+        50
+      ],
+      "hp": 48,
+      "attackCooldown": 1.5,
+      "speed": 9,
+      "damage": 11,
+      "dropsItem": "LiveBait",
+      "behavior": "scuttle",
+      "id": "OffshoreCrab",
+      "size": {
+        "Y": 2,
+        "X": 4,
+        "Z": 4
+      },
+      "telegraphColor": [
+        255,
+        100,
+        50
+      ],
+      "flavor": "Oil-stained claws. Clocked in late.",
+      "telegraph": 0.55,
+      "name": "Offshore Pinch Crew",
+      "isAlly": false,
+      "isMiniboss": false,
+      "isBoss": false,
+      "shape": "crab",
+      "accent": [
+        255,
+        120,
+        60
+      ]
+    },
+    {
+      "color": [
+        200,
+        210,
+        220
+      ],
+      "hp": 85,
+      "attackCooldown": 1.5,
+      "speed": 12,
+      "damage": 10,
+      "dropsItem": "LuckyPenny",
+      "behavior": "hopper",
+      "id": "StormPelican",
+      "size": {
+        "Y": 3.5,
+        "X": 4,
+        "Z": 3.5
+      },
+      "telegraphColor": [
+        140,
+        180,
+        255
+      ],
+      "flavor": "Wind hoppers over the barge.",
+      "telegraph": 0.55,
+      "name": "Storm Pelican",
+      "isAlly": false,
+      "isMiniboss": false,
+      "isBoss": false,
+      "shape": "pelican",
+      "accent": [
+        80,
+        120,
+        180
+      ]
+    },
+    {
+      "color": [
+        30,
+        35,
+        45
+      ],
+      "hp": 175,
+      "attackCooldown": 2.1,
+      "speed": 6,
+      "damage": 14,
+      "dropsItem": "LabBadge",
+      "behavior": "firearc",
+      "id": "RigOverlord",
+      "size": {
+        "Y": 7,
+        "X": 8,
+        "Z": 5
+      },
+      "telegraphColor": [
+        255,
+        140,
+        0
+      ],
+      "flavor": "Middle management of doom. Wide warning arcs, then fire.",
+      "telegraph": 0.85,
+      "name": "Rig Overlord",
+      "isAlly": false,
+      "isMiniboss": true,
+      "isBoss": false,
+      "shape": "boss",
+      "accent": [
+        255,
+        160,
+        0
+      ]
+    },
+    {
+      "color": [
+        20,
+        25,
+        30
+      ],
+      "hp": 340,
+      "attackCooldown": 2.3,
+      "speed": 7,
+      "damage": 16,
+      "dropsItem": "LabBadge",
+      "behavior": "tank",
+      "id": "Spillfather",
+      "size": {
+        "Y": 8,
+        "X": 12,
+        "Z": 6
+      },
+      "telegraphColor": [
+        255,
+        120,
+        0
+      ],
+      "flavor": "Oil-exec sludge mech. Phases: slam, summon, arena slick.",
+      "telegraph": 0.9,
+      "name": "The Spillfather",
+      "isAlly": false,
+      "isMiniboss": false,
+      "isBoss": true,
+      "shape": "boss",
+      "accent": [
+        255,
+        140,
+        0
+      ]
+    },
+    {
+      "color": [
+        80,
+        160,
+        100
+      ],
+      "hp": 9999,
+      "attackCooldown": 99,
+      "speed": 4,
+      "damage": 0,
+      "dropsItem": "TurtleSticker",
+      "behavior": "chase",
+      "id": "RescueTurtle",
+      "size": {
+        "Y": 1.2,
+        "X": 2,
+        "Z": 2.4
+      },
+      "telegraphColor": [
+        120,
+        255,
+        180
+      ],
+      "flavor": "Always an ally. Always.",
+      "dropsPersona": "TurtlePaladin",
+      "telegraph": 0,
+      "name": "Baby Turtle",
+      "isAlly": true,
+      "isMiniboss": false,
+      "isBoss": false,
+      "shape": "turtle",
+      "accent": [
+        200,
+        255,
+        180
+      ]
+    }
+  ],
+  "sourceHashes": {
+    "Constants": "28d68651fb726952a0e3029e34832b8af7c9f40bf2443ce3aa486800d2467c08",
+    "Stages": "aa004f0cd1011068fbb037c8128c91de76df37e5ee278ccb7eb2e1138e2cd486",
+    "Personas": "b6caab3ec39eb485027dd9fff3d12f962ab0f621a622946ea76be6fb7aeb97de",
+    "Enemies": "359d2a10a4940f4245a2b568e6452d5e37019c795c2c8c0538081299dac73c2b",
+    "Items": "20ef4ad069ebd86ee440311bb5d71d7e463c6e947d02d668df628b83977c3123",
+    "Weapons": "c8abd75fee6e4ac4b94a2768ba3fa1497ac1a0ad4c1bd871ff01d913c8a11172",
+    "Balance": "ef6d8e8b7223aa15fa349f72f8183d2cd7660a61f29c632c2847c8197aeccb3d",
+    "ProgressionRules": "7a5b144c983b3a07ad0d298448aa967747a4f0c321c6a83948d5c8f60fdb7fbc",
+    "ProgressionCatalog": "3d5eb9b1d6b0f4ff9dbe4ce8b85cb96a7c001a0cf6f5a7e04851941b54d8a31e",
+    "Movesets": "1d6de3c492a9877e1544a3778050223cf3f1a7f4b1cd32e446c9c54efa31f585",
+    "BuildRules": "7a6fe5afd253d0d977a0947d7c585a18f283bf954f0a8300fc67ad7bc202f33f",
+    "LayoutPlan": "912bd15944d2c70c5c43931067e8f4802a07be4b9a40168a231157c7332dc148"
+  }
+}

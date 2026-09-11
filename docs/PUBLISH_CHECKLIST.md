@@ -1,3 +1,5 @@
+> Historical planning/reference document. Current implementation and release decisions use [IMPLEMENTATION_PROGRESS](IMPLEMENTATION_PROGRESS.md) and [RELEASE_ACCEPTANCE](RELEASE_ACCEPTANCE.md). Claims below have not been re-certified for the repaired source.
+
 # Florida Man — Publish Checklist (N8 soft launch)
 
 **Experience name:** Florida Man  

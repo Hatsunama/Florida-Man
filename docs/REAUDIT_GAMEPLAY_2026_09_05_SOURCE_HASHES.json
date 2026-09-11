@@ -1,0 +1,70 @@
+[
+  {
+    "path": "src/server/EnemyFactory.lua",
+    "sha256": "C12ED175E10CF69A1349056D5D14D9D04E7BF71CE7736B013AC3CD4718568618"
+  },
+  {
+    "path": "src/server/EnemyService.lua",
+    "sha256": "E6F294015F41642C3D1B271380B1CC67D9F7CEC9BEDAE426EE6C46F7087F2F78"
+  },
+  {
+    "path": "src/server/EnemyMovementRules.lua",
+    "sha256": "467683772AF90E372F13527782484DB92BD31E2A667CA3FE01D7E7DE80FFD950"
+  },
+  {
+    "path": "src/server/CombatService.lua",
+    "sha256": "3A592E2FBC488ADACEC0B34C45EBFDE560C581FF6F429C0277EABC022EB0C9DE"
+  },
+  {
+    "path": "src/server/AttackService.lua",
+    "sha256": "F97C5A10CBC3BDDD4270278EF9C13C1627E0A3506701C96A39483CBE4DD348D4"
+  },
+  {
+    "path": "src/server/SkillService.lua",
+    "sha256": "2ED1AEDA09BBE802A7B5F1D77F8FA941FD8CE6F00CE6308D1FE4B92B8E5F194A"
+  },
+  {
+    "path": "src/server/StageFlowService.lua",
+    "sha256": "9A9DF14A2D6A1A14B7B11F63E9FE801DBB5F7611A9EB6086584660740DBE084C"
+  },
+  {
+    "path": "src/server/HazardService.lua",
+    "sha256": "A898DB3EF4B92F12E429B637C38F1AAD0120C980F6A7C7A96FD5035D401A85E5"
+  },
+  {
+    "path": "src/server/CharacterStatePublisher.lua",
+    "sha256": "5310B2B0E6FB7A8C4806EB27EB3F06728CC279D78DE03FA0C2576AA1BD7DB225"
+  },
+  {
+    "path": "src/server/WorldBuilder.lua",
+    "sha256": "EBE893647C1E16A9E576008029C837EF5A7AB21CA94A7E33A41255BFF7B8B3CA"
+  },
+  {
+    "path": "src/shared/ProgressionRules.lua",
+    "sha256": "7A5B144C983B3A07AD0D298448AA967747A4F0C321C6A83948D5C8F60FDB7FBC"
+  },
+  {
+    "path": "src/shared/CombatGeometry.lua",
+    "sha256": "B9721E8D22CCAD169D4330D48C72FC2669BEC1FAD3EC69A1D5879BD4F621ED7F"
+  },
+  {
+    "path": "src/shared/HazardDefinitions.lua",
+    "sha256": "76B92FA536A89A9C78A7D63AE346102E6295BFB5B938DB1BAB937E673634F19A"
+  },
+  {
+    "path": "src/shared/Stages.lua",
+    "sha256": "D272FB96B3A311AC0C451ADCBD66D9D054B21B36B44BD7B90018674115A352D6"
+  },
+  {
+    "path": "src/shared/Items.lua",
+    "sha256": "024B4F9491296C5E7ADC8BC78C63876F5070A9216260ABCAEB4A0A248E1F0C32"
+  },
+  {
+    "path": "src/shared/Balance.lua",
+    "sha256": "61A10A95B720E279BD2D724EA2F286A9BC8B405F243E363AA1D784C9D876FA75"
+  },
+  {
+    "path": "src/shared/BuildRules.lua",
+    "sha256": "3E6E87B2066DFB2EC3436E7DBF9D3509B6DF60825ECE9840ED525BA62B96F33A"
+  }
+]
