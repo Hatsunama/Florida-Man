@@ -14,8 +14,10 @@ local Items=require(Shared:WaitForChild("Items"))
 local UiKit=require(script.Parent:WaitForChild("UiKit"))
 local Layout=require(script.Parent:WaitForChild("GameplayLayout"))
 local Tagline=require(script.Parent:WaitForChild("Tagline"))
+local Steve=require(script.Parent:WaitForChild("CaptainSteveUI"))
 local Presentation=require(script.Parent.Parent.Controllers:WaitForChild("PresentationState"))
 local Input=require(script.Parent.Parent.Controllers:WaitForChild("InputController"))
+local MenuPolicy=require(script.Parent.Parent.Controllers:WaitForChild("MenuPolicy"))
 local HUD={}
 local gui: ScreenGui?=nil
 local statsLabel: TextLabel?=nil
@@ -25,8 +27,33 @@ local state: any=nil
 local clockOffset=0
 local options: ScreenGui?=nil
 local journal: ScreenGui?=nil
+local combatActions: {[GuiObject]: () -> ()}={}
+local combatButtons: {TextButton}={}
+local combatScreen: ScreenGui?=nil
 local lastToast=""
 local lastToastAt=-math.huge
+local function releaseCombatMenu(screen: ScreenGui)
+	if combatScreen~=screen then return end
+	combatScreen=nil
+	Presentation.ReleaseGameplayMenu(screen)
+	table.clear(combatActions); table.clear(combatButtons)
+	Tagline.SetObscured(false)
+	local selected=GuiService.SelectedObject
+	if selected and selected:IsDescendantOf(screen) then GuiService.SelectedObject=nil end
+end
+function HUD.CloseMenus()
+	local oldOptions,oldJournal=options,journal
+	options=nil; journal=nil
+	if oldOptions then releaseCombatMenu(oldOptions); oldOptions:Destroy() end
+	if oldJournal then oldJournal:Destroy() end
+end
+local function trackMenu(screen: ScreenGui, isJournal: boolean)
+	screen.Destroying:Once(function()
+		if isJournal then
+			if journal==screen then journal=nil end
+		elseif options==screen then options=nil end
+	end)
+end
 local function anotherPanelOwnsFocus(): boolean
 	return Presentation.IsModal() and not (options and options.Parent) and not (journal and journal.Parent)
 end
@@ -41,6 +68,7 @@ local function openJournal()
 	if not safeMenu() then return end
 	local screen,scroll=UiKit.Panel("FM_Journal","Notes & equipment",520,true)
 	journal=screen
+	trackMenu(screen,true)
 	UiKit.Focus(UiKit.Button(scroll,"Close",function() screen:Destroy(); journal=nil end))
 	if state then
 		local persona=Personas.Get((state.personas or {})[state.activePersona or 1] or "BeachBurnout")
@@ -63,33 +91,50 @@ end
 local function openOptions()
 	if options and options.Parent then options:Destroy(); options=nil; return end
 	if anotherPanelOwnsFocus() or (state and state.awaitingDraft) then return end
-	if state and state.runActive then
+	if state and state.runActive and state.phase=="Active" and state.characterReady==true and (state.hp or 0)>0 then
 		local screen=UiKit.Screen("FM_CombatMenu",60); options=screen
+		trackMenu(screen,false)
+		combatScreen=screen
+		table.clear(combatActions); table.clear(combatButtons)
+		Presentation.SetGameplayMenu(screen)
 		Tagline.SetObscured(true)
-		screen.Destroying:Connect(function()
-			Tagline.SetObscured(false)
-			local selected=GuiService.SelectedObject
-			if selected and selected:IsDescendantOf(screen) then GuiService.SelectedObject=nil end
-		end)
+		screen.Destroying:Connect(function() releaseCombatMenu(screen) end)
 		local panel=Instance.new("Frame"); panel.AnchorPoint=Vector2.new(1,0); panel.Position=UDim2.new(1,-12,0,58)
-		panel.Size=UDim2.fromOffset(224,140); panel.BackgroundColor3=UiKit.Colors.background; panel.Parent=screen; UiKit.Corner(panel)
+		panel.Size=UDim2.fromOffset(224,178); panel.BackgroundColor3=UiKit.Colors.background; panel.Parent=screen; UiKit.Corner(panel)
 		local text=UiKit.Text(panel,"Run continues",14); text.Position=UDim2.fromOffset(8,6); text.Size=UDim2.fromOffset(208,20)
-		local close=UiKit.Button(panel,"Close · Tab / D-pad ←",function() screen:Destroy(); options=nil end)
+		local function closeMenu() screen:Destroy() end
+		local close=UiKit.Button(panel,"Close · Tab / D-pad ←",closeMenu)
+		combatActions[close]=closeMenu
 		close.Position=UDim2.fromOffset(8,32); close.Size=UDim2.fromOffset(208,44); UiKit.Focus(close)
 		local confirm=false
 		local abandon: TextButton
-		abandon=UiKit.Button(panel,"Return to bonfire",function()
+		local function returnToHub()
 			if not confirm then confirm=true; abandon.Text="End this run and return"; return end
 			Remotes.Get("ReturnToHub"):FireServer(); screen:Destroy(); options=nil
-		end)
+		end
+		abandon=UiKit.Button(panel,"Return to bonfire",returnToHub)
+		combatActions[abandon]=returnToHub
+		combatButtons={close,abandon}
 		abandon.Position=UDim2.fromOffset(8,84); abandon.Size=UDim2.fromOffset(208,44)
+		close.NextSelectionUp=abandon; close.NextSelectionDown=abandon
+		abandon.NextSelectionUp=close; abandon.NextSelectionDown=close
+		for _,button in {close,abandon} do button.NextSelectionLeft=button; button.NextSelectionRight=button end
+		local hint=UiKit.Text(panel,"↑↓ Select · L3 Confirm\nStick Move · A Jump",12)
+		hint.Position=UDim2.fromOffset(8,136); hint.Size=UDim2.fromOffset(208,36)
 		return
 	end
 	if not safeMenu() then return end
 	local screen,scroll=UiKit.Panel("FM_Options","Options",420,true)
 	options=screen
+	trackMenu(screen,false)
 	UiKit.Focus(UiKit.Button(scroll,"Close",function() screen:Destroy(); options=nil end))
 	UiKit.Button(scroll,"Notes & equipment",openJournal)
+	if state and state.inHub then
+		UiKit.Button(scroll,"Captain Steve · Loadout & upgrades",function()
+			screen:Destroy(); options=nil
+			Steve.Open()
+		end)
+	end
 	local rows={{"Screen shake","ShakeEnabled"},{"Patterned danger cues","ColorblindTelegraphs"},{"Reduce motion","ReduceMotion"},{"Reduce flashes","ReduceFlashes"},{"Large text","LargeText"}}
 	for _,row in rows do
 		local button: TextButton
@@ -141,7 +186,11 @@ function HUD.Init(_controller: any)
 		end
 		HUD.RefreshCds()
 	end)
-	screen.Destroying:Connect(function() connection:Disconnect() end)
+	screen.Destroying:Connect(function()
+		connection:Disconnect(); HUD.CloseMenus()
+		CAS:UnbindAction("FM_Options"); CAS:UnbindAction("FM_CombatMenuBack")
+		CAS:UnbindAction("FM_CombatMenuConfirm"); CAS:UnbindAction("FM_CombatMenuNavigate")
+	end)
 	CAS:BindActionAtPriority("FM_Options",function(_,phase)
 		if UIS:GetFocusedTextBox() then return Enum.ContextActionResult.Pass end
 		if phase==Enum.UserInputState.Begin then
@@ -156,6 +205,26 @@ function HUD.Init(_controller: any)
 		end
 		return Enum.ContextActionResult.Pass
 	end,false,4000,Enum.KeyCode.ButtonB,Enum.KeyCode.Escape)
+	CAS:BindActionAtPriority("FM_CombatMenuNavigate",function(_,phase,input)
+		if combatScreen and combatScreen.Parent and not Presentation.IsModal() and not UIS:GetFocusedTextBox() then
+			if phase==Enum.UserInputState.Begin and #combatButtons>0 then
+				local index=table.find(combatButtons,GuiService.SelectedObject :: any)
+				local direction=if input.KeyCode==Enum.KeyCode.DPadDown then 1 else -1
+				GuiService.SelectedObject=combatButtons[if index then (index-1+direction)%#combatButtons+1 else 1]
+			end
+			return Enum.ContextActionResult.Sink
+		end
+		return Enum.ContextActionResult.Pass
+	end,false,4000,Enum.KeyCode.DPadUp,Enum.KeyCode.DPadDown)
+	CAS:BindActionAtPriority("FM_CombatMenuConfirm",function(_,phase)
+		local selected=GuiService.SelectedObject
+		if not UIS:GetFocusedTextBox() and not Presentation.IsModal() and Presentation.GameplayMenuOwnsSelection(selected) then
+			local callback=if selected then combatActions[selected] else nil
+			if callback and phase==Enum.UserInputState.Begin then callback() end
+			return Enum.ContextActionResult.Sink
+		end
+		return Enum.ContextActionResult.Pass
+	end,false,4000,Enum.KeyCode.ButtonL3)
 end
 function HUD.RefreshCds()
 	if not cooldownLabel then return end
@@ -174,12 +243,13 @@ end
 function HUD.Update(value: any)
 	if typeof(value)~="table" then return end
 	local old=state; state=value
+	if MenuPolicy.CloseForState(old,value) then HUD.CloseMenus() end
 	if typeof(value.serverNow)=="number" then clockOffset=os.clock()-value.serverNow end
 	if statsLabel then statsLabel.Text=if value.inHub then "Bonfire" else string.format("HP %d/%d",math.floor(value.hp or 0),math.floor(value.maxHp or 100)) end
 	if stageLabel then
 		local stage=Stages.Get(value.stageId)
 		local boss=value.boss
-		stageLabel.Text=if value.inHub then "Use E / LB nearby" elseif typeof(boss)=="table" and (boss.hp or 0)>0 then tostring(boss.name).." "..tostring(math.ceil(boss.hp)).." HP"
+		stageLabel.Text=if value.inHub then "E / LB: Use · Tab: Shop" elseif typeof(boss)=="table" and (boss.hp or 0)>0 then tostring(boss.name).." "..tostring(math.ceil(boss.hp)).." HP"
 			elseif (value.turtlesNeeded or 0)>0 then "Turtles "..tostring(value.turtlesRescued or 0).."/"..tostring(value.turtlesNeeded)
 			elseif value.coldOneRequired and not value.coldOneTaken then "Collect the Cold One"
 			else if stage then stage.name else "Florida Man"

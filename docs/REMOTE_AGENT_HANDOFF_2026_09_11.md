@@ -14,7 +14,7 @@ Use the virtual desktop and Roblox Studio to establish actual playability on the
 
 1. Confirm the loading screen clears and the player can move, jump, and land.
 2. Confirm native E starts a new run at the bonfire.
-3. Confirm native E opens Captain Steve interaction and that closing the shop exposes a complete readable popup conversation.
+3. Confirm native E opens Captain Steve's complete readable popup conversation. Confirm the separate Tab → Captain Steve loadout action opens the shop without obscuring required dialogue.
 4. Confirm attack, skill, dodge, swap, weapon selection, Tab options, journal, draft, newspaper, death, return to hub, and another new run.
 5. Confirm dialogue pagination preserves whole messages, advances correctly, reflows after resizing, and never fragments to a stray final word.
 6. Exercise every stage, objective, miniboss, boss, rescue, reward, gate, and completion route. Record exact failures and repair their root causes.
@@ -37,7 +37,7 @@ The original archive is `artifacts/florida-game-source-2026-09-11/source/florida
 
 The package contains no Unity project, Blender file, FBX, GLB, texture package, animation, or ready to import game asset. Do not describe it as an asset bundle. Use its illustrations and text as design references unless provenance is sufficient for direct reuse.
 
-Strong implementation candidates include client-owned procedural costume visuals derived from the complete costume concepts, four-hit finishers connected to the existing persona rarity system, fully implemented source items such as Pocketful of Sunshine and Wood Plank, and clearer story goals involving lost clothes, keys, rent, and turtle rescue. Adopt only changes that fit the current architecture and can be tested. Stable saved IDs must remain stable.
+Wood Plank and Pocketful of Sunshine are now implemented as server-authoritative recovery items. Do not duplicate them. The current branch also separates Captain Steve's E conversation from shop access, makes cooldown snapshots authoritative, locks dodge direction for a burst, cleans transient combat menus across lifecycle transitions, and centralizes no-audio asset/runtime policy. Re-test each change in Studio before treating it as accepted.
 
 ## Layer ownership
 

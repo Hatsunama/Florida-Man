@@ -22,6 +22,7 @@ local jumpBuffer=0
 local coyote=0
 local jumping=false
 local dodgeRemaining=0
+local dodgeDirection=1
 local lockUntil=0
 local impulseRevision: any=nil
 local resetRevision: any=nil
@@ -108,6 +109,7 @@ function Movement.Hitstop(duration: number?) Anim.Hitstop(duration or Constants.
 function Movement.ApplyDodge(direction: number): boolean
 	if not enabled or not root then return false end
 	facing=if direction==-1 then -1 else 1
+	dodgeDirection=facing
 	dodgeRemaining=Constants.DODGE_DURATION
 	Anim.PlayDodge()
 	return true
@@ -154,7 +156,7 @@ function Movement.Start()
 		local dodging=activeDt>0 and dt>0
 		if dodging then
 			local fraction=activeDt/dt
-			desired=facing*(Constants.DODGE_DISTANCE/Constants.DODGE_DURATION)*fraction+axis*baseSpeed*(1-fraction)
+			desired=dodgeDirection*(Constants.DODGE_DISTANCE/Constants.DODGE_DURATION)*fraction+axis*baseSpeed*(1-fraction)
 		end
 		dodgeRemaining=math.max(0,dodgeRemaining-dt)
 		local acceleration=if grounded then 180 else 110

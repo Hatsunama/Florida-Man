@@ -26,11 +26,23 @@ def contracts():
     for p, s in sources.items():
         for name in re.findall(r'Remotes\.Get\(["\']([^"\']+)["\']\)',s):
             if name not in declared: failures.append(f'{p.relative_to(ROOT)}: undeclared remote {name}')
-        if re.search(r'Instance\.new\(["\'](?:Sound|AudioPlayer|AudioEmitter|AudioDeviceInput)["\']\)',s):
+        # Keep this static creation guard aligned with shared/AudioPolicy.lua;
+        # runtime/import checks use that module, including future Audio* nodes.
+        if re.search(r'Instance\.new\s*\(\s*["\'](?:Audio\w*|Sound\w*|\w*SoundEffect|Wire|VideoFrame|VideoPlayer|VoiceChat\w*)["\']',s):
             failures.append(f'{p.relative_to(ROOT)}: experience audio creation is forbidden')
         if 'AudioCatalog' in s or 'PlaySound' in s: failures.append(f'{p.relative_to(ROOT)}: obsolete audio pipeline')
         if re.search(r'weapon\.vfx\s*==',s) and 'server' in p.parts:
             failures.append(f'{p.relative_to(ROOT)}: visual identifier determines gameplay')
+    art = sources[ROOT/'src/shared/ArtAssets.lua']
+    silence = sources[ROOT/'src/client/Controllers/SilenceController.lua']
+    if 'AudioPolicy.IsForbiddenClass(object.ClassName)' not in art:
+        failures.append('ArtAssets: imported models must use the shared audio policy')
+    if not re.search(r'ArtAssets\.ValidateMeshModel\(template\)\s+if not valid then return nil end\s+local clone = template:Clone\(\)', art):
+        failures.append('ArtAssets: reject unsafe templates before cloning to preserve procedural fallback')
+    if 'AudioPolicy.GetSuppression(object.ClassName)' not in silence:
+        failures.append('SilenceController: runtime suppression must use the shared audio policy')
+    if not re.search(r'game\.DescendantAdded:Connect\(suppress\)\s+for _, object in game:GetDescendants\(\) do suppress\(object\) end', silence):
+        failures.append('SilenceController: subscribe before scanning existing instances')
     # Verify literal cross-service calls against actual exported functions/aliases.
     exports = {}
     for p,s in sources.items():

@@ -124,8 +124,6 @@ local function talkSteve(player: Player)
     if not spatialAction(player,'TalkCaptainSteve') then return end
     if not canInteract(player,'TalkCaptainSteve') then reject(player,'TalkCaptainSteve','Move closer to Captain Steve.'); return end
     HubService.TalkCaptainSteve(player)
-    local state=RunContext.GetState(player)
-    if state and state.inHub then Remotes.Get('OpenShop'):FireClient(player,HubService.GetShopState(player)) end
 end
 
 local function readySnapshot(player: Player)
@@ -333,9 +331,9 @@ function GameService.SetupRemotes()
 		-- Displacement starts only after acceptance; reject pre-existing invalid
 		-- motion before issuing a fresh dodge distance allowance.
 		if not spatialAction(player,'RequestDodge') then RunContext.PushState(player); return end
-		local before=if state then state.dodgeReadyAt else 0
+		local before=CombatService.GetDodgeReadyAt(player)
 		CombatFacade.DoDodge(player, face(player,facingArg))
-		local accepted=state ~= nil and state.dodgeReadyAt > before
+		local accepted=state ~= nil and CombatService.GetDodgeReadyAt(player) > before
 		if accepted and state then TutorialService.OnDodgeAccepted(player, state.tutorial) end
 		Remotes.Get('CommandResult'):FireClient(player,{command='RequestDodge',accepted=accepted,reason=if accepted then 'Dodge accepted.' else 'Finish the current action before dodging.'})
 		RunContext.PushState(player)

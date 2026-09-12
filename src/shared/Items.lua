@@ -78,6 +78,10 @@ local list: { ItemDef } = {
 		statText="+Damage +Luck +swagger", hpBonus=10, damageBonus=8, speedBonus=1, luckBonus=0.15, dodgeBonus=0, healOnPickup=0, special="paperCut" },
 	{ id="DewKoozie", name="Florida Dew Koozie", description="Keeps vibes cold. Not a drink brand ad.", rarity="Rare", inscription="HUMID",
 		statText="+HP, heal on pickup + stage clear", hpBonus=10, damageBonus=0, speedBonus=0, luckBonus=0, dodgeBonus=0, healOnPickup=12, special="stageHeal" },
+	{ id="WoodPlank", name="Wood Plank", description="A little board with a surprisingly supportive attitude.", rarity="Common", inscription="CHAOS",
+		statText="Heal 3% max HP once per stage cleared", hpBonus=0, damageBonus=0, speedBonus=0, luckBonus=0, dodgeBonus=0, healOnPickup=0, special="woodPlankHeal" },
+	{ id="PocketfulOfSunshine", name="Pocketful of Sunshine", description="A small bright spot for a long Florida day.", rarity="Rare", inscription="HEROIC",
+		statText="Heal 1 HP every 3 enemy kills while equipped", hpBonus=0, damageBonus=0, speedBonus=0, luckBonus=0, dodgeBonus=0, healOnPickup=0, special="sunshineHeal" },
 }
 
 Items.List = list

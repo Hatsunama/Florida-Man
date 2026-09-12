@@ -37,7 +37,6 @@ function SkillService.DoSkill(player: Player, facingArg: number?)
 		return
 	end
 	CombatService.MarkSkill(player, cd)
-	s.skillReadyAt = CombatService.GetSkillReadyAt(player)
 	CombatService.MarkAttack(player, 0.3, 0.2)
 	local generation = EnemyService.GetGeneration()
 	local function isCurrent(): boolean

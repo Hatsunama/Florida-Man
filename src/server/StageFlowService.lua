@@ -19,6 +19,7 @@ local EnemyService = require(script.Parent:WaitForChild("EnemyService"))
 local TutorialService = require(script.Parent:WaitForChild("TutorialService"))
 local FunnelService = require(script.Parent:WaitForChild("FunnelService"))
 local RunContext = require(script.Parent:WaitForChild("RunContext"))
+local ItemHealingRules = require(script.Parent:WaitForChild("ItemHealingRules"))
 
 local SessionService = require(script.Parent:WaitForChild("SessionService"))
 local ProgressionRules = require(Shared:WaitForChild("ProgressionRules"))
@@ -60,6 +61,7 @@ function StageFlowService.LoadHub(player: Player)
 	FunnelService.OnTransition(player)
 	s.inHub = true
 	s.runActive = false
+	s.sunshineKills = 0
 	s.deathProcessed = false
 	s.bossState = nil
 	s.hangoverUntil = 0
@@ -206,11 +208,19 @@ function StageFlowService.OnEnemyKilled(player: Player, enemyId: string, _model:
 		return
 	end
 
+	-- EnemyService commits each death once. Evaluate before drops so a newly
+	-- granted item cannot receive credit for the kill that granted it.
+	local def = Enemies.Get(enemyId)
+	local hum = _model:FindFirstChildOfClass("Humanoid")
+	local eligibleKill = def ~= nil and not def.isAlly and not _model:GetAttribute("IsAlly") and hum ~= nil and hum.Health <= 0
+	local oldHp = s.hp
+	s.hp, s.sunshineKills = ItemHealingRules.EnemyKill(s.hp, s.maxHp, s.sunshineKills, RunContext.HasItemSpecial(s, "sunshineHeal"), eligibleKill)
+	if s.hp > oldHp then RunContext.Toast(player, string.format("Sunshine: +%g HP", s.hp - oldHp)) end
+
 	if RunContext.HasItemSpecial(s, "sunburnFind") then
 		local gain = 1 + (if RunContext.GetRng():NextNumber() < (0.12 + s.luck) then 2 else 0)
 		s.sunburn += gain
 	end
-	local def = Enemies.Get(enemyId)
 	if def and def.dropsPersona then
 		RunContext.UnlockPersona(player, def.dropsPersona)
 	end
@@ -293,6 +303,12 @@ function StageFlowService.FinishStage(player: Player)
     s.runActive = false
     s.phase = 'Reward'
     player:SetAttribute('RunActive',false)
+
+	-- The stage reward ledger is claimed above, including for the final stage.
+	-- Draft acquisition happens later and cannot heal for an earlier clear.
+	local oldHp = s.hp
+	s.hp = ItemHealingRules.StageClear(s.hp, s.maxHp, RunContext.HasItemSpecial(s, "woodPlankHeal"))
+	if s.hp > oldHp then RunContext.Toast(player, string.format("Wood Plank: +%g HP", s.hp - oldHp)) end
 
 	for _, id in s.items do
 		local it = Items.Get(id)

@@ -27,7 +27,6 @@ function SwapService.DoDodge(player: Player, facingArg: number?)
 	end
 	CombatService.MarkDodge(player, cd)
 	MovementAuthority.AllowDodge(player, Constants.DODGE_DISTANCE, Constants.DODGE_DURATION)
-	s.dodgeReadyAt = CombatService.GetDodgeReadyAt(player)
 	CombatService.MarkAttack(player, Constants.DODGE_IFRAME, Constants.DODGE_IFRAME)
 	s.facing = CombatService.ResolveFacing(player, facingArg, s.facing)
 	local char = player.Character
@@ -45,7 +44,7 @@ function SwapService.DoDodge(player: Player, facingArg: number?)
 			end
 		end)
 	end
-	Remotes.Get("CombatEvent"):FireClient(player, { kind = "dodge", facing = s.facing, dodgeReadyAt = s.dodgeReadyAt, serverNow = now })
+	Remotes.Get("CombatEvent"):FireClient(player, { kind = "dodge", facing = s.facing, dodgeReadyAt = CombatService.GetDodgeReadyAt(player), serverNow = now })
 	RunContext.PushState(player)
 end
 
@@ -63,7 +62,6 @@ function SwapService.DoSwap(player: Player, facingArg: number?)
 		return
 	end
 	CombatService.MarkSwap(player, Constants.SWAP_COOLDOWN)
-	s.swapReadyAt = CombatService.GetSwapReadyAt(player)
 	CombatService.MarkAttack(player, 0.22, 0.15)
 	s.facing = CombatService.ResolveFacing(player, facingArg, s.facing)
 	local generation = EnemyService.GetGeneration()

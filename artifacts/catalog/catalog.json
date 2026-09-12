@@ -713,9 +713,9 @@
     },
     {
       "inscription": "FERAL",
-      "description": "Enemies get interested. You get openings.",
+      "description": "Fresh bait. Suspiciously effective when you swing first.",
       "id": "LiveBait",
-      "special": "aggro",
+      "special": "",
       "hpBonus": 0,
       "healOnPickup": 0,
       "rarity": "Common",
@@ -1100,11 +1100,41 @@
       "damageBonus": 0,
       "statText": "+HP, heal on pickup + stage clear",
       "dodgeBonus": 0
+    },
+    {
+      "inscription": "CHAOS",
+      "description": "A little board with a surprisingly supportive attitude.",
+      "id": "WoodPlank",
+      "special": "woodPlankHeal",
+      "hpBonus": 0,
+      "healOnPickup": 0,
+      "rarity": "Common",
+      "name": "Wood Plank",
+      "luckBonus": 0,
+      "speedBonus": 0,
+      "damageBonus": 0,
+      "statText": "Heal 3% max HP once per stage cleared",
+      "dodgeBonus": 0
+    },
+    {
+      "inscription": "HEROIC",
+      "description": "A small bright spot for a long Florida day.",
+      "id": "PocketfulOfSunshine",
+      "special": "sunshineHeal",
+      "hpBonus": 0,
+      "healOnPickup": 0,
+      "rarity": "Rare",
+      "name": "Pocketful of Sunshine",
+      "luckBonus": 0,
+      "speedBonus": 0,
+      "damageBonus": 0,
+      "statText": "Heal 1 HP every 3 enemy kills while equipped",
+      "dodgeBonus": 0
     }
   ],
   "bounds": {
     "5": {
-      "count": 98280,
+      "count": 142506,
       "maxHp": {
         "max": 200,
         "minBuild": [
@@ -1197,7 +1227,7 @@
       }
     },
     "4": {
-      "count": 20475,
+      "count": 27405,
       "maxHp": {
         "max": 185,
         "minBuild": [
@@ -1280,7 +1310,7 @@
       }
     },
     "3": {
-      "count": 3276,
+      "count": 4060,
       "maxHp": {
         "max": 167,
         "minBuild": [
@@ -1353,7 +1383,7 @@
       }
     },
     "6": {
-      "count": 376740,
+      "count": 593775,
       "maxHp": {
         "max": 217,
         "minBuild": [
@@ -1538,7 +1568,7 @@
       ],
       "id": "DaytonaHangover",
       "biome": "beach",
-      "setPiece": "collapsingPier",
+      "setPiece": "pierWalkway",
       "headline": "VIRAL: Florida Man wakes to missing Florida Dew — crabs named persons of interest",
       "unlockPersona": "CrabKing",
       "showMutantTagline": false,
@@ -4481,17 +4511,17 @@
     }
   ],
   "sourceHashes": {
-    "Constants": "28d68651fb726952a0e3029e34832b8af7c9f40bf2443ce3aa486800d2467c08",
-    "Stages": "aa004f0cd1011068fbb037c8128c91de76df37e5ee278ccb7eb2e1138e2cd486",
+    "Constants": "00c563764eeaa480276a07317d52254ae60d8889859a817bcf1c0424e4540037",
+    "Stages": "b8c2176b405d73e2b0b8ac794166be59a2eb6ebd1fa45ac472b18a1a23405886",
     "Personas": "b6caab3ec39eb485027dd9fff3d12f962ab0f621a622946ea76be6fb7aeb97de",
     "Enemies": "359d2a10a4940f4245a2b568e6452d5e37019c795c2c8c0538081299dac73c2b",
-    "Items": "20ef4ad069ebd86ee440311bb5d71d7e463c6e947d02d668df628b83977c3123",
+    "Items": "eae2f52d3945053c4d0cb03108421a2183285aab07f5d59c79e30cd4c1402441",
     "Weapons": "c8abd75fee6e4ac4b94a2768ba3fa1497ac1a0ad4c1bd871ff01d913c8a11172",
-    "Balance": "ef6d8e8b7223aa15fa349f72f8183d2cd7660a61f29c632c2847c8197aeccb3d",
-    "ProgressionRules": "7a5b144c983b3a07ad0d298448aa967747a4f0c321c6a83948d5c8f60fdb7fbc",
+    "Balance": "1fc6cf012ad000e951f10884f4ed93924eca7f60dd48b6c0782256559115a220",
+    "ProgressionRules": "aee61affb37b9478cea97b9b5a6e1eb77a0f1239bd070eb29babbafaaeaf5af6",
     "ProgressionCatalog": "3d5eb9b1d6b0f4ff9dbe4ce8b85cb96a7c001a0cf6f5a7e04851941b54d8a31e",
     "Movesets": "1d6de3c492a9877e1544a3778050223cf3f1a7f4b1cd32e446c9c54efa31f585",
     "BuildRules": "7a6fe5afd253d0d977a0947d7c585a18f283bf954f0a8300fc67ad7bc202f33f",
-    "LayoutPlan": "912bd15944d2c70c5c43931067e8f4802a07be4b9a40168a231157c7332dc148"
+    "LayoutPlan": "77810989ff5757e19bef8a0ac6903761b814d5b5341beb1c87e0c4fb9af62455"
   }
 }

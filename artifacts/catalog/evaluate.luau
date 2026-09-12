@@ -15,7 +15,6 @@ local Constants = {
 	SWAP_IFRAME = 0.28, -- brief armor during swap-attack
 	BASE_HP = 100,
 	ATTACK_RANGE = 10,
-	ATTACK_BUFFER = 0.12, -- Skul-like input buffer window
 	ATTACK_RECOVERY = 0.22, -- base swing lock before next connect
 	HITSTOP = 0.045, -- 0.03–0.06s freeze on every connect
 	HITSTOP_HEAVY = 0.06, -- combo finisher / skill connect
@@ -23,17 +22,11 @@ local Constants = {
 	STARTING_PERSONA = "BeachBurnout",
 	STARTING_WEAPON = "BareHands",
 	STARTING_ITEM_SLOTS = 3,
-	ITEM_SLOTS_AFTER_FIRST_DEATH = 3, -- capacity grows by act, never requires intentional death
 	MAX_ITEM_SLOTS = 6,
 	SESSION_PLAYER_LIMIT = 1,
 	DRAFT_CHOICES = 3,
 	INSCRIPTION_SET_SIZE = 3,
-	SUNBURN_PER_COMMON = 5,
-	SUNBURN_PER_RARE = 12,
-	SUNBURN_PER_UNIQUE = 25,
-	SUNBURN_PER_LEGENDARY = 50,
 	LANE_Z = 0,
-	STAGE_LENGTH = 240,
 	SPAWN_X = 18, -- hub: within ProximityPrompt range of Flame at x=20
 	REMOTE_FOLDER = "Remotes",
 	COLD_ONE_HEAL = 35,
@@ -60,20 +53,14 @@ local Constants = {
 	EMBER_BUFF_DURATION = 2.5,
 	EMBER_DAMAGE_MULT = 1.25,
 	OIL_SLOW_MULT_RESIST = 0.88, -- GREASY set milder slick slow
-	HOA_CONE_DAMAGE = 3,
 	CART_DASH_IFRAME = 0.55, -- Golf Cart Bandit skill armor frames
 	-- N5 level verbs
 	WATER_TIMEOUT = 2.4, -- recover after continuous deep-water exposure
 	CONVEYOR_FLIP_PERIOD = 3.8, -- Act4 conveyor push sign flip
-	TURTLE_ESCORT_RADIUS = 14,
-	TURTLE_ESCORT_SPEED = 9,
-	WIND_OPPOSE_MULT = 0.52, -- Act5 cut upward vel while in wind
-	WIND_PUSH_SPEED = 22,
 	-- N6 combat depth
 	FOAM_FIRE_MULT = 1.45, -- foam extinguisher vs firearc enemies
 	NET_ROOT_DURATION = 1.15, -- net gun brief root
 	THROW_ARC_HEIGHT = 7.5, -- Lawn Dart / thrown lob (Roman Candle stays flat)
-	CANCEL_WINDOW_FLASH = 0.35, -- HUD cancel cue duration
 }
 
 
@@ -149,7 +136,7 @@ local list: { StageDef } = {
 		},
 		miniboss = "CrabKingBoss", boss = nil, unlockPersona = "CrabKing", rescueTurtles = 0,
 		showMutantTagline = false, isHub = false, coldOnePickup = true, hangover = true,
-		propTheme = "beach", biome = "beach", setPiece = "collapsingPier", hazards = { "sandSlow" },
+		propTheme = "beach", biome = "beach", setPiece = "pierWalkway", hazards = { "sandSlow" },
 		lighting = "dawnGold", storyBeat = "The crabs stole your Florida Dew. Reclaim the glowing can, then follow the beach.",
 		scalingTier = 1, goalLabel = "PIER LIGHT →", steveAct = 1, platformLedges = 0,
 	},
@@ -559,7 +546,7 @@ end
 Stages.ACT_VERB = {
 	[1] = "timedRhythm",
 	[2] = "padWater",
-	[3] = "turtleEscort",
+	[3] = "turtleRescue",
 	[4] = "conveyorFlip",
 	[5] = "windGaps",
 }
@@ -569,7 +556,7 @@ Stages.VERB_LABEL = {
 	timedRhythm = "Timed hazard rhythm — jump when HOT",
 	padWater = "Pad-only traversal — leave deep water or soft-fall",
 	oilSlick = "Oil slicks — skim or slip",
-	turtleEscort = "Turtle rescue — use Interact beside each turtle",
+	turtleRescue = "Turtle rescue — use Interact beside each turtle",
 	midGate = "MidGate room lock — clear the wave",
 	conveyorFlip = "Conveyors flip direction on a timer",
 	windGaps = "Barge gaps + wind opposing jumps",
@@ -587,7 +574,7 @@ function Stages.LevelVerb(stage: StageDef): string
 		return "bossArena"
 	end
 	if stage.rescueTurtles > 0 then
-		return "turtleEscort"
+		return "turtleRescue"
 	end
 	local sp = stage.setPiece or ""
 	if sp == "canalPads" then
@@ -1100,8 +1087,8 @@ local list: { ItemDef } = {
 		statText="+Move Speed", hpBonus=0, damageBonus=0, speedBonus=2, luckBonus=0, dodgeBonus=0.05, healOnPickup=0, special="" },
 	{ id="CrackedVisor", name="Cracked Visor", description="Blocks 40% of glare and 0% of bad decisions.", rarity="Common", inscription="HEROIC",
 		statText="+HP", hpBonus=15, damageBonus=0, speedBonus=0, luckBonus=0, dodgeBonus=0, healOnPickup=0, special="" },
-	{ id="LiveBait", name="Live Bait", description="Enemies get interested. You get openings.", rarity="Common", inscription="FERAL",
-		statText="+Damage", hpBonus=0, damageBonus=3, speedBonus=0, luckBonus=0, dodgeBonus=0, healOnPickup=0, special="aggro" },
+	{ id="LiveBait", name="Live Bait", description="Fresh bait. Suspiciously effective when you swing first.", rarity="Common", inscription="FERAL",
+		statText="+Damage", hpBonus=0, damageBonus=3, speedBonus=0, luckBonus=0, dodgeBonus=0, healOnPickup=0, special="" },
 	{ id="ExpiredSunscreen", name="Expired Sunscreen", description="Sticky armor. SPF: emotional.", rarity="Common", inscription="HUMID",
 		statText="+HP, slight slow", hpBonus=20, damageBonus=0, speedBonus=-1, luckBonus=0, dodgeBonus=0, healOnPickup=0, special="" },
 	{ id="IHeartFLShirt", name="I♥FL Shirt", description="Tourist camouflage. +swagger.", rarity="Rare", inscription="CHAOS",
@@ -1152,6 +1139,10 @@ local list: { ItemDef } = {
 		statText="+Damage +Luck +swagger", hpBonus=10, damageBonus=8, speedBonus=1, luckBonus=0.15, dodgeBonus=0, healOnPickup=0, special="paperCut" },
 	{ id="DewKoozie", name="Florida Dew Koozie", description="Keeps vibes cold. Not a drink brand ad.", rarity="Rare", inscription="HUMID",
 		statText="+HP, heal on pickup + stage clear", hpBonus=10, damageBonus=0, speedBonus=0, luckBonus=0, dodgeBonus=0, healOnPickup=12, special="stageHeal" },
+	{ id="WoodPlank", name="Wood Plank", description="A little board with a surprisingly supportive attitude.", rarity="Common", inscription="CHAOS",
+		statText="Heal 3% max HP once per stage cleared", hpBonus=0, damageBonus=0, speedBonus=0, luckBonus=0, dodgeBonus=0, healOnPickup=0, special="woodPlankHeal" },
+	{ id="PocketfulOfSunshine", name="Pocketful of Sunshine", description="A small bright spot for a long Florida day.", rarity="Rare", inscription="HEROIC",
+		statText="Heal 1 HP every 3 enemy kills while equipped", hpBonus=0, damageBonus=0, speedBonus=0, luckBonus=0, dodgeBonus=0, healOnPickup=0, special="sunshineHeal" },
 }
 
 Items.List = list
@@ -1416,19 +1407,6 @@ function Balance.ActNumber(stageIndex: number): number
 	end
 end
 
--- Wave density hint used by GameService (early teach, late elite)
-function Balance.WaveSpawnCap(stageIndex: number, requested: number): number
-	local maxH = Balance.MaxHostiles(stageIndex)
-	if stageIndex <= 2 then
-		return math.min(requested, 2, maxH)
-	elseif stageIndex <= 5 then
-		return math.min(requested, 2, maxH)
-	else
-		return math.min(requested, maxH)
-	end
-end
-
-
 -- Phase 5: Act1–2 minibosses slightly softer so pacing teaches, not sponges
 Balance.MINIBOSS_HP_ACT = {
 	[1] = 0.88, -- Hangover Coast
@@ -1499,8 +1477,9 @@ function Rules.RequiresMidRoom(stage: {index: number,isHub: boolean,waves: {any}
 	return not stage.isHub and stage.index>=3 and #stage.waves>0
 end
 
-function Rules.CanComplete(stage: {index: number,isHub: boolean, boss: string?, rescueTurtles: number, miniboss: string?, waves: {any}}, state: {bossDefeated: boolean, turtlesRescued: number, minibossSpawned: boolean, waveFlags: {[number]: boolean},midRoomState: string}, outstanding: number): boolean
+function Rules.CanComplete(stage: {index: number,isHub: boolean, boss: string?, rescueTurtles: number, miniboss: string?, waves: {any},coldOnePickup: boolean?}, state: {bossDefeated: boolean, turtlesRescued: number, minibossSpawned: boolean, waveFlags: {[number]: boolean},midRoomState: string,coldOneTaken: boolean?}, outstanding: number): boolean
 	if stage.isHub or outstanding > 0 then return false end
+	if stage.coldOnePickup and not state.coldOneTaken then return false end
 	if Rules.RequiresMidRoom(stage) and state.midRoomState~='cleared' then return false end
 	if stage.boss and not state.bossDefeated then return false end
 	if state.turtlesRescued < stage.rescueTurtles then return false end
@@ -1705,6 +1684,16 @@ function LayoutPlan.HasSupport(spans: { Span }, x: number, clearance: number?): 
 		if not span.gap and x - pad >= span.first and x + pad <= span.last then return true end
 	end
 	return false
+end
+
+-- Set-piece collision must respect the same gaps as the ground plan.
+function LayoutPlan.SupportedSlices(spans: { Span }, first: number, last: number): { Span }
+	local slices: { Span } = {}
+	for _, span in spans do
+		local a, b = math.max(first, span.first), math.min(last, span.last)
+		if not span.gap and b > a then table.insert(slices, {first=a,last=b,gap=false}) end
+	end
+	return slices
 end
 
 function LayoutPlan.ForStage(stage: StageLayout, spawnX: number): { Span }

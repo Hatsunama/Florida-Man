@@ -21,6 +21,7 @@ local MovementAuthority = require(script.Parent:WaitForChild("MovementAuthority"
 local RunStats = require(script.Parent:WaitForChild('RunStats'))
 local CharacterStatePublisher = require(script.Parent:WaitForChild('CharacterStatePublisher'))
 local ItemGrantRules = require(script.Parent:WaitForChild('ItemGrantRules'))
+local ItemHealingRules = require(script.Parent:WaitForChild('ItemHealingRules'))
 local ProgressionRules = require(Shared:WaitForChild('ProgressionRules'))
 local RunContext = {}
 
@@ -139,9 +140,9 @@ function RunContext.PushState(player: Player)
 		hangoverUntil = s.hangoverUntil,
 		inHub = s.inHub,
 		runActive = s.runActive,
-		skillReadyAt = s.skillReadyAt,
-		swapReadyAt = s.swapReadyAt,
-		dodgeReadyAt = s.dodgeReadyAt,
+		skillReadyAt = CombatService.GetSkillReadyAt(player),
+		swapReadyAt = CombatService.GetSwapReadyAt(player),
+		dodgeReadyAt = CombatService.GetDodgeReadyAt(player),
 		attackReadyAt = CombatService.GetAttackReadyAt(player),
 		cancelOpenAt = CombatService.GetCancelOpenAt(player),
 		serverNow = os.clock(),
@@ -183,6 +184,7 @@ function RunContext.NewRunState(deaths: number): RunState
 		unlockedPersonas = { BeachBurnout = true },
 		personaRarity = { BeachBurnout = "Common" },
 		items = {},
+		sunshineKills = 0,
 		itemSlots = Constants.STARTING_ITEM_SLOTS,
 		sunburn = 0,
 		luck = 0,
@@ -205,9 +207,6 @@ function RunContext.NewRunState(deaths: number): RunState
 		combo = 0,
 		lastAttackAt = 0,
 		lastHurtAt = 0,
-		skillReadyAt = 0,
-		swapReadyAt = 0,
-		dodgeReadyAt = 0,
 		emberUntil = 0,
 		facing = 1,
 		unlockedFireworks = false,
@@ -269,7 +268,9 @@ function RunContext.TryGrantItem(player: Player, itemId: string, replaceIndex: n
 	end
 	local result, reason = ItemGrantRules.Grant(s.items,s.itemSlots,itemId,replaceIndex,Items.Get)
 	if not result then return false, reason end
+	local hadSunshine = RunContext.HasItemSpecial(s, "sunshineHeal")
 	s.items = result
+	s.sunshineKills = ItemHealingRules.EquipmentProgress(s.sunshineKills, hadSunshine, RunContext.HasItemSpecial(s, "sunshineHeal"))
 	RunContext.ComputeStats(s)
 	local it = Items.Get(itemId)
 	if it and it.healOnPickup > 0 then

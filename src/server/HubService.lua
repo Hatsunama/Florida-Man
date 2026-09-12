@@ -1,5 +1,6 @@
 --!strict
 local Players = game:GetService("Players")
+local HttpService = game:GetService("HttpService")
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Constants = require(Shared:WaitForChild("Constants"))
 local Personas = require(Shared:WaitForChild("Personas"))
@@ -51,7 +52,8 @@ function HubService.TalkCaptainSteve(player: Player)
 	elseif act == 1 and s.steveEvents.collarHint and not s.steveEvents.collarHintSaid then
 		line = Story.SteveEventLine("collarHint") or line; s.steveEvents.collarHintSaid = true
 	end
-	RunContext.Say(player, line, "Captain Steve", "steve-interact")
+	-- Each accepted conversation is new; replaying one delivery still deduplicates on the client.
+	RunContext.Say(player, line, "Captain Steve", "steve-interact:" .. HttpService:GenerateGUID(false))
 	RunContext.PushState(player)
 end
 

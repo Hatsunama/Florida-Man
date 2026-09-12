@@ -5,6 +5,7 @@
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local AudioPolicy = require(script.Parent:WaitForChild("AudioPolicy"))
 
 local ArtAssets = {}
 
@@ -141,7 +142,7 @@ function ArtAssets.ValidateMeshModel(model: Model): (boolean, string)
 	local descendants = model:GetDescendants()
 	if #descendants > 1024 then return false, "Model exceeds instance budget" end
 	for _, object in descendants do
-		if object:IsA("LuaSourceContainer") or object:IsA("Sound") or object:IsA("AudioPlayer")
+		if object:IsA("LuaSourceContainer") or AudioPolicy.IsForbiddenClass(object.ClassName)
 			or object:IsA("RemoteEvent") or object:IsA("RemoteFunction") or object:IsA("BindableEvent") or object:IsA("BindableFunction")
 			or object:IsA("BodyMover") or object:IsA("AlignPosition") or object:IsA("AlignOrientation")
 			or object:IsA("LinearVelocity") or object:IsA("VectorForce") or object:IsA("AngularVelocity") then

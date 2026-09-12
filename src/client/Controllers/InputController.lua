@@ -12,6 +12,7 @@ local VFX=require(script.Parent:WaitForChild("VFX"))
 local Anim=require(script.Parent:WaitForChild("AnimController"))
 local State=require(script.Parent:WaitForChild("PresentationState"))
 local Device=require(script.Parent:WaitForChild("DevicePolicy"))
+local MenuPolicy=require(script.Parent:WaitForChild("MenuPolicy"))
 local Input={}
 local movement: any=nil
 local state: any=nil
@@ -28,6 +29,10 @@ local prompts: { [ProximityPrompt]: boolean }={}
 local Changed=Instance.new("BindableEvent")
 Input.InteractionChanged=Changed.Event
 local function facing(): number return if movement then movement.GetFacing() else 1 end
+local function controllerUIOwnsMovement(): boolean
+	local selected=GuiService.SelectedObject
+	return MenuPolicy.ControllerUIOwnsMovement(State.IsModal(),selected~=nil,State.GameplayMenuOwnsSelection(selected))
+end
 local function available(action: string): boolean
 	if not enabled or not state or state.characterReady~=true or State.IsModal() then return false end
 	if state.phase~="Hub" and state.phase~="Active" then return false end
@@ -208,12 +213,12 @@ function Input.Start()
 		return Enum.ContextActionResult.Sink
 	end,false,3000,Enum.KeyCode.A,Enum.KeyCode.D,Enum.KeyCode.Left,Enum.KeyCode.Right)
 	CAS:BindActionAtPriority("FM_Stick",function(_,phase,input)
-		if State.IsModal() or GuiService.SelectedObject then
+		if controllerUIOwnsMovement() then
 			Input.Intent("move","end",0,"gamepad")
 			return Enum.ContextActionResult.Pass
 		end
 		Input.Intent("move",if phase==Enum.UserInputState.End then "end" else "begin",if math.abs(input.Position.X)>0.18 then input.Position.X else 0,"gamepad")
-		return if State.IsModal() or GuiService.SelectedObject then Enum.ContextActionResult.Pass else Enum.ContextActionResult.Sink
+		return Enum.ContextActionResult.Sink
 	end,false,3000,Enum.KeyCode.Thumbstick1)
 	local bindings={
 		{action="jump",keys={Enum.KeyCode.Space,Enum.KeyCode.ButtonA}},
@@ -226,7 +231,7 @@ function Input.Start()
 	for _,binding in bindings do
 		CAS:BindActionAtPriority("FM_"..binding.action,function(_,phase,input)
 			if UIS:GetFocusedTextBox() then return Enum.ContextActionResult.Pass end
-			if input.KeyCode==Enum.KeyCode.ButtonA and GuiService.SelectedObject then return Enum.ContextActionResult.Pass end
+			if input.KeyCode==Enum.KeyCode.ButtonA and controllerUIOwnsMovement() then return Enum.ContextActionResult.Pass end
 			Input.Intent(binding.action,if phase==Enum.UserInputState.Begin then "begin" else "end")
 			return if available(binding.action) then Enum.ContextActionResult.Sink else Enum.ContextActionResult.Pass
 		end,false,3000,table.unpack(binding.keys))
